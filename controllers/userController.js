@@ -1,3 +1,4 @@
+const users = require('../models/userModel.js');
 
 exports.create = (req, res) => {
   users.create(req.body)
