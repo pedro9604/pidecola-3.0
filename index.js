@@ -2,7 +2,7 @@
 
 const express = require('express')
 const bodyParser = require('body-parser')
-const chalk = require('chalk');
+const chalk = require('chalk')
 
 const config = require('./Conf.js')
 const connections = require('./lib/connections.js')
@@ -28,7 +28,7 @@ app.listen(port, () => {
   |   |    |   | |       ||   |___ 
   |___|    |___| |______| |_______|
   `),
-chalk.yellow(` 
+  chalk.yellow(` 
  _______  _______  ___      _______  _______        _______ 
 |       ||       ||   |    |   _   ||       |      |  _    |
 |       ||   _   ||   |    |  |_|  ||___    |      | | |   |
