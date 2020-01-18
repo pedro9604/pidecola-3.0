@@ -27,7 +27,7 @@ exports.create = (req, res) => {
       return create(req.body)
     })
     .then((usr) => {
-      let userInf = {email: usr.email, phoneNumber: usr.phone_number}
+      const userInf = { email: usr.email, phoneNumber: usr.phone_number }
       return res.status(200).send(response(true, userInf, 'User created.'))
     })
     .catch(err => {
