@@ -22,6 +22,8 @@ const UserSchema = new Schema(
         }],
     rides_given: { type: Number },
     rides_recieved: { type: Number }
+  }, {
+    timestamps: true
   }
 )
 
