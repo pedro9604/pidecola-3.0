@@ -15,6 +15,9 @@ const port = config.SERVER_PORT || 2222
 app.use(bodyParser.json({ limit: '50mb', extended: true }))
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }))
 
+const autentication = require('./autentication.js')
+app.use('/login', autentication.signIn)
+
 const user = require('./routes/userRoutes.js')
 app.use('/users', user)
 
