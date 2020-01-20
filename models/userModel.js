@@ -9,7 +9,7 @@ const UserSchema = new Schema(
     password: { type: String, required: true },
     phone_number: { type: String, required: true },
     age: { type: Number },
-    genre: { type: String },
+    gender: { type: String, enum: ['M','F','O'] },
     profile_pic: { type: Schema.Types.ObjectId, ref: 'Img' },
     vehicles:
         [{
@@ -17,7 +17,7 @@ const UserSchema = new Schema(
           model: { type: String },
           year: { type: Number },
           color: { type: String },
-          vehicle_pic: { type: Schema.Types.ObjectId, ref: 'Img' }
+          vehicle_pic: [{ type: Schema.Types.ObjectId, ref: 'Img' }]
 
         }],
     rides_given: { type: Number },
