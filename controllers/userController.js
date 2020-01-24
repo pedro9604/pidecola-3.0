@@ -16,21 +16,27 @@ const create = (dataUser) => {
   return users.create({ email: email, password: password, phone_number: phoneNumber })
 }
 
+exports.findByEmail = (email) => {
+  return users.findOne({ email: email })
+}
+
 exports.create = (req, res) => {
   const validate = validateIn(req.body, registerRules)
 
   if (!validate.pass) return res.status(400).send(response(false, validate.errors, 'Error in request.'))
 
   bcrypt.hash(req.body.password, BCRYPT_SALT_ROUNDS)
-    .then(function (hashedPassword) {
+    .then(hashedPassword => {
       req.body.password = hashedPassword
       return create(req.body)
     })
-    .then((usr) => {
+    .then(usr => {
       const userInf = { email: usr.email, phoneNumber: usr.phone_number }
       return res.status(200).send(response(true, userInf, 'User created.'))
     })
     .catch(err => {
-      return res.status(500).send(response(false, err, 'User not created.'))
+      let message = 'User not created.'
+      if (err && !!err.code && err.code === 11000) message = 'User alredy exists.'
+      return res.status(500).send(response(false, err, message))
     })
 }
