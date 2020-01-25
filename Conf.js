@@ -1,7 +1,7 @@
 'use strict'
 
 // Server port
-exports.SERVER_PORT = 2222
+exports.SERVER_PORT = 5000
 
 // Environment to use
 exports.ENV = 'dev'
