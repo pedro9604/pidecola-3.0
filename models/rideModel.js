@@ -16,7 +16,8 @@ const RideSchema = new Schema(
     comments:
       [{
         user_id: { type: Schema.Types.ObjectId, ref: 'User' },
-        rate: { type: Boolean },
+        like: { type: Boolean },
+        dislike: { type: Boolean },
         comment: { type: 'String'}
       }]
   }
