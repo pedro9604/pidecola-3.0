@@ -6,7 +6,7 @@ const chalk = require('chalk')
 const cors = require('cors');
 const http = require('http');
 
-const config = require('./Conf.js')
+const config = require('./Config.js')
 const connections = require('./lib/connections.js')
 
 connections.connectDB()

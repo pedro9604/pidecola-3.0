@@ -11,6 +11,12 @@ const registerRules = {
   phoneNumber: 'required|string'
 }
 
+const errorsMessage = {
+  'required.email': "El correo electrónico de la usb es necesario.",
+  'required.password': "La contraseña es necesaria.",
+  'required.phoneNumber': "El teléfono celular es necesario."
+}
+
 const create = (dataUser) => {
   const { email, password, phoneNumber } = dataUser
   return users.create({ email: email, password: password, phone_number: phoneNumber })
@@ -21,7 +27,7 @@ exports.findByEmail = (email) => {
 }
 
 exports.create = (req, res) => {
-  const validate = validateIn(req.body, registerRules)
+  const validate = validateIn(req.body, registerRules, errorsMessage)
 
   if (!validate.pass) return res.status(400).send(response(false, validate.errors, 'Error in request.'))
 
