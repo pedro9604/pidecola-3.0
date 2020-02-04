@@ -3,17 +3,21 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const chalk = require('chalk')
+const cors = require('cors');
+const http = require('http');
 
-const config = require('./Conf.js')
+const config = require('./Config.js')
 const connections = require('./lib/connections.js')
 
 connections.connectDB()
 
 const app = express()
-const port = config.SERVER_PORT || 2222
+app.disable('x-powered-by')
+const port = config.SERVER_PORT || 5000
 
 app.use(bodyParser.json({ limit: '50mb', extended: true }))
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }))
+app.use(cors())
 
 const autentication = require('./autentication.js')
 app.use('/login', autentication.signIn)
@@ -21,7 +25,9 @@ app.use('/login', autentication.signIn)
 const user = require('./routes/userRoutes.js')
 app.use('/users', user)
 
-app.listen(port, () => {
+const server = http.createServer(app);
+
+server.listen(port, () => {
   console.log(chalk.blue(`
    _______  ___   ______   ______ 
   |   __  ||   | |      | |   ___|
