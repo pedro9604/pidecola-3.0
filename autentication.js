@@ -21,9 +21,10 @@ exports.signIn = (req, res) => {
   const { email, password } = viewCredentials(req.headers.authorization)
   if (!email || !password) return res.status(401).send(response(false, null, 'Invalid Credentials.'))
   users.findByEmail(email)
-    .then(user => {
+    .then(async user => {
       if (!user) return undefined
-      return [bcrypt.compare(password, user.password), user]
+      const compare = await bcrypt.compare(password, user.password)
+      return [compare, user]
     })
     .then(resp => {
       if (!resp) return res.status(401).send(response(false, null, 'User not found.'))
