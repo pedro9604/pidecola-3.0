@@ -19,7 +19,11 @@ const errorsMessage = {
 
 const create = (dataUser) => {
   const { email, password, phoneNumber } = dataUser
-  return users.create({ email: email, password: password, phone_number: phoneNumber })
+  return users.create({
+    email: email,
+    password: password,
+    phone_number: phoneNumber
+  })
 }
 
 exports.findByEmail = (email) => {
@@ -29,7 +33,7 @@ exports.findByEmail = (email) => {
 exports.create = (req, res) => {
   const validate = validateIn(req.body, registerRules, errorsMessage)
 
-  if (!validate.pass) return res.status(400).send(response(false, validate.errors, 'Error in request.'))
+  if (!validate.pass) return res.status(400).send(response(false, validate.errors, 'Ha ocurrido un error en el proceso'))
 
   bcrypt.hash(req.body.password, BCRYPT_SALT_ROUNDS)
     .then(hashedPassword => {
@@ -38,11 +42,11 @@ exports.create = (req, res) => {
     })
     .then(usr => {
       const userInf = { email: usr.email, phoneNumber: usr.phone_number }
-      return res.status(200).send(response(true, userInf, 'User created.'))
+      return res.status(200).send(response(true, userInf, 'Usuario creado.'))
     })
     .catch(err => {
-      let message = 'User not created.'
-      if (err && !!err.code && err.code === 11000) message = 'User alredy exists.'
-      return res.status(500).send(response(false, err, message))
+      let mssg = 'Usuario no ha sido creado.'
+      if (err && err.code && err.code === 11000) mssg = 'Ya existe usuario.'
+      return res.status(500).send(response(false, err, mssg))
     })
 }

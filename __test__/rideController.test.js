@@ -12,8 +12,6 @@ describe('create', () => {
       "destination": "B"
     }
     var request = httpMocks.createRequest({
-      method: 'POST',
-      url: '/users',
       body: data
     })
     var response = httpMocks.createResponse()
@@ -30,8 +28,6 @@ describe('create', () => {
       "destination": "B"
     }
     var request = httpMocks.createRequest({
-      method: 'POST',
-      url: '/users',
       body: data
     })
     var response = httpMocks.createResponse()
@@ -48,8 +44,6 @@ describe('create', () => {
       "destination": "B"
     }
     var request = httpMocks.createRequest({
-      method: 'POST',
-      url: '/users',
       body: data
     })
     var response = httpMocks.createResponse()
@@ -66,8 +60,6 @@ describe('create', () => {
       "destination": "B"
     }
     var request = httpMocks.createRequest({
-      method: 'POST',
-      url: '/users',
       body: data
     })
     var response = httpMocks.createResponse()
@@ -84,8 +76,6 @@ describe('create', () => {
       "destination": 1
     }
     var request = httpMocks.createRequest({
-      method: 'POST',
-      url: '/users',
       body: data
     })
     var response = httpMocks.createResponse()
@@ -102,8 +92,6 @@ describe('create', () => {
     }
 
     var mockReq = httpMocks.createRequest({
-      method: 'POST',
-      url: '/users',
       body: mockUser
     })
 
@@ -119,8 +107,6 @@ describe('create', () => {
       "destination": "B"
     }
     var request = httpMocks.createRequest({
-      method: 'POST',
-      url: '/users',
       body: data
     })
     var response = httpMocks.createResponse()
@@ -129,7 +115,7 @@ describe('create', () => {
   });
 });
 
-describe('endRide', () => {
+/*describe('endRide', () => {
   test('A passenger insert a comment about the ride', () => {
     // test code
   });
@@ -145,4 +131,4 @@ describe('endRide', () => {
   test('Comment is not an string', () => {
     // test code
   });
-});
+});*/
