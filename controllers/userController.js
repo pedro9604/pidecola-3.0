@@ -46,7 +46,7 @@ exports.create = (req, res) => {
     })
     .catch(err => {
       let mssg = 'Usuario no ha sido creado.'
-      if (err && !!err.code && err.code === 11000) mssg = 'Ya existe usuario'
+      if (err && err.code && err.code === 11000) mssg = 'Ya existe usuario.'
       return res.status(500).send(response(false, err, mssg))
     })
 }

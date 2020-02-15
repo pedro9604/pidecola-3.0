@@ -24,7 +24,12 @@ app.use('/login', autentication.signIn)
 
 const user = require('./routes/userRoutes.js')
 app.use('/users', user)
-// app.use('/rideController', user.rideController)
+
+const ride = require('./routes/rideRoutes.js')
+app.use('/rides', ride)
+
+const requests = require('./routes/requestsRoutes.js')
+app.use('/requests', requests)
 
 const server = http.createServer(app);
 

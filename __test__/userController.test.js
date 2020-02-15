@@ -1,6 +1,7 @@
 const user      = require('../controllers/userController.js')
 const httpMocks = require('node-mocks-http')
 
+
 describe('create', () => {
   test('A new user is created', () => {
     const data = {
@@ -17,18 +18,30 @@ describe('create', () => {
   })
 
   test('An existed user is not created', () => {
-    const data = {
+    const data1 = {
       email: "13-00000@usb.ve",
       password: "C0N5T4Nz4",
       phoneNumber: "09876543210"
     }
-    var request = httpMocks.createRequest({
-      body: data
+    var request1 = httpMocks.createRequest({
+      method: 'POST',
+      url: '/users',
+      body: data1
     })
     var response1 = httpMocks.createResponse()
+    user.create(request1, response1)
+    const data2 = {
+      email: "12-00000@usb.ve",
+      password: "C0N5T4Nz4",
+      phoneNumber: "55555555555"
+    }
+    var request2 = httpMocks.createRequest({
+      method: 'POST',
+      url: '/users',
+      body: data2
+    })
     var response2 = httpMocks.createResponse()
-    user.create(request, response1)
-    user.create(request, response2)
+    user.create(request2, response2)
     expect(response2.statusCode).toBe(500)
   })
 
