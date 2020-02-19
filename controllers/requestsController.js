@@ -1,8 +1,9 @@
 // requestController
 const validateIn = require('../lib/utils/validation').validateIn
 const response   = require('../lib/utils/response').response
+const usr = require('./userController.js')
 
-var requestsList = [
+const requestsList = [
   { name: "Baruta", requests: [] },
   { name: "Coche", requests: [] },
   { name: "Chacaito", requests: [] },
@@ -22,7 +23,9 @@ const fromNameToInt = (name) => {
 const requestsRules = {
   user: "required|email",
   start_location: "required|string",
-  destination: "required|string"
+  destination: "required|string",
+  comment: "string",
+  im_going: "string",
 }
 
 const deleteRules = requestsRules
@@ -43,6 +46,7 @@ const add = (newRequest) => {
       } else {
         index = fromNameToInt(newRequest.start_location)
       }
+      newRequest.photo = usr.findByEmail(newRequest.user).select('profile_pic')
       requestsList[index].requests.push(newRequest)
       return true
     } else {
@@ -102,3 +106,4 @@ exports.delete = (req, res) => {
 }
 
 module.exports.requestsList = requestsList
+module.exports.cast = fromNameToInt
