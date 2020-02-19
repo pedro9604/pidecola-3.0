@@ -1,15 +1,29 @@
-const user = require('../controllers/userController.js')
-const ride = require('../controllers/rideController.js')
-const httpMocks  = require('node-mocks-http')
+const user      = require('../controllers/userController.js')
+const ride      = require('../controllers/rideController.js')
+const usr       = require('../models/userModel.js')
+const httpMocks = require('node-mocks-http')
 
 describe('create', () => {
+  beforeEach(() => {
+    const data = {
+      email: "XXXXXX@usb.ve",
+      password: "password",
+      phoneNumber: "phoneNumber"
+    }
+    var request  = httpMocks.createRequest({body: data})
+    var response = httpMocks.createResponse()
+    user.create(request, response)
+  })
+
+  afterEach(() => { usr.deleteOne({email: "XXXXXX@usb.ve"}) })
+
   test('rider with a passenger from A to B', () => {
     const data = {
-      "rider": "XXXXXX@usb.ve",
-      "passenger": [],
-      "seats": "0",
-      "start_location": "A",
-      "destination": "B"
+      rider: "XXXXXX@usb.ve",
+      passenger: [],
+      seats: "0",
+      start_location: "A",
+      destination: "B"
     }
     var request = httpMocks.createRequest({
       body: data
@@ -21,11 +35,11 @@ describe('create', () => {
 
   test('rider is not an email', () => {
     const data = {
-      "rider": "XXXXXX",
-      "passenger": [],
-      "seats": "0",
-      "start_location": "A",
-      "destination": "B"
+      rider: "XXXXXX",
+      passenger: [],
+      seats: "0",
+      start_location: "A",
+      destination: "B"
     }
     var request = httpMocks.createRequest({
       body: data
@@ -37,11 +51,11 @@ describe('create', () => {
 
   test('seats is not a number', () => {
     const data = {
-      "rider": "XXXXXX@usb.ve",
-      "passenger": [],
-      "seats": "a",
-      "start_location": "A",
-      "destination": "B"
+      rider: "XXXXXX@usb.ve",
+      passenger: [],
+      seats: "a",
+      start_location: "A",
+      destination: "B"
     }
     var request = httpMocks.createRequest({
       body: data
@@ -53,11 +67,11 @@ describe('create', () => {
 
   test('start_location is not an string', () => {
     const data = {
-      "rider": "XXXXXX@usb.ve",
-      "passenger": [],
-      "seats": "0",
-      "start_location": 1,
-      "destination": "B"
+      rider: "XXXXXX@usb.ve",
+      passenger: [],
+      seats: "0",
+      start_location: 1,
+      destination: "B"
     }
     var request = httpMocks.createRequest({
       body: data
@@ -69,11 +83,11 @@ describe('create', () => {
 
   test('destination is not an string', () => {
     const data = {
-      "rider": "XXXXXX@usb.ve",
-      "passenger": [],
-      "seats": "0",
-      "start_location": "A",
-      "destination": 1
+      rider: "XXXXXX@usb.ve",
+      passenger: [],
+      seats: "0",
+      start_location: "A",
+      destination: 1
     }
     var request = httpMocks.createRequest({
       body: data
@@ -84,34 +98,19 @@ describe('create', () => {
   });
 
   test('Rider cannot be a passenger', () => {
-
-    var mockUser = {
-      "email": "XXXXXX@usb.ve",
-      "password": "13456",
-      "phoneNumber": "01234567890"
-    }
-
-    var mockReq = httpMocks.createRequest({
-      body: mockUser
-    })
-
-    var mockRes = httpMocks.createResponse()
-
-    user.create(mockReq, mockRes)
-
     const data = {
-      "rider": "XXXXXX@usb.ve",
-      "passenger": [user.findByEmail("XXXXXX@usb.ve")],
-      "seats": "0",
-      "start_location": "A",
-      "destination": "B"
+      rider: "XXXXXX@usb.ve",
+      passenger: [user.findByEmail("XXXXXX@usb.ve").schema['$id']],
+      seats: "0",
+      start_location: "A",
+      destination: "B"
     }
     var request = httpMocks.createRequest({
       body: data
     })
     var response = httpMocks.createResponse()
     ride.create(request, response)
-    expect(response.statusCode).toBe(200);
+    expect(response.statusCode).toBe(400);
   });
 });
 
