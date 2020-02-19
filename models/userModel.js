@@ -12,7 +12,7 @@ const UserSchema = new Schema(
     last_name: { type: String },
     age: { type: Number },
     gender: { type: String, enum: ['M','F','O'] },
-    career: { type: String, enum: 
+    major: { type: String, enum: 
       ['Ing. Eléctrica', 'Ing. Mecánica', 'Ing. Química', 'Ing. Electrónica', 'Ing. de Materiales', 
       'Ing. de Computación', 'Ing. Geofísica', 'Ing. de Producción', 'Ing. de Telecomunicaciones', 
       'Arquitectura', 'Urbanismo', 'Lic. en Química', 'Lic. en Matemáticas', 'Lic. en Física', 'Lic. en Biología', 
