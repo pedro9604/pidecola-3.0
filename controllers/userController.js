@@ -50,3 +50,30 @@ exports.create = (req, res) => {
       return res.status(500).send(response(false, err, mssg))
     })
 }
+
+exports.addVehicle = (req, res) => {
+
+  users.findOneAndUpdate({email: req.body.email}, 
+
+    {$push: {
+      vehicles: {
+        "plate": req.body.plate,
+        "model": req.body.model,
+        "year": req.body.year,
+        "color": req.body.color,
+        "vehicle_capacity": req.body.vehicle_capacity
+        } 
+      }
+
+    },
+
+    {new: true},
+    
+    function(error, doc){
+      if (error){
+        return res.status(500).send(response(false, error, 'Vehiculo no fue agregado'))
+      }
+      else
+        return res.status(200).send(response(true, doc, 'Vehiculo agregado.'))
+    })
+}
