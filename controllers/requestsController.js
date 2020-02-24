@@ -58,16 +58,17 @@ const add = (newRequest) => {
 }
 
 exports.create = (req, res) => {
-  const validate = validateIn(req.body, requestsRules, errorsMessage)
+  const reqsInf = req.body
+  const validate = validateIn(reqsInf, requestsRules, errorsMessage)
 
   if (!validate.pass) {
     return res.status(400).send(
       response(false, validate.errors, 'Ha ocurrido un error en el proceso.')
     )
-  } else if (add(req.body)) {
-    return res.status(200).send(response(true, req.body, 'Solicitud exitosa.'))
+  } else if (add(reqsInf)) {
+    return res.status(200).send(response(true, reqsInf, 'Solicitud exitosa.'))
   } else {
-    return res.status(500).send(response(false, req.body, 'Solicitud errada.'))
+    return res.status(500).send(response(false, reqsInf, 'Solicitud errada.'))
   }
 }
 
@@ -92,16 +93,17 @@ const remove = (deleteRequest) => {
 }
 
 exports.delete = (req, res) => {
-  const validate = validateIn(req.body, deleteRules, errorsMessage)
+  const reqsInf = reqsInf
+  const validate = validateIn(reqsInf, deleteRules, errorsMessage)
 
   if (!validate.pass) {
     return res.status(400).send(
       response(false, validate.errors, 'Ha ocurrido un error en el proceso.')
     )
-  } else if (remove(req.body)) {
-    return res.status(200).send(response(true, req.body, 'Solicitud exitosa.'))
+  } else if (remove(reqsInf)) {
+    return res.status(200).send(response(true, reqsInf, 'Solicitud exitosa.'))
   } else {
-    return res.status(500).send(response(false, req.body, 'Solicitud errada.'))
+    return res.status(500).send(response(false, reqsInf, 'Solicitud errada.'))
   }
 }
 
