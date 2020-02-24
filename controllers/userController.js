@@ -52,28 +52,37 @@ exports.create = (req, res) => {
 }
 
 exports.addVehicle = (req, res) => {
+  
+  users.find({"vehicles.plate": req.body.plate}, function(error, result){
+    if (error)
+      return res.status(500).send(response(false, error, 'Fallo en la busqueda'))
 
-  users.findOneAndUpdate({email: req.body.email}, 
+    else if (!result.length)
+      users.findOneAndUpdate({email: req.body.email}, 
 
-    {$push: {
-      vehicles: {
-        "plate": req.body.plate,
-        "model": req.body.model,
-        "year": req.body.year,
-        "color": req.body.color,
-        "vehicle_capacity": req.body.vehicle_capacity
-        } 
-      }
-
-    },
-
-    {new: true},
+        {$push: {
+          vehicles: {
+            "plate": req.body.plate,
+            "model": req.body.model,
+            "year": req.body.year,
+            "color": req.body.color,
+            "vehicle_capacity": req.body.vehicle_capacity,
+            } 
+          }
     
-    function(error, doc){
-      if (error){
-        return res.status(500).send(response(false, error, 'Vehiculo no fue agregado'))
-      }
-      else
-        return res.status(200).send(response(true, doc, 'Vehiculo agregado.'))
-    })
+        },
+    
+        {new: true},
+        
+        function(error, doc){
+          if (error){
+            return res.status(500).send(response(false, error, 'Vehiculo no fue agregado'))
+          }
+          else
+            return res.status(200).send(response(true, doc, 'Vehiculo agregado.'))
+        })
+    else    
+      return res.status(500).send(response(false, error, 'Vehiculo ya existe'))    
+    }
+    )
 }

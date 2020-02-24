@@ -10,7 +10,7 @@ const UserSchema = new Schema(
     phone_number: { type: String, required: true },
     age: { type: Number },
     gender: { type: String, enum: ['M','F','O'] },
-    profile_pic: { type: Schema.Types.ObjectId, ref: 'Img' },
+    profile_pic: { type: String },
     status: { type: String, enum: ['Disponible', 'No Disponible']},
     community: { type: String, enum: ['Estudiante', 'Profesor', 'Egresado', 'Personal Administrativo', 'Obrero']},
     vehicles:
@@ -20,7 +20,7 @@ const UserSchema = new Schema(
           year: { type: Number },
           color: { type: String },
           vehicle_capacity: {type: Number},
-          vehicle_pic: [{ type: Schema.Types.ObjectId, ref: 'Img' }]
+          vehicle_pic: [{ type: String }]
 
         }],
     license: { type: String },    
