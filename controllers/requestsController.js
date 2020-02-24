@@ -58,7 +58,13 @@ const add = (newRequest) => {
 }
 
 exports.create = (req, res) => {
-  const reqsInf = req.body
+  const reqsInf = {
+    user: req.body.user,
+    start_location: req.body.start_location,
+    destination: req.body.destination,
+    comment: req.body.comment,
+    im_going: req.body.im_going
+  }
   const validate = validateIn(reqsInf, requestsRules, errorsMessage)
 
   if (!validate.pass) {
@@ -93,7 +99,13 @@ const remove = (deleteRequest) => {
 }
 
 exports.delete = (req, res) => {
-  const reqsInf = reqsInf
+  const reqsInf = {
+    user: req.body.user,
+    start_location: req.body.start_location,
+    destination: req.body.destination,
+    comment: req.body.comment,
+    im_going: req.body.im_going
+  }
   const validate = validateIn(reqsInf, deleteRules, errorsMessage)
 
   if (!validate.pass) {
