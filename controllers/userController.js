@@ -2,6 +2,8 @@ const bcrypt = require('bcryptjs')
 const validateIn = require('../lib/utils/validation').validateIn
 const response = require('../lib/utils/response').response
 const users = require('../models/userModel.js')
+const upload = require('../lib/cloudinaryConfig.js').upload
+const cloudinary = require('cloudinary')
 
 const BCRYPT_SALT_ROUNDS = 12
 
@@ -51,38 +53,49 @@ exports.create = (req, res) => {
     })
 }
 
-exports.addVehicle = (req, res) => {
-  
-  users.find({"vehicles.plate": req.body.plate}, function(error, result){
-    if (error)
-      return res.status(500).send(response(false, error, 'Fallo en la busqueda'))
 
-    else if (!result.length)
-      users.findOneAndUpdate({email: req.body.email}, 
 
-        {$push: {
-          vehicles: {
-            "plate": req.body.plate,
-            "model": req.body.model,
-            "year": req.body.year,
-            "color": req.body.color,
-            "vehicle_capacity": req.body.vehicle_capacity,
-            } 
-          }
+
+
+exports.addVehicle = (upload, (req, res) => {
+
+  cloudinary.v2.uploader.upload(req.file, function(picture) {
     
-        },
-    
-        {new: true},
+    users.find({"vehicles.plate": req.body.plate}, function(error, result){
+
+      
+      if (error)
+        return res.status(500).send(response(false, error, 'Fallo en la busqueda'))
+
+      else if (!result.length)
         
-        function(error, doc){
-          if (error){
-            return res.status(500).send(response(false, error, 'Vehiculo no fue agregado'))
-          }
-          else
-            return res.status(200).send(response(true, doc, 'Vehiculo agregado.'))
-        })
-    else    
-      return res.status(500).send(response(false, error, 'Vehiculo ya existe'))    
-    }
-    )
-}
+        users.findOneAndUpdate({email: req.body.email}, 
+
+          {$push: {
+            vehicles: {
+              "plate": req.body.plate,
+              "model": req.body.model,
+              "year": req.body.year,
+              "color": req.body.color,
+              "vehicle_capacity": req.body.vehicle_capacity,
+              "vehicle_pic": picture.secure_url
+              } 
+            }
+      
+          },
+      
+          {new: true},
+          
+          function(error, doc){
+            if (error){
+              return res.status(500).send(response(false, error, 'Vehiculo no fue agregado'))
+            }
+            else
+              return res.status(200).send(response(true, doc, 'Vehiculo agregado.'))
+          })
+      else    
+        return res.status(500).send(response(false, error, 'Vehiculo ya existe'))
+
+    })
+  })
+})    

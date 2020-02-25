@@ -8,8 +8,11 @@ const http = require('http');
 
 const config = require('./Config.js')
 const connections = require('./lib/connections.js')
+const cloudinary = require('./lib/cloudinaryConfig.js')
+
 
 connections.connectDB()
+cloudinary.cloudinaryConfig()
 
 const app = express()
 app.disable('x-powered-by')
@@ -30,6 +33,8 @@ app.use('/rides', ride)
 
 const requests = require('./routes/requestsRoutes.js')
 app.use('/requests', requests)
+
+
 
 const server = http.createServer(app);
 

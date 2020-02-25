@@ -20,7 +20,7 @@ const UserSchema = new Schema(
           year: { type: Number },
           color: { type: String },
           vehicle_capacity: {type: Number},
-          vehicle_pic: [{ type: String }]
+          vehicle_pic: { type: String }
 
         }],
     license: { type: String },    
