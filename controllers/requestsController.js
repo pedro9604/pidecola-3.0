@@ -74,6 +74,7 @@ exports.create = (req, res) => {
     return res.status(400).send(
       response(false, validate.errors, 'Ha ocurrido un error en el proceso.')
     )
+  }
   const insert = add(reqsInf)
   const inf = {
     user: insert.user,
