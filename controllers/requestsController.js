@@ -48,12 +48,15 @@ const add = (newRequest) => {
       }
       newRequest.photo = usr.findByEmail(newRequest.user).select('profile_pic')
       requestsList[index].requests.push(newRequest)
-      return true
+      newRequest.status = true
+      return newRequest
     } else {
-      return false
+      newRequest.status = false
+      return newRequest
     }
   } catch(error) {
-    return false
+    newRequest.status = false
+      return newRequest
   }
 }
 
@@ -71,10 +74,18 @@ exports.create = (req, res) => {
     return res.status(400).send(
       response(false, validate.errors, 'Ha ocurrido un error en el proceso.')
     )
-  } else if (add(reqsInf)) {
-    return res.status(200).send(response(true, reqsInf, 'Solicitud exitosa.'))
+  const insert = add(reqsInf)
+  const inf = {
+    user: insert.user,
+    start_location: insert.start_location,
+    destination: insert.destination,
+    comment: insert.comment,
+    im_going: insert.im_going
+  }
+  if (insert.status) {
+    return res.status(200).send(response(true, inf, 'Solicitud exitosa.'))
   } else {
-    return res.status(500).send(response(false, reqsInf, 'Solicitud errada.'))
+    return res.status(500).send(response(false, inf, 'Solicitud errada.'))
   }
 }
 
