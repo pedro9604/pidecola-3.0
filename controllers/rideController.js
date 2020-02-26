@@ -1,6 +1,6 @@
 const validateIn = require('../lib/utils/validation').validateIn
 const response = require('../lib/utils/response').response
-const users = require('../models/userModel.js')
+const users = require('../controllers/userController.js')
 const rides = require('../models/rideModel.js')
 
 const rideRules = {
@@ -20,7 +20,7 @@ const errorsMessage = {
 const create = (dataRide) => {
   const { rider, passenger, seats, start_location, destination } = dataRide
   return rides.create({
-    rider: users.findOne({email: rider}),
+    rider: users.findByEmail(rider).schema['$id'],
     passenger: passenger,
     available_seats: seats,
     status: 'En progreso',
@@ -35,12 +35,15 @@ const create = (dataRide) => {
 exports.create = (req, res) => {
   const validate = validateIn(req.body, rideRules, errorsMessage)
   const arrayPas = Array.isArray(req.body.passenger)
-  /* pssngrml :: passengers' email */
-  const pssngrml = req.body.passenger.map(x => x.select('email'))
-  /* riderINP :: rider is not a passenger*/
-  const riderINP = !pssngrml.find(u => u === req.body.rider)
+  if (req.body.passenger.length > 0) {
+    var pass = !req.body.passenger.find(u => {
+      return u === users.findByEmail(req.body.rider).schema['$id']
+    })
+  } else {
+    var pass = true
+  }
 
-  if (!(validate.pass && arrayPas && riderINP)) 
+  if (!(validate.pass && arrayPas && pass))
     return res.status(400).send(
       response(false, validate.errors, 'Ha ocurrido un error en el proceso.')
     )

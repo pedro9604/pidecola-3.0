@@ -1,8 +1,9 @@
 // requestController
 const validateIn = require('../lib/utils/validation').validateIn
 const response   = require('../lib/utils/response').response
+const usr = require('./userController.js')
 
-var requestsList = [
+const requestsList = [
   { name: "Baruta", requests: [] },
   { name: "Coche", requests: [] },
   { name: "Chacaito", requests: [] },
@@ -22,7 +23,9 @@ const fromNameToInt = (name) => {
 const requestsRules = {
   user: "required|email",
   start_location: "required|string",
-  destination: "required|string"
+  destination: "required|string",
+  comment: "string",
+  im_going: "string",
 }
 
 const deleteRules = requestsRules
@@ -43,27 +46,47 @@ const add = (newRequest) => {
       } else {
         index = fromNameToInt(newRequest.start_location)
       }
+      newRequest.photo = usr.findByEmail(newRequest.user).select('profile_pic')
       requestsList[index].requests.push(newRequest)
-      return true
+      newRequest.status = true
+      return newRequest
     } else {
-      return false
+      newRequest.status = false
+      return newRequest
     }
   } catch(error) {
-    return false
+    newRequest.status = false
+      return newRequest
   }
 }
 
 exports.create = (req, res) => {
-  const validate = validateIn(req.body, requestsRules, errorsMessage)
+  const reqsInf = {
+    user: req.body.user,
+    start_location: req.body.start_location,
+    destination: req.body.destination,
+    comment: req.body.comment,
+    im_going: req.body.im_going
+  }
+  const validate = validateIn(reqsInf, requestsRules, errorsMessage)
 
   if (!validate.pass) {
     return res.status(400).send(
       response(false, validate.errors, 'Ha ocurrido un error en el proceso.')
     )
-  } else if (add(req.body)) {
-    return res.status(200).send(response(true, req.body, 'Solicitud exitosa.'))
+  }
+  const insert = add(reqsInf)
+  const inf = {
+    user: insert.user,
+    start_location: insert.start_location,
+    destination: insert.destination,
+    comment: insert.comment,
+    im_going: insert.im_going
+  }
+  if (insert.status) {
+    return res.status(200).send(response(true, inf, 'Solicitud exitosa.'))
   } else {
-    return res.status(500).send(response(false, req.body, 'Solicitud errada.'))
+    return res.status(500).send(response(false, inf, 'Solicitud errada.'))
   }
 }
 
@@ -88,17 +111,25 @@ const remove = (deleteRequest) => {
 }
 
 exports.delete = (req, res) => {
-  const validate = validateIn(req.body, deleteRules, errorsMessage)
+  const reqsInf = {
+    user: req.body.user,
+    start_location: req.body.start_location,
+    destination: req.body.destination,
+    comment: req.body.comment,
+    im_going: req.body.im_going
+  }
+  const validate = validateIn(reqsInf, deleteRules, errorsMessage)
 
   if (!validate.pass) {
     return res.status(400).send(
       response(false, validate.errors, 'Ha ocurrido un error en el proceso.')
     )
-  } else if (remove(req.body)) {
-    return res.status(200).send(response(true, req.body, 'Solicitud exitosa.'))
+  } else if (remove(reqsInf)) {
+    return res.status(200).send(response(true, reqsInf, 'Solicitud exitosa.'))
   } else {
-    return res.status(500).send(response(false, req.body, 'Solicitud errada.'))
+    return res.status(500).send(response(false, reqsInf, 'Solicitud errada.'))
   }
 }
 
 module.exports.requestsList = requestsList
+module.exports.cast = fromNameToInt
