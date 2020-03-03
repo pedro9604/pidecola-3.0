@@ -23,6 +23,7 @@ const UserSchema = new Schema(
     vehicles:
         [{
           plate: { type: String },
+          brand: { type: String },
           model: { type: String },
           year: { type: Number },
           color: { type: String },

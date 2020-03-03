@@ -78,6 +78,7 @@ exports.addVehicle = (upload, (req, res) => {
           {$push: {
             vehicles: {
               "plate": req.body.plate,
+              "brand": req.body.brand,
               "model": req.body.model,
               "year": req.body.year,
               "color": req.body.color,
