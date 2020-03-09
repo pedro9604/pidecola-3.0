@@ -56,7 +56,7 @@ exports.create = (req, res) => {
 }
 
 exports.updateUser = (req, res) => {
-  console.log(req.body.email)
+
   users.findOneAndUpdate({email: req.body.email}, 
 
     {$set: {
