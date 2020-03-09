@@ -54,3 +54,27 @@ exports.create = (req, res) => {
       return res.status(500).send(response(false, err, mssg))
     })
 }
+
+exports.updateUser = (req, res) => {
+  console.log(req.body.email)
+  users.findOneAndUpdate({email: req.body.email}, 
+
+    {$set: {
+      "first_name": req.body.first_name,
+      "last_name": req.body.last_name,
+      "age": req.body.age,
+      "phone_number": req.body.phone_number,
+      "major": req.body.major
+      }
+    },
+
+    {new: true},
+    
+    function(error, doc){
+      if (error){
+        return res.status(500).send(response(false, error, 'Usuario no fue actualizado'))
+      }
+      else
+        return res.status(200).send(response(true, doc, 'Usuario actualizado'))
+    })
+}
