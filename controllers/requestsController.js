@@ -40,22 +40,45 @@ const add = (newRequest) => {
   const fromUSB = newRequest.start_location === "USB"
   const toUSB   = newRequest.destination === "USB"
   try {
+    var req = {
+      email: newRequest.user,
+      user: {
+        usbid: "",
+        phone: "",
+        fName: "",
+        lName: "",
+        major: "",
+        prPic: ""
+      },
+      start_location: newRequest.start_location,
+      destination: newRequest.destination,
+      comment: newRequest.comment,
+      im_going: newRequest.im_going,
+      status: false
+    }
     if (fromUSB || toUSB) {
       if (fromUSB) {
         index = fromNameToInt(newRequest.destination)
       } else {
         index = fromNameToInt(newRequest.start_location)
       }
-      newRequest.photo = usr.findByEmail(newRequest.user).select('profile_pic')
-      requestsList[index].requests.push(newRequest)
-      newRequest.status = true
-      return newRequest
+      usr.findByEmail(newRequest.user).then((sucs, err) => {
+        if (!err) {
+          req.user.usbid = sucs.email.slice(0, 8),
+          req.user.phone = sucs.phone_number,
+          req.user.fName = sucs.first_name,
+          req.user.lName = sucs.last_name,
+          req.user.major = sucs.major,
+          req.user.prPic = sucs.profile_pic
+        }
+      })
+      req.status = true
+      requestsList[index].requests.push(req)
+      return req
     } else {
-      newRequest.status = false
       return newRequest
     }
   } catch(error) {
-    newRequest.status = false
       return newRequest
   }
 }
@@ -77,13 +100,16 @@ exports.create = (req, res) => {
   }
   const insert = add(reqsInf)
   const inf = {
-    user: insert.user,
+    user: insert.email,
+    information: insert.user,
     start_location: insert.start_location,
     destination: insert.destination,
     comment: insert.comment,
-    im_going: insert.im_going
+    im_going: insert.im_going,
+    status: insert.status
   }
   if (insert.status) {
+    // console.log(inf.information.phone_number)
     return res.status(200).send(response(true, inf, 'Solicitud exitosa.'))
   } else {
     return res.status(500).send(response(false, inf, 'Solicitud errada.'))
