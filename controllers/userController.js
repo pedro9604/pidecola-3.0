@@ -30,6 +30,10 @@ exports.findByEmail = (email) => {
   return users.findOne({ email: email })
 }
 
+exports.getPic = (email) => {
+  return users.findOne({ email: email }).select('profile_pic')
+}
+
 exports.create = (req, res) => {
   const validate = validateIn(req.body, registerRules, errorsMessage)
 

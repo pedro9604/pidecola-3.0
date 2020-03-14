@@ -49,36 +49,28 @@ describe('requestsList', () => {
 
 describe('create', () => {
   test('A new request is added to the resquestsList', () => {
-    const size =
-      requests.requestsList[0].requests.length +
-      requests.requestsList[1].requests.length +
-      requests.requestsList[2].requests.length +
-      requests.requestsList[3].requests.length +
-      requests.requestsList[4].requests.length
     const data = {
-      user: "XXXXXX@usb.ve",
+      user: "12-11163@usb.ve",
       start_location: "USB",
-      destination: "Baruta"
+      destination: "Baruta",
+      comment: "Nothing",
+      im_going: "Who cares?"
     }
     var request = httpMocks.createRequest({
       body: data
     })
     var response = httpMocks.createResponse()
     requests.create(request, response)
-    const newSize =
-      requests.requestsList[0].requests.length +
-      requests.requestsList[1].requests.length +
-      requests.requestsList[2].requests.length +
-      requests.requestsList[3].requests.length +
-      requests.requestsList[4].requests.length
-    expect((newSize - size) * response.statusCode).toBe(200)
+    expect(response.statusCode).toBe(200)
   })
 
   test('A request without "USB"', () => {
     const data = {
       user: "XXXXXX@usb.ve",
       start_location: "Bellas Artes",
-      destination: "Baruta"
+      destination: "Baruta",
+      comment: "Nothing",
+      im_going: "Who cares?"
     }
     var request = httpMocks.createRequest({
       body: data
@@ -92,7 +84,9 @@ describe('create', () => {
     const data = {
       user: "XXXXXXusb.ve",
       start_location: "USB",
-      destination: "Baruta"
+      destination: "Baruta",
+      comment: "Nothing",
+      im_going: "Who cares?"
     }
     var request = httpMocks.createRequest({
       body: data
@@ -106,7 +100,9 @@ describe('create', () => {
     const data = {
       user: "XXXXXX@usb.ve",
       start_location: "USB",
-      destination: "Maracay"
+      destination: "Maracay",
+      comment: "Nothing",
+      im_going: "Who cares?"
     }
     var request = httpMocks.createRequest({
       body: data
@@ -122,12 +118,16 @@ describe('delete', () => {
     requests.requestsList[4].requests.push({
       user: "12-11163@usb.ve",
       start_location: "USB",
-      destination: "Bellas Artes"
+      destination: "Bellas Artes",
+      comment: "Nothing",
+      im_going: "Who cares?"
     })
     requests.requestsList[0].requests.push({
       user: "12-11164@usb.ve",
       start_location: "Baruta",
-      destination: "USB"
+      destination: "USB",
+      comment: "Nothing",
+      im_going: "Who cares?"
     })
   })
 
@@ -145,7 +145,9 @@ describe('delete', () => {
     const data = {
       user: "12-11163@usb.ve",
       start_location: "USB",
-      destination: "Bellas Artes"
+      destination: "Bellas Artes",
+      comment: "Nothing",
+      im_going: "Who cares?"
     }
     var request = httpMocks.createRequest({
       body: data
@@ -165,7 +167,9 @@ describe('delete', () => {
     const data = {
       user: "12-11162@usb.ve",
       start_location: "Baruta",
-      destination: "USB"
+      destination: "USB",
+      comment: "Nothing",
+      im_going: "Who cares?"
     }
     var request = httpMocks.createRequest({
       body: data
@@ -179,7 +183,9 @@ describe('delete', () => {
     const data = {
       user: "XXXXXXusb.ve",
       start_location: "USB",
-      destination: "Baruta"
+      destination: "Baruta",
+      comment: "Nothing",
+      im_going: "Who cares?"
     }
     var request = httpMocks.createRequest({
       body: data
@@ -193,7 +199,9 @@ describe('delete', () => {
     const data = {
       user: "XXXXXX@usb.ve",
       start_location: "Baruta",
-      destination: "Bellas Artes"
+      destination: "Bellas Artes",
+      comment: "Nothing",
+      im_going: "Who cares?"
     }
     var request = httpMocks.createRequest({
       body: data

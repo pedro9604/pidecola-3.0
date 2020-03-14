@@ -31,9 +31,9 @@ describe('create', () => {
     var response1 = httpMocks.createResponse()
     user.create(request1, response1)
     const data2 = {
-      email: "12-00000@usb.ve",
+      email: "13-00000@usb.ve",
       password: "C0N5T4Nz4",
-      phoneNumber: "55555555555"
+      phoneNumber: "09876543210"
     }
     var request2 = httpMocks.createRequest({
       method: 'POST',
