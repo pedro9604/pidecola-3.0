@@ -23,11 +23,20 @@ const UserSchema = new Schema(
     vehicles:
         [{
           plate: { type: String },
+          brand: { type: String },
           model: { type: String },
           year: { type: Number },
           color: { type: String },
           vehicle_capacity: {type: Number},
           vehicle_pic: { type: String }
+        }],
+    license: { type: String },    
+    rides_given: { type: Number },
+    rides_recieved: { type: Number },
+    likes_count: { type: Number },
+    dislikes_count: { type: Number },
+    last_ride: { type: Schema.Types.ObjectId, ref: 'Ride'},
+    frequent_routes: { type: Array },
 
         }]   
   }, {
