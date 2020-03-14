@@ -29,7 +29,7 @@ const UserSchema = new Schema(
           vehicle_capacity: {type: Number},
           vehicle_pic: { type: String }
 
-        }],   
+        }]   
   }, {
     timestamps: true
   }
