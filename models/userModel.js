@@ -29,7 +29,6 @@ const UserSchema = new Schema(
           color: { type: String },
           vehicle_capacity: {type: Number},
           vehicle_pic: { type: String }
-
         }],
     license: { type: String },    
     rides_given: { type: Number },
@@ -39,7 +38,7 @@ const UserSchema = new Schema(
     last_ride: { type: Schema.Types.ObjectId, ref: 'Ride'},
     frequent_routes: { type: Array },
 
-
+        }]   
   }, {
     timestamps: true
   }
