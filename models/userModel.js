@@ -30,7 +30,7 @@ const UserSchema = new Schema(
           model: { type: String },
           year: { type: Number },
           color: { type: String },
-          vehicle_capacity: {type: Number},
+          vehicle_capacity: { type: Number },
           vehicle_pic: { type: String }
         }],
     license: { type: String },

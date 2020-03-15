@@ -6,7 +6,7 @@ exports.SERVER_PORT = 5000
 // Environment to use
 exports.ENV = 'dev'
 
-// Cloudinary 
+// Cloudinary
 exports.CLOUD_NAME = 'dcmr7dmyu'
 exports.API_KEY = '699473156776729'
 exports.API_SECRET = 'Ip3M4Jup6IIh4F3cLT3IzJ9stQY'

@@ -10,7 +10,6 @@ const config = require('./Config.js')
 const connections = require('./lib/connections.js')
 const cloudinary = require('./lib/cloudinaryConfig.js')
 
-
 connections.connectDB()
 cloudinary.cloudinaryConfig()
 
