@@ -39,7 +39,9 @@ const UserSchema = new Schema(
     likes_count: { type: Number },
     dislikes_count: { type: Number },
     last_ride: { type: Schema.Types.ObjectId, ref: 'Ride' },
-    frequent_routes: { type: Array }
+    frequent_routes: { type: Array },
+    isVerify: {type: Boolean},
+    temporalCode: {type: Number}
 
   }, {
     timestamps: true

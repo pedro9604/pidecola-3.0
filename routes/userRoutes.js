@@ -4,6 +4,8 @@ const userController = require('../controllers/userController.js')
 
 // POSTs
 router.post('/', userController.create)
+
+//PUTs
 router.put('/addVehicle', userController.addVehicle)
 
 module.exports = router

@@ -1,9 +1,11 @@
 const bcrypt = require('bcryptjs')
+const cloudinary = require('cloudinary')
 const validateIn = require('../lib/utils/validation').validateIn
 const response = require('../lib/utils/response').response
 const users = require('../models/userModel.js')
 const upload = require('../lib/cloudinaryConfig.js').upload
-const cloudinary = require('cloudinary')
+const sendEmail = require('../lib/utils/emails').sendEmail
+const template = require('../lib/utils/codeTemplate').template
 
 const BCRYPT_SALT_ROUNDS = 12
 
@@ -24,7 +26,40 @@ const create = (dataUser) => {
   return users.create({
     email: email,
     password: password,
-    phone_number: phoneNumber
+    phone_number: phoneNumber,
+    temporalCode: codeGenerate()
+  })
+}
+
+const updateCode = (email, code = undefined) => {
+  const query = { 'email': email}
+  const update = {
+    $setOnInsert : {
+      temporalCode: code || codeGenerate()
+    }
+  }
+  return users.findOneAndUpdate(query, update)
+}
+
+const codeGenerate = () => {
+  return Math.floor(Math.random() * (99999 - 9999)) + 9999;
+}
+
+const createHTMLRespose = (code, userName = '') => {
+  const html = template(code, userName)
+  return html
+}
+
+const responseCreate = (usr, res, alredy = false) => {
+  let code = alredy ? codeGenerate() : usr.temporalCode
+  if(alredy) updateCode(usr.email, code)
+  sendEmail(usr.email, 'Bienvenido a Pide Cola USB, valida tu cuenta.', createHTMLRespose(code, usr.email.split('@')[0]))
+  .then( () => {
+    const userInf = { email: usr.email, phoneNumber: usr.phone_number}
+    return res.status(200).send(response(true, userInf, 'Usuario creado.'))
+  })
+  .catch( error => {
+    console.log('Error Sendig Mail', error)
   })
 }
 
@@ -36,10 +71,16 @@ exports.getPic = (email) => {
   return users.findOne({ email: email }).select('profile_pic')
 }
 
-exports.create = (req, res) => {
+exports.create = async (req, res) => {
   const validate = validateIn(req.body, registerRules, errorsMessage)
 
   if (!validate.pass) return res.status(400).send(response(false, validate.errors, 'Ha ocurrido un error en el proceso'))
+
+  let alredyRegister = await this.findByEmail(req.body.email)
+
+  // if(alredyRegister)
+  if(alredyRegister && alredyRegister.isVerify) return res.status(403).send(response(false, '', 'El usuario ya se encuentra registrado.'))
+  else if(alredyRegister && !alredyRegister.isVerify) return responseCreate(alredyRegister, res, true)
 
   bcrypt.hash(req.body.password, BCRYPT_SALT_ROUNDS)
     .then(hashedPassword => {
@@ -47,8 +88,7 @@ exports.create = (req, res) => {
       return create(req.body)
     })
     .then(usr => {
-      const userInf = { email: usr.email, phoneNumber: usr.phone_number }
-      return res.status(200).send(response(true, userInf, 'Usuario creado.'))
+      return responseCreate(usr, res)
     })
     .catch(err => {
       let mssg = 'Usuario no ha sido creado.'
