@@ -26,12 +26,12 @@ const UserSchema = new Schema(
     vehicles:
         [{
           plate: { type: String },
+          brand: { type: String },
           model: { type: String },
           year: { type: Number },
           color: { type: String },
-          vehicle_capacity: { type: Number },
-          vehicle_pic: [{ type: Schema.Types.ObjectId, ref: 'Img' }]
-
+          vehicle_capacity: {type: Number},
+          vehicle_pic: { type: String }
         }],
     license: { type: String },
     rides_given: { type: Number },
