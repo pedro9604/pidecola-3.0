@@ -12,9 +12,9 @@ const registerRules = {
 }
 
 const errorsMessage = {
-  'required.email': "El correo electrónico de la usb es necesario.",
-  'required.password': "La contraseña es necesaria.",
-  'required.phoneNumber': "El teléfono celular es necesario."
+  'required.email': 'El correo electrónico de la usb es necesario.',
+  'required.password': 'La contraseña es necesaria.',
+  'required.phoneNumber': 'El teléfono celular es necesario.'
 }
 
 const create = (dataUser) => {
