@@ -1,44 +1,44 @@
 // requestController
 const validateIn = require('../lib/utils/validation').validateIn
-const response   = require('../lib/utils/response').response
+const response = require('../lib/utils/response').response
 const usr = require('./userController.js')
 
 const requestsList = [
-  { name: "Baruta", requests: [] },
-  { name: "Coche", requests: [] },
-  { name: "Chacaito", requests: [] },
-  { name: "La Paz", requests: [] },
-  { name: "Bellas Artes", requests: [] }
+  { name: 'Baruta', requests: [] },
+  { name: 'Coche', requests: [] },
+  { name: 'Chacaito', requests: [] },
+  { name: 'La Paz', requests: [] },
+  { name: 'Bellas Artes', requests: [] }
 ]
 
 const fromNameToInt = (name) => {
-  if (name === "Baruta") return 0
-  else if (name === "Coche") return 1
-  else if (name === "Chacaito") return 2
-  else if (name === "La Paz") return 3
-  else if (name === "Bellas Artes") return 4
+  if (name === 'Baruta') return 0
+  else if (name === 'Coche') return 1
+  else if (name === 'Chacaito') return 2
+  else if (name === 'La Paz') return 3
+  else if (name === 'Bellas Artes') return 4
   else return -1
 }
 
 const requestsRules = {
-  user: "required|email",
-  start_location: "required|string",
-  destination: "required|string",
-  comment: "string",
-  im_going: "string",
+  user: 'required|email',
+  starLocation: 'required|string',
+  destination: 'required|string',
+  comment: 'string',
+  im_going: 'string'
 }
 
 const deleteRules = requestsRules
 
 const errorsMessage = {
-  'required.user': "El usuario es necesario.",
-  'required.start_location': "El lugar de partida es necesario.",
-  'required.destination': "El lugar de destino es necesario."
+  'required.user': 'El usuario es necesario.',
+  'required.starLocation': 'El lugar de partida es necesario.',
+  'required.destination': 'El lugar de destino es necesario.'
 }
 
 const add = (newRequest) => {
-  const fromUSB = newRequest.start_location === "USB"
-  const toUSB   = newRequest.destination === "USB"
+  const fromUSB = newRequest.starLocation === 'USB'
+  const toUSB = newRequest.destination === 'USB'
   try {
     var req = {
       email: newRequest.user,
@@ -57,10 +57,11 @@ const add = (newRequest) => {
       status: false
     }
     if (fromUSB || toUSB) {
+      let index
       if (fromUSB) {
         index = fromNameToInt(newRequest.destination)
       } else {
-        index = fromNameToInt(newRequest.start_location)
+        index = fromNameToInt(newRequest.starLocation)
       }
       usr.findByEmail(newRequest.user).then((sucs, err) => {
         if (!err) {
@@ -78,15 +79,16 @@ const add = (newRequest) => {
     } else {
       return newRequest
     }
-  } catch(error) {
-      return newRequest
+  } catch (error) {
+    newRequest.status = false
+    return newRequest
   }
 }
 
 exports.create = (req, res) => {
   const reqsInf = {
     user: req.body.user,
-    start_location: req.body.start_location,
+    starLocation: req.body.starLocation,
     destination: req.body.destination,
     comment: req.body.comment,
     im_going: req.body.im_going
@@ -117,21 +119,22 @@ exports.create = (req, res) => {
 }
 
 const remove = (deleteRequest) => {
-  fromUSB = deleteRequest.start_location === "USB"
+  let index
+  const fromUSB = deleteRequest.starLocation === 'USB'
   if (fromUSB) {
     index = fromNameToInt(deleteRequest.destination)
   } else {
-    index = fromNameToInt(deleteRequest.start_location)
+    index = fromNameToInt(deleteRequest.starLocation)
   }
   try {
-    for (i = 0; i < requestsList[index].requests.length; i++) {
-      if(requestsList[index].requests[i].user === deleteRequest.user) {
+    for (let i = 0; i < requestsList[index].requests.length; i++) {
+      if (requestsList[index].requests[i].user === deleteRequest.user) {
         requestsList[index].requests.splice(i, 1)
         return true
       }
     }
     return false
-  } catch(error) {
+  } catch (error) {
     return false
   }
 }
@@ -139,7 +142,7 @@ const remove = (deleteRequest) => {
 exports.delete = (req, res) => {
   const reqsInf = {
     user: req.body.user,
-    start_location: req.body.start_location,
+    starLocation: req.body.starLocation,
     destination: req.body.destination,
     comment: req.body.comment,
     im_going: req.body.im_going

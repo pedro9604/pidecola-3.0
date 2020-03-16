@@ -8,7 +8,7 @@ const RideSchema = new Schema(
     rider: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     passenger: { type: Array, required: true },
     available_seats: { type: Number },
-    status: { type: String, enum: ['En progreso', 'Retraso', 'Cancelada']},
+    status: { type: String, enum: ['En Espera', 'En Camino', 'Finalizado', 'Accidentado'] },
     start_location: { type: String },
     destination: { type: String },
     time: { type: Date },
@@ -18,7 +18,7 @@ const RideSchema = new Schema(
         user_id: { type: Schema.Types.ObjectId, ref: 'User' },
         like: { type: Boolean },
         dislike: { type: Boolean },
-        comment: { type: 'String'}
+        comment: { type: 'String' }
       }]
   }
 )

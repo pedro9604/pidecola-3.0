@@ -7,41 +7,41 @@ describe('requestsList', () => {
   })
 
   test('requestsList only contains stop at "Baruta"', () => {
-    expect(requests.requestsList[0].name).toBe("Baruta")
+    expect(requests.requestsList[0].name).toBe('Baruta')
   })
 
   test('requestsList only contains stop at "Coche"', () => {
-    expect(requests.requestsList[1].name).toBe("Coche")
+    expect(requests.requestsList[1].name).toBe('Coche')
   })
 
   test('requestsList only contains stop at "Chacaito"', () => {
-    expect(requests.requestsList[2].name).toBe("Chacaito")
+    expect(requests.requestsList[2].name).toBe('Chacaito')
   })
 
   test('requestsList only contains stop at "La Paz"', () => {
-    expect(requests.requestsList[3].name).toBe("La Paz")
+    expect(requests.requestsList[3].name).toBe('La Paz')
   })
 
   test('requestsList only contains stop at "Bellas Artes"', () => {
-    expect(requests.requestsList[4].name).toBe("Bellas Artes")
+    expect(requests.requestsList[4].name).toBe('Bellas Artes')
   })
 
   test('requestsList does not contain stop at "USB"', () => {
-    const baruta      = requests.requestsList[0].name === "USB"
-    const coche       = requests.requestsList[1].name === "USB"
-    const chacaito    = requests.requestsList[2].name === "USB"
-    const laPaz       = requests.requestsList[3].name === "USB"
-    const bellasArtes = requests.requestsList[4].name === "USB"
+    const baruta = requests.requestsList[0].name === 'USB'
+    const coche = requests.requestsList[1].name === 'USB'
+    const chacaito = requests.requestsList[2].name === 'USB'
+    const laPaz = requests.requestsList[3].name === 'USB'
+    const bellasArtes = requests.requestsList[4].name === 'USB'
     const usb = baruta || coche || chacaito || laPaz || bellasArtes
     expect(usb).toBe(false)
   })
 
   test('requestsList does not contain other stop', () => {
-    const guarenas   = requests.requestsList[0].name === "USB"
-    const teques     = requests.requestsList[1].name === "USB"
-    const charallave = requests.requestsList[2].name === "USB"
-    const maracay    = requests.requestsList[3].name === "USB"
-    const laGuaira   = requests.requestsList[4].name === "USB"
+    const guarenas = requests.requestsList[0].name === 'USB'
+    const teques = requests.requestsList[1].name === 'USB'
+    const charallave = requests.requestsList[2].name === 'USB'
+    const maracay = requests.requestsList[3].name === 'USB'
+    const laGuaira = requests.requestsList[4].name === 'USB'
     const usb = guarenas || teques || charallave || maracay || laGuaira
     expect(usb).toBe(false)
   })
@@ -50,11 +50,11 @@ describe('requestsList', () => {
 describe('create', () => {
   test('A new request is added to the resquestsList', () => {
     const data = {
-      user: "12-11163@usb.ve",
-      start_location: "USB",
-      destination: "Baruta",
-      comment: "Nothing",
-      im_going: "Who cares?"
+      user: '12-11163@usb.ve',
+      starLocation: 'USB',
+      destination: 'Baruta',
+      comment: 'Nothing',
+      im_going: 'Who cares?'
     }
     var request = httpMocks.createRequest({
       body: data
@@ -66,11 +66,11 @@ describe('create', () => {
 
   test('A request without "USB"', () => {
     const data = {
-      user: "XXXXXX@usb.ve",
-      start_location: "Bellas Artes",
-      destination: "Baruta",
-      comment: "Nothing",
-      im_going: "Who cares?"
+      user: 'XXXXXX@usb.ve',
+      starLocation: 'Bellas Artes',
+      destination: 'Baruta',
+      comment: 'Nothing',
+      im_going: 'Who cares?'
     }
     var request = httpMocks.createRequest({
       body: data
@@ -82,11 +82,11 @@ describe('create', () => {
 
   test('A request without email', () => {
     const data = {
-      user: "XXXXXXusb.ve",
-      start_location: "USB",
-      destination: "Baruta",
-      comment: "Nothing",
-      im_going: "Who cares?"
+      user: 'XXXXXXusb.ve',
+      starLocation: 'USB',
+      destination: 'Baruta',
+      comment: 'Nothing',
+      im_going: 'Who cares?'
     }
     var request = httpMocks.createRequest({
       body: data
@@ -98,11 +98,11 @@ describe('create', () => {
 
   test('A request out of our stops (Maracay)', () => {
     const data = {
-      user: "XXXXXX@usb.ve",
-      start_location: "USB",
-      destination: "Maracay",
-      comment: "Nothing",
-      im_going: "Who cares?"
+      user: 'XXXXXX@usb.ve',
+      starLocation: 'USB',
+      destination: 'Maracay',
+      comment: 'Nothing',
+      im_going: 'Who cares?'
     }
     var request = httpMocks.createRequest({
       body: data
@@ -116,18 +116,18 @@ describe('create', () => {
 describe('delete', () => {
   beforeEach(() => {
     requests.requestsList[4].requests.push({
-      user: "12-11163@usb.ve",
-      start_location: "USB",
-      destination: "Bellas Artes",
-      comment: "Nothing",
-      im_going: "Who cares?"
+      user: '12-11163@usb.ve',
+      starLocation: 'USB',
+      destination: 'Bellas Artes',
+      comment: 'Nothing',
+      im_going: 'Who cares?'
     })
     requests.requestsList[0].requests.push({
-      user: "12-11164@usb.ve",
-      start_location: "Baruta",
-      destination: "USB",
-      comment: "Nothing",
-      im_going: "Who cares?"
+      user: '12-11164@usb.ve',
+      starLocation: 'Baruta',
+      destination: 'USB',
+      comment: 'Nothing',
+      im_going: 'Who cares?'
     })
   })
 
@@ -143,11 +143,11 @@ describe('delete', () => {
       requests.requestsList[3].requests.length +
       requests.requestsList[4].requests.length
     const data = {
-      user: "12-11163@usb.ve",
-      start_location: "USB",
-      destination: "Bellas Artes",
-      comment: "Nothing",
-      im_going: "Who cares?"
+      user: '12-11163@usb.ve',
+      starLocation: 'USB',
+      destination: 'Bellas Artes',
+      comment: 'Nothing',
+      im_going: 'Who cares?'
     }
     var request = httpMocks.createRequest({
       body: data
@@ -165,11 +165,11 @@ describe('delete', () => {
 
   test('If request does not exist return code 500', () => {
     const data = {
-      user: "12-11162@usb.ve",
-      start_location: "Baruta",
-      destination: "USB",
-      comment: "Nothing",
-      im_going: "Who cares?"
+      user: '12-11162@usb.ve',
+      starLocation: 'Baruta',
+      destination: 'USB',
+      comment: 'Nothing',
+      im_going: 'Who cares?'
     }
     var request = httpMocks.createRequest({
       body: data
@@ -181,11 +181,11 @@ describe('delete', () => {
 
   test('A request without email', () => {
     const data = {
-      user: "XXXXXXusb.ve",
-      start_location: "USB",
-      destination: "Baruta",
-      comment: "Nothing",
-      im_going: "Who cares?"
+      user: 'XXXXXXusb.ve',
+      starLocation: 'USB',
+      destination: 'Baruta',
+      comment: 'Nothing',
+      im_going: 'Who cares?'
     }
     var request = httpMocks.createRequest({
       body: data
@@ -197,11 +197,11 @@ describe('delete', () => {
 
   test('A request without "USB"', () => {
     const data = {
-      user: "XXXXXX@usb.ve",
-      start_location: "Baruta",
-      destination: "Bellas Artes",
-      comment: "Nothing",
-      im_going: "Who cares?"
+      user: 'XXXXXX@usb.ve',
+      starLocation: 'Baruta',
+      destination: 'Bellas Artes',
+      comment: 'Nothing',
+      im_going: 'Who cares?'
     }
     var request = httpMocks.createRequest({
       body: data

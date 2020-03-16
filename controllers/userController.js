@@ -1,7 +1,12 @@
 const bcrypt = require('bcryptjs')
+const cloudinary = require('cloudinary')
 const validateIn = require('../lib/utils/validation').validateIn
 const response = require('../lib/utils/response').response
+const autentication = require('../autentication.js')
 const users = require('../models/userModel.js')
+const upload = require('../lib/cloudinaryConfig.js').upload
+const sendEmail = require('../lib/utils/emails').sendEmail
+const template = require('../lib/utils/codeTemplate').template
 
 const BCRYPT_SALT_ROUNDS = 12
 
@@ -12,9 +17,9 @@ const registerRules = {
 }
 
 const errorsMessage = {
-  'required.email': "El correo electrónico de la usb es necesario.",
-  'required.password': "La contraseña es necesaria.",
-  'required.phoneNumber': "El teléfono celular es necesario."
+  'required.email': 'El correo electrónico de la usb es necesario.',
+  'required.password': 'La contraseña es necesaria.',
+  'required.phoneNumber': 'El teléfono celular es necesario.'
 }
 
 const create = (dataUser) => {
@@ -22,7 +27,51 @@ const create = (dataUser) => {
   return users.create({
     email: email,
     password: password,
-    phone_number: phoneNumber
+    phone_number: phoneNumber,
+    temporalCode: codeGenerate()
+  })
+}
+
+const updateCode = async (email, code = undefined) => {
+  const query = { 'email': email}
+  const update = {
+    $set: {
+      temporalCode: code || codeGenerate()
+    }
+  }
+  return users.updateOne(query, update)
+  .then( usr => {
+    return usr
+  })
+  .catch( err => {
+    console.log('Error in update code: ', err)
+    return
+  })
+}
+
+const codeGenerate = () => {
+  return Math.floor(Math.random() * (99999 - 9999)) + 9999;
+}
+
+const createHTMLRespose = (code, userName = '') => {
+  const html = template(code, userName)
+  return html
+}
+
+const responseCreate = async (usr, res, alredy = false) => {
+  let code = alredy ? codeGenerate() : usr.temporalCode
+  let validUpdate
+  if(alredy){ 
+    validUpdate = await updateCode(usr.email, code)
+  }
+  sendEmail(usr.email, 'Bienvenido a Pide Cola USB, valida tu cuenta.', createHTMLRespose(code, usr.email.split('@')[0]))
+  .then( () => {
+    const userInf = { email: usr.email, phoneNumber: usr.phone_number}
+    return res.status(200).send(response(true, userInf, 'Usuario creado.'))
+  })
+  .catch( error => {
+    console.log('Error Sendig Mail', error)
+    return res.status(500).send(response(false, error, 'Perdon, ocurrio un error.'))
   })
 }
 
@@ -34,10 +83,16 @@ exports.getPic = (email) => {
   return users.findOne({ email: email }).select('profile_pic')
 }
 
-exports.create = (req, res) => {
+exports.create = async (req, res) => {
   const validate = validateIn(req.body, registerRules, errorsMessage)
 
   if (!validate.pass) return res.status(400).send(response(false, validate.errors, 'Ha ocurrido un error en el proceso'))
+
+  let alredyRegister = await this.findByEmail(req.body.email)
+
+  // if(alredyRegister)
+  if(alredyRegister && alredyRegister.isVerify) return res.status(403).send(response(false, '', 'El usuario ya se encuentra registrado.'))
+  else if(alredyRegister && !alredyRegister.isVerify) return responseCreate(alredyRegister, res, true)
 
   bcrypt.hash(req.body.password, BCRYPT_SALT_ROUNDS)
     .then(hashedPassword => {
@@ -45,12 +100,58 @@ exports.create = (req, res) => {
       return create(req.body)
     })
     .then(usr => {
-      const userInf = { email: usr.email, phoneNumber: usr.phone_number }
-      return res.status(200).send(response(true, userInf, 'Usuario creado.'))
+      return responseCreate(usr, res)
     })
     .catch(err => {
       let mssg = 'Usuario no ha sido creado.'
       if (err && err.code && err.code === 11000) mssg = 'Ya existe usuario.'
       return res.status(500).send(response(false, err, mssg))
     })
+}
+
+exports.addVehicle = (upload, (req, res) => {
+  cloudinary.v2.uploader.upload(req.file, function (picture) {
+    users.find({ 'vehicles.plate': req.body.plate }, function (error, result) {
+      if (error) { return res.status(500).send(response(false, error, 'Fallo en la busqueda')) } else if (!result.length) {
+        users.findOneAndUpdate({ email: req.body.email },
+
+          {
+            $push: {
+              vehicles: {
+                plate: req.body.plate,
+                brand: req.body.brand,
+                model: req.body.model,
+                year: req.body.year,
+                color: req.body.color,
+                vehicle_capacity: req.body.vehicle_capacity,
+                vehicle_pic: picture.secure_url
+              }
+            }
+
+          },
+
+          { new: true },
+
+          function (error, doc) {
+            if (error) {
+              return res.status(500).send(response(false, error, 'Vehiculo no fue agregado'))
+            } else { return res.status(200).send(response(true, doc, 'Vehiculo agregado.')) }
+          })
+      } else { return res.status(500).send(response(false, error, 'Vehiculo ya existe')) }
+    })
+  })
+})
+
+exports.codeValidate = async (req, res) => {
+  const {code, email} = req.body
+  if(!code) res.status(403).send(response(false, '', 'El codigo es necesario.'))
+  if(!email) res.status(401).send(response(false, '', 'El email es necesario.'))
+
+  const user = await this.findByEmail(email)
+  if(!user) res.status(401).send(response(false, '', 'El usuario no fue encontrado, debe registrarse nuevamente.'))
+  if(user.temporalCode !== parseInt(code)) return res.status(401).send(response(false, '', 'El codigo es incorrecto.'))
+  user.isVerify = true
+  user.markModified('isVerify')
+  user.save()
+  return res.status(200).send(response(true, [{ tkauth: autentication.generateToken(user.email) }], 'Success.'))
 }
