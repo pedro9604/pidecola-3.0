@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs')
 const cloudinary = require('cloudinary')
 const validateIn = require('../lib/utils/validation').validateIn
 const response = require('../lib/utils/response').response
+const autentication = require('../autentication.js')
 const users = require('../models/userModel.js')
 const upload = require('../lib/cloudinaryConfig.js').upload
 const sendEmail = require('../lib/utils/emails').sendEmail
@@ -60,6 +61,7 @@ const responseCreate = (usr, res, alredy = false) => {
   })
   .catch( error => {
     console.log('Error Sendig Mail', error)
+    return res.status(500).send(response(false, error, 'Perdon, ocurrio un error.'))
   })
 }
 
@@ -129,3 +131,16 @@ exports.addVehicle = (upload, (req, res) => {
     })
   })
 })
+
+exports.codeValidate = async (req, res) => {
+  const {code, email} = req.body
+  if(!code) res.status(403).send(response(false, '', 'El codigo es necesario.'))
+  if(!email) res.status(401).send(response(false, '', 'El email es necesario.'))
+
+  const user = await this.findByEmail(email)
+  if(!user) res.status(401).send(response(false, '', 'El usuario no fue encontrado, debe registrarse nuevamente.'))
+  user.isVerify = true
+  user.markModified('isVerify')
+  user.save()
+  return res.status(200).send(response(true, [{ tkauth: autentication.generateToken(user.email) }], 'Success.'))
+}
