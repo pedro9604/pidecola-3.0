@@ -32,14 +32,21 @@ const create = (dataUser) => {
   })
 }
 
-const updateCode = (email, code = undefined) => {
+const updateCode = async (email, code = undefined) => {
   const query = { 'email': email}
   const update = {
-    $setOnInsert : {
+    $set: {
       temporalCode: code || codeGenerate()
     }
   }
-  return users.findOneAndUpdate(query, update)
+  return users.updateOne(query, update)
+  .then( usr => {
+    return usr
+  })
+  .catch( err => {
+    console.log('Error in update code: ', err)
+    return
+  })
 }
 
 const codeGenerate = () => {
@@ -51,9 +58,12 @@ const createHTMLRespose = (code, userName = '') => {
   return html
 }
 
-const responseCreate = (usr, res, alredy = false) => {
+const responseCreate = async (usr, res, alredy = false) => {
   let code = alredy ? codeGenerate() : usr.temporalCode
-  if(alredy) updateCode(usr.email, code)
+  let validUpdate
+  if(alredy){ 
+    validUpdate = await updateCode(usr.email, code)
+  }
   sendEmail(usr.email, 'Bienvenido a Pide Cola USB, valida tu cuenta.', createHTMLRespose(code, usr.email.split('@')[0]))
   .then( () => {
     const userInf = { email: usr.email, phoneNumber: usr.phone_number}
@@ -139,6 +149,7 @@ exports.codeValidate = async (req, res) => {
 
   const user = await this.findByEmail(email)
   if(!user) res.status(401).send(response(false, '', 'El usuario no fue encontrado, debe registrarse nuevamente.'))
+  if(user.temporalCode !== parseInt(code)) return res.status(401).send(response(false, '', 'El codigo es incorrecto.'))
   user.isVerify = true
   user.markModified('isVerify')
   user.save()
