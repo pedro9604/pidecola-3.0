@@ -13,8 +13,8 @@ const viewCredentials = (authorization) => {
   return { email: userData[0], password: userData[1] }
 }
 
-const generateToken = email => {
-  return jwt.sign({ email: email }, tokenKey, { expiresIn: '30d' })
+exports.generateToken = (email, expiresIn = '30d') => {
+  return jwt.sign({ email: email }, tokenKey, { expiresIn: expiresIn })
 }
 
 exports.signIn = (req, res) => {
@@ -31,7 +31,7 @@ exports.signIn = (req, res) => {
       else if (!resp[0]) return res.status(401).send(response(false, null, 'Invalid Password.'))
       const user = resp[1]._doc
       delete user.password
-      res.status(200).send(response(true, [{ tkauth: generateToken(user.email), ...user }], 'Success.'))
+      res.status(200).send(response(true, [{ tkauth: this.generateToken(user.email), ...user }], 'Success.'))
     })
     .catch(error => {
       res.status(500).send(response(false, error, 'Error authenticating user.'))
