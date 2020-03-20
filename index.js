@@ -24,6 +24,9 @@ app.use(cors())
 const autentication = require('./autentication.js')
 app.use('/login', autentication.signIn)
 
+// Default security for all endpoints
+app.use(autentication.verifyAutentication)
+
 const user = require('./routes/userRoutes.js')
 app.use('/users', user)
 

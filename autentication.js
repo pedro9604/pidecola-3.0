@@ -13,6 +13,14 @@ const viewCredentials = (authorization) => {
   return { email: userData[0], password: userData[1] }
 }
 
+const viewAuthorization = (authorization) => {
+  if (!authorization || typeof authorization !== 'string') return false
+  const credential = authorization.split(' ')
+  if (credential[0].toLowerCase() === 'basic') return 'code validation'
+  else if (credential[0].toLowerCase() === 'bearer') return credential[1]
+  return false
+}
+
 exports.generateToken = (email, expiresIn = '30d') => {
   return jwt.sign({ email: email }, tokenKey, { expiresIn: expiresIn })
 }
@@ -36,4 +44,18 @@ exports.signIn = (req, res) => {
     .catch(error => {
       res.status(500).send(response(false, error, 'Error authenticating user.'))
     })
+}
+
+exports.verifyAutentication = (req, res, next) => {
+  const token = viewAuthorization(req.headers.authorization)
+  if (!token) return res.status(401).send(response(false, null, 'Unauthorized.'))
+  if (token === 'code validation') {
+    next()
+    return
+  }
+  jwt.verify(token, tokenKey, (err, secret) => {
+    if (err || !token) return res.status(401).send(response(false, null, 'Unauthorized.'))
+    req.secret = secret
+    next()
+  })
 }

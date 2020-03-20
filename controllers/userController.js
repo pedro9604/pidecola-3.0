@@ -33,24 +33,23 @@ const create = (dataUser) => {
 }
 
 const updateCode = async (email, code = undefined) => {
-  const query = { 'email': email}
+  const query = { email: email }
   const update = {
     $set: {
       temporalCode: code || codeGenerate()
     }
   }
   return users.updateOne(query, update)
-  .then( usr => {
-    return usr
-  })
-  .catch( err => {
-    console.log('Error in update code: ', err)
-    return
-  })
+    .then(usr => {
+      return usr
+    })
+    .catch(err => {
+      console.log('Error in update code: ', err)
+    })
 }
 
 const codeGenerate = () => {
-  return Math.floor(Math.random() * (99999 - 9999)) + 9999;
+  return Math.floor(Math.random() * (99999 - 9999)) + 9999
 }
 
 const createHTMLRespose = (code, userName = '') => {
@@ -59,24 +58,26 @@ const createHTMLRespose = (code, userName = '') => {
 }
 
 const responseCreate = async (usr, res, alredy = false) => {
-  let code = alredy ? codeGenerate() : usr.temporalCode
-  let validUpdate
-  if(alredy){ 
-    validUpdate = await updateCode(usr.email, code)
-  }
+  const code = alredy ? codeGenerate() : usr.temporalCode
+  if (alredy) await updateCode(usr.email, code)
+
   sendEmail(usr.email, 'Bienvenido a Pide Cola USB, valida tu cuenta.', createHTMLRespose(code, usr.email.split('@')[0]))
-  .then( () => {
-    const userInf = { email: usr.email, phoneNumber: usr.phone_number}
-    return res.status(200).send(response(true, userInf, 'Usuario creado.'))
-  })
-  .catch( error => {
-    console.log('Error Sendig Mail', error)
-    return res.status(500).send(response(false, error, 'Perdon, ocurrio un error.'))
-  })
+    .then(() => {
+      const userInf = { email: usr.email, phoneNumber: usr.phone_number }
+      return res.status(200).send(response(true, userInf, 'Usuario creado.'))
+    })
+    .catch(error => {
+      console.log('Error Sendig Mail', error)
+      return res.status(500).send(response(false, error, 'Perdon, ocurrio un error.'))
+    })
 }
 
-exports.findByEmail = (email) => {
-  return users.findOne({ email: email })
+const updateUserByEmail = (email, query) => {
+  return users.findOneAndUpdate({ email: email }, { password: 0, ...query }, { returnOriginal: false })
+}
+
+exports.findByEmail = (email, querySelect = { password: 0 }) => {
+  return users.findOne({ email: email }, querySelect)
 }
 
 exports.getPic = (email) => {
@@ -88,11 +89,11 @@ exports.create = async (req, res) => {
 
   if (!validate.pass) return res.status(400).send(response(false, validate.errors, 'Ha ocurrido un error en el proceso'))
 
-  let alredyRegister = await this.findByEmail(req.body.email)
+  const alredyRegister = await this.findByEmail(req.body.email)
 
   // if(alredyRegister)
-  if(alredyRegister && alredyRegister.isVerify) return res.status(403).send(response(false, '', 'El usuario ya se encuentra registrado.'))
-  else if(alredyRegister && !alredyRegister.isVerify) return responseCreate(alredyRegister, res, true)
+  if (alredyRegister && alredyRegister.isVerify) return res.status(403).send(response(false, '', 'El usuario ya se encuentra registrado.'))
+  else if (alredyRegister && !alredyRegister.isVerify) return responseCreate(alredyRegister, res, true)
 
   bcrypt.hash(req.body.password, BCRYPT_SALT_ROUNDS)
     .then(hashedPassword => {
@@ -110,26 +111,24 @@ exports.create = async (req, res) => {
 }
 
 exports.updateUser = (req, res) => {
-  users.findOneAndUpdate({email: req.body.email}, 
-
-    {$set: {
-      "first_name": req.body.first_name,
-      "last_name": req.body.last_name,
-      "age": req.body.age,
-      "phone_number": req.body.phone_number,
-      "major": req.body.major
-      }
-    },
-
-    {new: true},
-    
-    function(error, doc){
-      if (error){
-        return res.status(500).send(response(false, error, 'Usuario no fue actualizado'))
-      }
-      else
-        return res.status(200).send(response(true, doc, 'Usuario actualizado'))
-    })  
+  const email = req.secret.email
+  if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))
+  const query = {
+    $set: {
+      first_name: req.body.first_name,
+      last_name: req.body.last_name,
+      age: req.body.age,
+      phone_number: req.body.phone_number,
+      major: req.body.major
+    }
+  }
+  updateUserByEmail(email, query)
+    .then(usr => {
+      return res.status(200).send(response(true, usr, 'El Usuario fue actualizado.'))
+    })
+    .catch(err => {
+      return res.status(500).send(response(false, err, 'Error, El usuario no fue actualizado.'))
+    })
 }
 
 exports.addVehicle = (upload, (req, res) => {
@@ -166,15 +165,27 @@ exports.addVehicle = (upload, (req, res) => {
 })
 
 exports.codeValidate = async (req, res) => {
-  const {code, email} = req.body
-  if(!code) res.status(403).send(response(false, '', 'El codigo es necesario.'))
-  if(!email) res.status(401).send(response(false, '', 'El email es necesario.'))
+  const { code, email } = req.body
+  if (!code) res.status(403).send(response(false, '', 'El codigo es necesario.'))
+  if (!email) res.status(401).send(response(false, '', 'El email es necesario.'))
 
   const user = await this.findByEmail(email)
-  if(!user) res.status(401).send(response(false, '', 'El usuario no fue encontrado, debe registrarse nuevamente.'))
-  if(user.temporalCode !== parseInt(code)) return res.status(401).send(response(false, '', 'El codigo es incorrecto.'))
+  if (!user) res.status(401).send(response(false, '', 'El usuario no fue encontrado, debe registrarse nuevamente.'))
+  if (user.temporalCode !== parseInt(code)) return res.status(401).send(response(false, '', 'El codigo es incorrecto.'))
   user.isVerify = true
   user.markModified('isVerify')
   user.save()
   return res.status(200).send(response(true, [{ tkauth: autentication.generateToken(user.email) }], 'Success.'))
+}
+
+exports.getUserInformation = (req, res) => {
+  const email = req.secret.email
+  if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))
+  this.findByEmail(email)
+    .then(usr => {
+      return res.status(200).send(response(true, usr, 'Peticion ejecutada con exito.'))
+    })
+    .catch(err => {
+      return res.status(500).send(response(false, err, 'Error, El usuario no fue encontrado o hubo un problema.'))
+    })
 }
