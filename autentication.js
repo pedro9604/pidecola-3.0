@@ -46,13 +46,17 @@ exports.signIn = (req, res) => {
     })
 }
 
+exports.signUp = (req, res, next) => {
+
+}
+
 exports.verifyAutentication = (req, res, next) => {
   const token = viewAuthorization(req.headers.authorization)
-  if (!token) return res.status(401).send(response(false, null, 'Unauthorized.'))
-  if (token === 'code validation') {
+  if (token === 'code validation' || req.body.register) {
     next()
     return
   }
+  if (!token) return res.status(401).send(response(false, null, 'Unauthorized.'))
   jwt.verify(token, tokenKey, (err, secret) => {
     if (err || !token) return res.status(401).send(response(false, null, 'Unauthorized.'))
     req.secret = secret
