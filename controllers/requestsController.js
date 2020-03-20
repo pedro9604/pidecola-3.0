@@ -79,7 +79,7 @@ const fromNameToInt = (name) => {
  * @type {Object}
  * @property {string} user - Campo user de la solicitud es obligatorio y debe
  * tener formato de e-mail
- * @property {string} starLocation - Campo starLocation de la solicitud es
+ * @property {string} startLocation - Campo startLocation de la solicitud es
  * obligatorio
  * @property {string} destination - Campo destination de la solicitud es
  * obligatorio
@@ -91,7 +91,7 @@ const fromNameToInt = (name) => {
  */
 const requestsRules = {
   user: 'required|email',
-  starLocation: 'required|string',
+  startLocation: 'required|string',
   destination: 'required|string',
   comment: 'string',
   im_going: 'string'
@@ -103,14 +103,14 @@ const requestsRules = {
  * @name errorsMessage
  * @type {Object}
  * @property {string} 'required.user' - Caso: Omisión o error del user
- * @property {string} 'required.starLocation' - Caso: Omisión del starLocation
+ * @property {string} 'required.startLocation' - Caso: Omisión del startLocation
  * @property {string} 'required.destination' - Caso: Omisión del destination
  * @constant
  * @private
  */
 const errorsMessage = {
   'required.user': 'El usuario es necesario.',
-  'required.starLocation': 'El lugar de partida es necesario.',
+  'required.startLocation': 'El lugar de partida es necesario.',
   'required.destination': 'El lugar de destino es necesario.'
 }
 
@@ -122,7 +122,7 @@ const errorsMessage = {
  * @returns {Object} Solicitud insertada o solicitud recibida si hay error
  */
 const add = (newRequest) => {
-  const fromUSB = newRequest.starLocation === 'USB'
+  const fromUSB = newRequest.startLocation === 'USB'
   const toUSB = newRequest.destination === 'USB'
   try {
     var req = {
@@ -146,7 +146,7 @@ const add = (newRequest) => {
       if (fromUSB) {
         index = fromNameToInt(newRequest.destination)
       } else {
-        index = fromNameToInt(newRequest.starLocation)
+        index = fromNameToInt(newRequest.startLocation)
       }
       usr.findByEmail(newRequest.user).then((sucs, err) => {
         if (!err) {
@@ -183,7 +183,7 @@ const add = (newRequest) => {
 exports.create = (req, res) => {
   const reqsInf = {
     user: req.body.user,
-    starLocation: req.body.starLocation,
+    startLocation: req.body.startLocation,
     destination: req.body.destination,
     comment: req.body.comment,
     im_going: req.body.im_going
@@ -222,11 +222,11 @@ exports.create = (req, res) => {
  */
 const remove = (deleteRequest) => {
   let index
-  const fromUSB = deleteRequest.starLocation === 'USB'
+  const fromUSB = deleteRequest.startLocation === 'USB'
   if (fromUSB) {
     index = fromNameToInt(deleteRequest.destination)
   } else {
-    index = fromNameToInt(deleteRequest.starLocation)
+    index = fromNameToInt(deleteRequest.startLocation)
   }
   try {
     for (let i = 0; i < requestsList[index].requests.length; i++) {
@@ -254,7 +254,7 @@ const remove = (deleteRequest) => {
 exports.delete = (req, res) => {
   const reqsInf = {
     user: req.body.user,
-    starLocation: req.body.starLocation,
+    startLocation: req.body.startLocation,
     destination: req.body.destination,
     comment: req.body.comment,
     im_going: req.body.im_going
