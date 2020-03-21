@@ -1,12 +1,11 @@
 const bcrypt = require('bcryptjs')
-const cloudinary = require('cloudinary')
 const validateIn = require('../lib/utils/validation').validateIn
 const response = require('../lib/utils/response').response
 const autentication = require('../autentication.js')
 const users = require('../models/userModel.js')
-const upload = require('../lib/cloudinaryConfig.js').upload
 const sendEmail = require('../lib/utils/emails').sendEmail
 const template = require('../lib/utils/codeTemplate').template
+const files = require('../lib/cloudinaryConfig.js')
 
 const BCRYPT_SALT_ROUNDS = 12
 
@@ -14,6 +13,24 @@ const registerRules = {
   email: 'required|email',
   password: 'required|string',
   phoneNumber: 'required|string'
+}
+
+const addVehicleRules = {
+  plate: 'required|string',
+  brand: 'required|string',
+  model: 'required|string',
+  year: 'required|string',
+  color: 'required|string',
+  vehicle_capacity: 'required|string'
+}
+
+const errorsMessageAddVehicle = {
+  'required.plate': 'La placa de el vehiculo es necesaria.',
+  'required.brand': 'La marca del vehiculo es necesaria.',
+  'required.model': 'El modelo del vehiculo es  necesario.',
+  'required.year': 'El año del vehiculo es  necesario.',
+  'required.color': 'El color del vehiculo es  necesario.',
+  'required.vehicle_capacity': 'La capacidad del vehiculo es  necesaria.',
 }
 
 const errorsMessage = {
@@ -73,7 +90,7 @@ const responseCreate = async (usr, res, alredy = false) => {
 }
 
 const updateUserByEmail = (email, query) => {
-  return users.findOneAndUpdate({ email: email }, { password: 0, ...query }, { returnOriginal: false })
+  return users.findOneAndUpdate({ email: email }, query, { returnOriginal: false })
 }
 
 exports.findByEmail = (email, querySelect = { password: 0 }) => {
@@ -131,38 +148,47 @@ exports.updateUser = (req, res) => {
     })
 }
 
-exports.addVehicle = (upload, (req, res) => {
-  cloudinary.v2.uploader.upload(req.file, function (picture) {
-    users.find({ 'vehicles.plate': req.body.plate }, function (error, result) {
-      if (error) { return res.status(500).send(response(false, error, 'Fallo en la busqueda')) } else if (!result.length) {
-        users.findOneAndUpdate({ email: req.body.email },
+exports.addVehicle = (req, res) => {
+  const email = req.secret.email
+  const file = req.file
+  if(!file) res.status(401).send(response(false, '', 'File is requires'))
+  if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))
 
-          {
-            $push: {
-              vehicles: {
-                plate: req.body.plate,
-                brand: req.body.brand,
-                model: req.body.model,
-                year: req.body.year,
-                color: req.body.color,
-                vehicle_capacity: req.body.vehicle_capacity,
-                vehicle_pic: picture.secure_url
-              }
-            }
+  const validate = validateIn(req.body, addVehicleRules, errorsMessageAddVehicle)
+  if (!validate.pass) return res.status(400).send(response(false, validate.errors, 'Los campos requeridos deben ser enviados.'))
 
-          },
+  this.findByEmail(email)
+  .then( async user => {
+    let existVehicle
+    if(user.vehicles && user.vehicles.length)existVehicle = user.vehicles.find( vehicle => vehicle.plate === req.body.plate)
+    else user.vehicles = []
+    
+    if(existVehicle) return res.status(403).send(response(false, error, 'Vehiculo ya existe.')) 
 
-          { new: true },
+    let picture = await files.uploadFile(file.path)
+    if(!picture) return res.status(500).send(response(false, '', 'Ocurrio un error en el proceso, disculpe.'))
 
-          function (error, doc) {
-            if (error) {
-              return res.status(500).send(response(false, error, 'Vehiculo no fue agregado'))
-            } else { return res.status(200).send(response(true, doc, 'Vehiculo agregado.')) }
-          })
-      } else { return res.status(500).send(response(false, error, 'Vehiculo ya existe')) }
+    user.vehicles.push({
+      plate: req.body.plate,
+      brand: req.body.brand,
+      model: req.body.model,
+      year: req.body.year,
+      color: req.body.color,
+      vehicle_capacity: req.body.vehicle_capacity,
+      vehicle_pic: picture.secure_url
     })
+
+    user.markModified('vehicles')
+    user.save( (err, usr) => {
+      if(err) return res.status(500).send(response(false, err, 'Vehiculo no fue agregado'))
+      return res.status(200).send(response(true, usr, 'Vehiculo agregado.'))
+    })
+    
   })
-})
+  .catch( error => {
+    return res.status(500).send(response(false, error, 'Vehiculo no fue agregado'))
+  })
+}
 
 exports.codeValidate = async (req, res) => {
   const { code, email } = req.body
