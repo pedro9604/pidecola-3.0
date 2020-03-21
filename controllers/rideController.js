@@ -118,30 +118,29 @@ exports.create = async (req, res) => {
   return res.status(200).send(response(true, rideInf, 'Cola creada.'))
 }
 
-/* const endingRideRules = {
-  rider: 'required|email',
-  startLocation: 'required|string',
-  destination: 'required|string'
-}
-
-const endRide = (data) => {
-  const { rider, startLocation, destination } = dataRide
-  return rides.updateOne({ rider: rider, passenger: passenger, startLocation: startLocation, destination: destination, ride_finished: false }, { ride_finished: true, comment: comment })
-} */
-
 async function changeStatus(dataRide, status) {
-  return await updateStatus(dataRide, {status: status})
+  return await updateRide(dataRide, {status: status})
 }
 
 exports.endRide = (req, res) => {
   const validate = validateIn(req.body, rideRules)
 
-  if (!validate.pass) return res.status(400).send(response(false, validate.errors, 'Error in request.'))
+  if (!validate.pass) return res.status(400).send(response(false, validate.errors, 'Error en solicitud.'))
 
-  // const ride = rides.findOne(req.body)
-  let rideInf
+  const query = {ride_finished: true, status: 'Finalizado'}
+  const rideInf = await updateRide(req.body, query)
   return res.status(200).send(response(true, rideInf, 'Cola finalizada.'))
 }
+
+exports.changeStatus = (req, res) => {
+  const validate = validateIn(req.body, rideRules)
+
+  if (!validate.pass) return res.status(400).send(response(false, validate.errors, 'Error en solicitud.'))
+
+  /* Problemas con req.body, definir bien que va a tener req.body */
+  const rideInf = await updateRide(req.body, {status: req.body.status})
+  return res.status(200).send(response(true, rideInf, 'Cola finalizada.'))
+} 
 
 exports.findRide = async (data) => {
   return rides.findOne(data).then((sucs, err) => {
@@ -150,6 +149,9 @@ exports.findRide = async (data) => {
   })
 }
 
-exports.updateRide = (data, query) => {
-  return rides.findOneAndUpdate(data, query, { returnOriginal: false })
+async function updateRide(data, query) {
+  return rides.findOneAndUpdate(data, query, { returnOriginal: false }).then((sucs, err) => {
+    if (!err) return sucs
+    return err
+  })
 }
