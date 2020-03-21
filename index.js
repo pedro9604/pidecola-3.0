@@ -15,7 +15,7 @@ cloudinary.cloudinaryConfig()
 
 const app = express()
 app.disable('x-powered-by')
-const port = config.SERVER_PORT || 5000
+const port = process.env.PORT || config.SERVER_PORT || 5000
 
 app.use(bodyParser.json({ limit: '50mb', extended: true }))
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }))
