@@ -272,5 +272,36 @@ exports.delete = (req, res) => {
   }
 }
 
+/**
+ * Indica si el email se encuentra en la lista list.
+ * No debería modificarse a no ser que se cambie toda lógica detrás del
+ * algoritmo de recomendación.
+ * @private
+ * @param {string} email  - Un email
+ * @param {Object[]} list - Una lista de solicitudes
+ * @returns {boolean}
+ */
+function inList(email, list) {
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].email === email) return true
+  }
+  return false
+}
+
+/**
+ * Indica si el email se encuentra en la lista requestsList.
+ * No debería modificarse a no ser que se cambie toda lógica detrás del
+ * algoritmo de recomendación.
+ * @private
+ * @param {string} email  - Un email
+ * @returns {boolean}
+ */
+function alreadyRequested(email) {
+  for (var i = 0; i < requestsList.length; i++) {
+    if (inList(email, requestsList[i].requests)) return true
+  }
+  return false
+}
+
 module.exports.requestsList = requestsList
 module.exports.cast = fromNameToInt
