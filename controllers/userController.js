@@ -3,7 +3,9 @@
  * usuarios del sistema PideCola. Para conocer los datos que se almacenan por
  * usuario, ver manual de la base de datos.
  * @module controllers/userController
- * @author Francisco Márquez <12-11163@gmail.com>
+ * @author Ángel Morante <13-10931@usb.ve>
+ * @author Francisco Márquez <12-11163@usb.ve>
+ * @author Pedro Madolnado <13-10790@usb.ve>
  * @require bcryptjs
  * @require cloudinary
  * @require lib/utils/validation.validateIn
@@ -162,8 +164,11 @@ const updateUserByEmail = (email, query) => {
   return users.findOneAndUpdate({ email: email }, { password: 0, ...query }, { returnOriginal: false })
 }
 
-exports.findByEmail = (email, querySelect = { password: 0 }) => {
-  return users.findOne({ email: email }, querySelect)
+exports.findByEmail = async (email, querySelect = { password: 0 }) => {
+  return users.findOne({ email: email }, querySelect).then((sucs, err) => {
+    if (!err) return sucs
+    return err
+  })
 }
 
 /**

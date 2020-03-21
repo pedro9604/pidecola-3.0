@@ -9,14 +9,14 @@ describe('prioridad', () => {
       for (var j = 1; j < 4; j++) {
         requests.requestsList[i].requests.push({
           user: usr + j + '@usb.ve',
-          starLocation: dest,
+          startLocation: dest,
           destination: 'USB'
         })
       }
       for (var j = 4; j < 7; j++) {
         requests.requestsList[i].requests.push({
           user: usr + j + '@usb.ve',
-          starLocation: 'USB',
+          startLocation: 'USB',
           destination: dest
         })
       }
@@ -125,14 +125,14 @@ describe('stress', () => {
       for (var j = 1; j < 32769; j++) {
         requests.requestsList[i].requests.push({
           user: usr + j + '@usb.ve',
-          starLocation: dest,
+          startLocation: dest,
           destination: 'USB'
         })
       }
       for (var j = 32769; j < 65536; j++) {
         requests.requestsList[i].requests.push({
           user: usr + j + '@usb.ve',
-          starLocation: 'USB',
+          startLocation: 'USB',
           destination: dest
         })
       }

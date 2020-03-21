@@ -123,7 +123,8 @@ const errorsMessage = {
  */
 const add = (newRequest) => {
   const fromUSB = newRequest.startLocation === 'USB'
-  const toUSB = newRequest.destination === 'USB'
+  const toUSB   = newRequest.destination === 'USB'
+  const exists  = alreadyRequested(newRequest.user)
   try {
     var req = {
       email: newRequest.user,
@@ -141,7 +142,7 @@ const add = (newRequest) => {
       im_going: newRequest.im_going,
       status: false
     }
-    if (fromUSB || toUSB) {
+    if (!exists && (fromUSB || toUSB)) {
       let index
       if (fromUSB) {
         index = fromNameToInt(newRequest.destination)
@@ -249,7 +250,7 @@ const remove = (deleteRequest) => {
  * @public
  * @param {Object} req - Un HTTP Request
  * @param {Object} res - Un HTTP Response
- * @returns {Object} 
+ * @returns {Object}
  */
 exports.delete = (req, res) => {
   const reqsInf = {
@@ -293,7 +294,7 @@ function inList(email, list) {
  * No debería modificarse a no ser que se cambie toda lógica detrás del
  * algoritmo de recomendación.
  * @private
- * @param {string} email  - Un email
+ * @param {string} email - Un email
  * @returns {boolean}
  */
 function alreadyRequested(email) {
@@ -301,6 +302,75 @@ function alreadyRequested(email) {
     if (inList(email, requestsList[i].requests)) return true
   }
   return false
+}
+
+/**
+ * Procedimiento: Cambia el estado de una solicitud de cola, cuando esta existe
+ * No debería modificarse a no ser que se cambie toda lógica detrás del
+ * algoritmo de recomendación.
+ * @private
+ * @param {string} email - Un email
+ * @param {string} place - Una parada
+ */
+function changeStatus(email, place) {
+  const stop = fromNameToInt(place)
+  for (var i = 0; i < requestsList[stop].requests.length; i++) {
+    if (requestsList[stop].requests[i].email === email) {
+      requestsList[stop].requests[i].status = !requestsList[stop].requests[i].status
+      break
+    }
+  }
+}
+
+/**
+ * Reglas que tienen que cumplir las solicitudes enviadas desde Front-End para
+ * cambiar el status de una solicitud de cola ya existente.
+ * @name changeStatusRules
+ * @type {Object}
+ * @property {string} user - Campo user de la solicitud es obligatorio y debe
+ * tener formato de e-mail
+ * @property {string} place - Campo place de la solicitud es obligatorio
+ * @constant
+ * @private
+ */
+const changeStatusRules = {
+  user: 'required|email',
+  place: 'required|string'
+}
+
+/**
+ * Mensajes de error en caso de no se cumplan las changeStatusRules en una
+ * solicitud.
+ * @name errorMessage
+ * @type {Object}
+ * @property {string} 'required.user'  - Caso: Omisión o error del user
+ * @property {string} 'required.place' - Caso: Omisión del place
+ * @constant
+ * @private
+ */
+const errorMessage = {
+  'required.user': "El email del usuario es necesario.",
+  'required.place': "El lugar, diferente de la USB, necesario."
+}
+
+/**
+ * Endpoint para conexión con Front-end.
+ * No debería modificarse a no ser que se cambie toda lógica detrás del
+ * algoritmo de recomendación.
+ * @function
+ * @public
+ * @param {Object} req - Un HTTP Request
+ * @param {Object} res - Un HTTP Response
+ * @returns {Object}
+ */
+exports.changeStatus = (req, res) => {
+  const validate = validateIn(req.body, changeStatusRules, errorMessage)
+  const index = fromNameToInt(req.body.place)
+  if (!(validate && req.body.place != "USB" && index > -1)) {
+    return res.status(400).send(response(false, validate.errors, "Los datos no son correctos"))
+  }
+  changeStatus(req.body.user, req.body.place)
+  return res.status(200).send(response(false, '', "Cambiado exitosamente"))
 }
 
 module.exports.requestsList = requestsList

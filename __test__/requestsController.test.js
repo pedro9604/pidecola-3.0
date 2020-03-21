@@ -51,7 +51,7 @@ describe('create', () => {
   test('A new request is added to the resquestsList', () => {
     const data = {
       user: '12-11163@usb.ve',
-      starLocation: 'USB',
+      startLocation: 'USB',
       destination: 'Baruta',
       comment: 'Nothing',
       im_going: 'Who cares?'
@@ -67,7 +67,7 @@ describe('create', () => {
   test('A request without "USB"', () => {
     const data = {
       user: 'XXXXXX@usb.ve',
-      starLocation: 'Bellas Artes',
+      startLocation: 'Bellas Artes',
       destination: 'Baruta',
       comment: 'Nothing',
       im_going: 'Who cares?'
@@ -83,7 +83,7 @@ describe('create', () => {
   test('A request without email', () => {
     const data = {
       user: 'XXXXXXusb.ve',
-      starLocation: 'USB',
+      startLocation: 'USB',
       destination: 'Baruta',
       comment: 'Nothing',
       im_going: 'Who cares?'
@@ -99,7 +99,7 @@ describe('create', () => {
   test('A request out of our stops (Maracay)', () => {
     const data = {
       user: 'XXXXXX@usb.ve',
-      starLocation: 'USB',
+      startLocation: 'USB',
       destination: 'Maracay',
       comment: 'Nothing',
       im_going: 'Who cares?'
@@ -111,20 +111,38 @@ describe('create', () => {
     requests.create(request, response)
     expect(response.statusCode).toBe(500)
   })
+
+  test('You cannot request for a ride twice', () => {
+    const data = {
+      user: 'XXXXXX@usb.ve',
+      startLocation: 'USB',
+      destination: 'Maracay',
+      comment: 'Nothing',
+      im_going: 'Who cares?'
+    }
+    var request = httpMocks.createRequest({
+      body: data
+    })
+    var response1 = httpMocks.createResponse()
+    var response2 = httpMocks.createResponse()
+    requests.create(request, response1)
+    requests.create(request, response2)
+    expect(response2.statusCode).toBe(500)
+  })
 })
 
 describe('delete', () => {
   beforeEach(() => {
     requests.requestsList[4].requests.push({
       user: '12-11163@usb.ve',
-      starLocation: 'USB',
+      startLocation: 'USB',
       destination: 'Bellas Artes',
       comment: 'Nothing',
       im_going: 'Who cares?'
     })
     requests.requestsList[0].requests.push({
       user: '12-11164@usb.ve',
-      starLocation: 'Baruta',
+      startLocation: 'Baruta',
       destination: 'USB',
       comment: 'Nothing',
       im_going: 'Who cares?'
@@ -144,7 +162,7 @@ describe('delete', () => {
       requests.requestsList[4].requests.length
     const data = {
       user: '12-11163@usb.ve',
-      starLocation: 'USB',
+      startLocation: 'USB',
       destination: 'Bellas Artes',
       comment: 'Nothing',
       im_going: 'Who cares?'
@@ -166,7 +184,7 @@ describe('delete', () => {
   test('If request does not exist return code 500', () => {
     const data = {
       user: '12-11162@usb.ve',
-      starLocation: 'Baruta',
+      startLocation: 'Baruta',
       destination: 'USB',
       comment: 'Nothing',
       im_going: 'Who cares?'
@@ -182,7 +200,7 @@ describe('delete', () => {
   test('A request without email', () => {
     const data = {
       user: 'XXXXXXusb.ve',
-      starLocation: 'USB',
+      startLocation: 'USB',
       destination: 'Baruta',
       comment: 'Nothing',
       im_going: 'Who cares?'
@@ -198,7 +216,7 @@ describe('delete', () => {
   test('A request without "USB"', () => {
     const data = {
       user: 'XXXXXX@usb.ve',
-      starLocation: 'Baruta',
+      startLocation: 'Baruta',
       destination: 'Bellas Artes',
       comment: 'Nothing',
       im_going: 'Who cares?'
@@ -209,5 +227,80 @@ describe('delete', () => {
     var response = httpMocks.createResponse()
     requests.delete(request, response)
     expect(response.statusCode).toBe(500)
+  })
+})
+
+describe('changeStatus', () => {
+  beforeEach(() => {
+    const data = {
+      user: '12-11163@usb.ve',
+      startLocation: 'USB',
+      destination: 'Bellas Artes',
+      comment: 'Nothing',
+      im_going: 'Who cares?'
+    }
+    var request = httpMocks.createRequest({
+      body: data
+    })
+    var response = httpMocks.createResponse()
+    requests.create(request, response)
+  })
+
+  afterEach(() => {
+    requests.requestsList.forEach(e => e.requests = [])
+  })
+
+  test('Change status from an existing request', () => {
+    data = {
+      user: "12-11163@usb.ve",
+      place: "Bellas Artes"
+    }
+    var request = httpMocks.createRequest({
+      body: data
+    })
+    var response = httpMocks.createResponse()
+    requests.changeStatus(request, response)
+    const status = requests.requestsList[4].requests[0].status
+    expect(status).toBe(false)
+  })
+
+  test('No Change status from an not-existing request', () => {
+    data = {
+      user: "12-11164@usb.ve",
+      place: "Bellas Artes"
+    }
+    var request = httpMocks.createRequest({
+      body: data
+    })
+    var response = httpMocks.createResponse()
+    requests.changeStatus(request, response)
+    const status = requests.requestsList[4].requests[0].status
+    expect(status).toBe(true)
+  })
+
+  test('Raise error when place it is USB', () => {
+    data = {
+      user: "12-11163@usb.ve",
+      place: "USB"
+    }
+    var request = httpMocks.createRequest({
+      body: data
+    })
+    var response = httpMocks.createResponse()
+    requests.changeStatus(request, response)
+    expect(response.statusCode).toBe(400)
+  })
+
+  test('Raise error when place it is not a valid stop (Maracay)', () => {
+    data = {
+      user: "12-11163@usb.ve",
+      place: "Maracay"
+    }
+    var request = httpMocks.createRequest({
+      body: data
+    })
+    var response = httpMocks.createResponse()
+    requests.changeStatus(request, response)
+    expect(response.statusCode).toBe(400)
   })
 })

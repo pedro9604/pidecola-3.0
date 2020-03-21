@@ -63,20 +63,23 @@ const errorsMessage = {
  * @param {Object} dataRide
  * @returns {Object} Datos de la cola insertada en la base de datos
  */
-const create = (dataRide) => {
+const create = async (dataRide) => {
   const { rider, passenger, seats, startLocation, destination } = dataRide
+  const usuario = await users.findByEmail(rider)
+  console.log(usuario)
   return rides.create({
-    rider: users.findByEmail(rider).then((sucs, err) => {
-      if (!err) return sucs.id
-    }),
+    rider: usuario,
     passenger: passenger,
     available_seats: seats,
-    status: 'En progreso',
+    status: 'En Espera',
     startLocation: startLocation,
     destination: destination,
     time: new Date(),
     ride_finished: false,
     comment: [{}]
+  }).then((sucs, err) => {
+    if (!err) return sucs
+    return err
   })
 }
 
@@ -90,13 +93,15 @@ const create = (dataRide) => {
  * @param {Object} res - Un HTTP Response
  * @returns {Object} 
  */
-exports.create = (req, res) => {
+exports.create = async (req, res) => {
   const validate = validateIn(req.body, rideRules, errorsMessage)
   const arrayPas = Array.isArray(req.body.passenger)
   let pass
   if (req.body.passenger.length > 0) {
-    pass = !req.body.passenger.find(u => {
-      return u === users.findByEmail(req.body.rider).schema.$id
+    const riderId = await users.findByEmail(req.body.rider).id
+    pass = !req.body.passenger.find(async u => {
+      const passegerId = await users.findByEmail(u).id
+      return passegerId === riderId
     })
   } else {
     pass = true
@@ -108,7 +113,7 @@ exports.create = (req, res) => {
     )
   }
 
-  const rideInf = create(req.body)
+  const rideInf = await create(req.body)
 
   return res.status(200).send(response(true, rideInf, 'Cola creada.'))
 }
@@ -124,6 +129,10 @@ const endRide = (data) => {
   return rides.updateOne({ rider: rider, passenger: passenger, startLocation: startLocation, destination: destination, ride_finished: false }, { ride_finished: true, comment: comment })
 } */
 
+async function changeStatus(dataRide, status) {
+  return await updateStatus(dataRide, {status: status})
+}
+
 exports.endRide = (req, res) => {
   const validate = validateIn(req.body, rideRules)
 
@@ -134,6 +143,13 @@ exports.endRide = (req, res) => {
   return res.status(200).send(response(true, rideInf, 'Cola finalizada.'))
 }
 
-exports.findRide = (data) => {
-  return rides.findOne(data)
+exports.findRide = async (data) => {
+  return rides.findOne(data).then((sucs, err) => {
+    if (!err) return sucs
+    return err
+  })
+}
+
+exports.updateRide = (data, query) => {
+  return rides.findOneAndUpdate(data, query, { returnOriginal: false })
 }

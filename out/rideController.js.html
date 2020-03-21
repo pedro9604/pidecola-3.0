@@ -52,7 +52,7 @@ const rides = require('../models/rideModel.js')
  * tener formato de e-mail
  * @property {string} seats - Campo seats de la solicitud es obligatorio y debe
  * tener formato de entero
- * @property {string} starLocation - Campo starLocation de la solicitud es
+ * @property {string} startLocation - Campo startLocation de la solicitud es
  * obligatorio
  * @property {string} destination - Campo destination de la solicitud es
  * obligatorio
@@ -62,7 +62,7 @@ const rides = require('../models/rideModel.js')
 const rideRules = {
   rider: 'required|email',
   seats: 'required|integer',
-  starLocation: 'required|string',
+  startLocation: 'required|string',
   destination: 'required|string'
 }
 
@@ -72,7 +72,7 @@ const rideRules = {
  * @type {Object}
  * @property {string} 'required.rider' - Caso: Omisión o error del rider
  * @property {string} 'required.seats' - Caso: Omisión o error del seats
- * @property {string} 'required.starLocation' - Caso: Omisión del starLocation
+ * @property {string} 'required.startLocation' - Caso: Omisión del startLocation
  * @property {string} 'required.destination' - Caso: Omisión del destination
  * @constant
  * @private
@@ -80,7 +80,7 @@ const rideRules = {
 const errorsMessage = {
   'required.rider': 'El conductor es necesario.',
   'required.seats': 'El número de asientos disponibles es necesario.',
-  'required.starLocation': 'El lugar de partida es necesario.',
+  'required.startLocation': 'El lugar de partida es necesario.',
   'required.destination': 'El lugar de destino es necesario.'
 }
 
@@ -92,7 +92,7 @@ const errorsMessage = {
  * @returns {Object} Datos de la cola insertada en la base de datos
  */
 const create = (dataRide) => {
-  const { rider, passenger, seats, starLocation, destination } = dataRide
+  const { rider, passenger, seats, startLocation, destination } = dataRide
   return rides.create({
     rider: users.findByEmail(rider).then((sucs, err) => {
       if (!err) return sucs.id
@@ -100,7 +100,7 @@ const create = (dataRide) => {
     passenger: passenger,
     available_seats: seats,
     status: 'En progreso',
-    starLocation: starLocation,
+    startLocation: startLocation,
     destination: destination,
     time: new Date(),
     ride_finished: false,
@@ -143,13 +143,13 @@ exports.create = (req, res) => {
 
 /* const endingRideRules = {
   rider: 'required|email',
-  starLocation: 'required|string',
+  startLocation: 'required|string',
   destination: 'required|string'
 }
 
 const endRide = (data) => {
-  const { rider, starLocation, destination } = dataRide
-  return rides.updateOne({ rider: rider, passenger: passenger, starLocation: starLocation, destination: destination, ride_finished: false }, { ride_finished: true, comment: comment })
+  const { rider, startLocation, destination } = dataRide
+  return rides.updateOne({ rider: rider, passenger: passenger, startLocation: startLocation, destination: destination, ride_finished: false }, { ride_finished: true, comment: comment })
 } */
 
 exports.endRide = (req, res) => {

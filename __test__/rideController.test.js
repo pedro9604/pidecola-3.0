@@ -22,7 +22,7 @@ describe('create', () => {
       rider: 'XXXXXX@usb.ve',
       passenger: [],
       seats: '0',
-      starLocation: 'A',
+      startLocation: 'A',
       destination: 'B'
     }
     var request = httpMocks.createRequest({
@@ -38,7 +38,7 @@ describe('create', () => {
       rider: 'XXXXXX',
       passenger: [],
       seats: '0',
-      starLocation: 'A',
+      startLocation: 'A',
       destination: 'B'
     }
     var request = httpMocks.createRequest({
@@ -54,7 +54,7 @@ describe('create', () => {
       rider: 'XXXXXX@usb.ve',
       passenger: [],
       seats: 'a',
-      starLocation: 'A',
+      startLocation: 'A',
       destination: 'B'
     }
     var request = httpMocks.createRequest({
@@ -65,12 +65,12 @@ describe('create', () => {
     expect(response.statusCode).toBe(400)
   })
 
-  test('starLocation is not an string', () => {
+  test('startLocation is not an string', () => {
     const data = {
       rider: 'XXXXXX@usb.ve',
       passenger: [],
       seats: '0',
-      starLocation: 1,
+      startLocation: 1,
       destination: 'B'
     }
     var request = httpMocks.createRequest({
@@ -86,7 +86,7 @@ describe('create', () => {
       rider: 'XXXXXX@usb.ve',
       passenger: [],
       seats: '0',
-      starLocation: 'A',
+      startLocation: 'A',
       destination: 1
     }
     var request = httpMocks.createRequest({
@@ -100,9 +100,9 @@ describe('create', () => {
   test('Rider cannot be a passenger', () => {
     const data = {
       rider: 'XXXXXX@usb.ve',
-      passenger: [user.findByEmail('XXXXXX@usb.ve').schema.$id],
+      passenger: ['XXXXXX@usb.ve'],
       seats: '0',
-      starLocation: 'A',
+      startLocation: 'A',
       destination: 'B'
     }
     var request = httpMocks.createRequest({
