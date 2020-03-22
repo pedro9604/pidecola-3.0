@@ -148,10 +148,37 @@ exports.updateUser = (req, res) => {
     })
 }
 
+exports.updateProfilePic = (req, res) => {
+  const email = req.secret.email
+  const file = req.file
+  if(!file) return res.status(401).send(response(false, '', 'File is required'))
+  if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))
+
+  this.findByEmail(email)
+  .then( async user => {
+
+    let picture = await files.uploadFile(file.path)
+    if(!picture) return res.status(500).send(response(false, '', 'Ocurrio un error en el proceso, disculpe.'))
+
+    user.$set({
+      profile_pic: picture.secure_url
+    })
+
+    user.save( (err, usr) => {
+      if(err) return res.status(500).send(response(false, err, 'Foto de perfil no fue agregada'))
+      return res.status(200).send(response(true, usr, 'Foto de perfil agregada'))
+    })
+    
+  })
+  .catch( error => {
+    return res.status(500).send(response(false, error, 'Foto de perfil no fue agregada'))
+  })
+}
+
 exports.addVehicle = (req, res) => {
   const email = req.secret.email
   const file = req.file
-  if(!file) res.status(401).send(response(false, '', 'File is requires'))
+  if(!file) return res.status(401).send(response(false, '', 'File is requires'))
   if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))
 
   const validate = validateIn(req.body, addVehicleRules, errorsMessageAddVehicle)
