@@ -235,6 +235,7 @@ exports.create = async (req, res) => {
       return res.status(500).send(response(false, err, mssg))
     })
 }
+
 exports.updateUser = (req, res) => {
   const email = req.secret.email
   if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))

@@ -122,7 +122,7 @@ async function changeStatus(dataRide, status) {
   return await updateRide(dataRide, {status: status})
 }
 
-exports.endRide = (req, res) => {
+exports.endRide = async (req, res) => {
   const validate = validateIn(req.body, rideRules)
 
   if (!validate.pass) return res.status(400).send(response(false, validate.errors, 'Error en solicitud.'))
@@ -132,7 +132,7 @@ exports.endRide = (req, res) => {
   return res.status(200).send(response(true, rideInf, 'Cola finalizada.'))
 }
 
-exports.changeStatus = (req, res) => {
+exports.changeStatus = async (req, res) => {
   const validate = validateIn(req.body, rideRules)
 
   if (!validate.pass) return res.status(400).send(response(false, validate.errors, 'Error en solicitud.'))
