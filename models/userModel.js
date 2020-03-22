@@ -20,7 +20,7 @@ const UserSchema = new Schema(
         'Arquitectura', 'Urbanismo', 'Lic. en Química', 'Lic. en Matemáticas', 'Lic. en Física', 'Lic. en Biología',
         'Lic. en Comercio Internacional', 'Lic. en Estudios y Artes Liberales', 'Economía']
     },
-    profile_pic: { type: Schema.Types.ObjectId, ref: 'Img' },
+    profile_pic: { type: String },
     status: { type: String, enum: ['Disponible', 'No Disponible'] },
     community: { type: String, enum: ['Estudiante', 'Profesor', 'Egresado', 'Personal Administrativo', 'Obrero'] },
     vehicles:

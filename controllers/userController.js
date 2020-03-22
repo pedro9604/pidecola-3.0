@@ -129,29 +129,40 @@ exports.create = async (req, res) => {
 
 exports.updateUser = (req, res) => {
   const email = req.secret.email
+  const file = req.file
+  if(!file) return res.status(401).send(response(false, '', 'File is required'))
   if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))
-  const query = {
-    $set: {
+
+  this.findByEmail(email)
+  .then( async user => {
+    
+    let picture = await files.uploadFile(file.path)
+    if(!picture) return res.status(500).send(response(false, '', 'Ocurrio un error en el proceso, disculpe.'))
+
+    user.$set({
       first_name: req.body.first_name,
       last_name: req.body.last_name,
       age: req.body.age,
       phone_number: req.body.phone_number,
-      major: req.body.major
-    }
-  }
-  updateUserByEmail(email, query)
-    .then(usr => {
-      return res.status(200).send(response(true, usr, 'El Usuario fue actualizado.'))
+      major: req.body.major,
+      profile_pic: picture.secure_url
     })
-    .catch(err => {
-      return res.status(500).send(response(false, err, 'Error, El usuario no fue actualizado.'))
+
+    user.save( (err, usr) => {
+      if(err) return res.status(500).send(response(false, err, 'Usuario no fue actualizado'))
+      return res.status(200).send(response(true, usr, 'Usuario actualizado'))
     })
+    
+  })
+  .catch( error => {
+    return res.status(500).send(response(false, error, 'Usuario no fue actualizado'))
+  })
 }
 
 exports.addVehicle = (req, res) => {
   const email = req.secret.email
   const file = req.file
-  if(!file) res.status(401).send(response(false, '', 'File is requires'))
+  if(!file) return res.status(401).send(response(false, '', 'File is requires'))
   if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))
 
   const validate = validateIn(req.body, addVehicleRules, errorsMessageAddVehicle)

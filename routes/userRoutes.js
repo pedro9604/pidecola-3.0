@@ -11,7 +11,7 @@ router.post('/', userController.create)
 router.post('/code', userController.codeValidate)
 
 // PUTs
-router.put('/', userController.updateUser)
+router.put('/', upload.single('file'), userController.updateUser)
 router.put('/add/vehicle', upload.single('file'), userController.addVehicle)
 
 module.exports = router
