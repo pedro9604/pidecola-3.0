@@ -65,14 +65,14 @@ const errorsMessage = {
  */
 const create = async (dataRide) => {
   const { rider, passenger, seats, startLocation, destination } = dataRide
-  const usuario = await users.findByEmail(rider)
-  console.log(usuario)
+  // const usuario = await users.findByEmail(rider)
   return rides.create({
-    rider: usuario,
+    // rider: usuario._id,
+    rider: rider._id,
     passenger: passenger,
     available_seats: seats,
     status: 'En Espera',
-    startLocation: startLocation,
+    start_location: startLocation,
     destination: destination,
     time: new Date(),
     ride_finished: false,
@@ -96,21 +96,45 @@ const create = async (dataRide) => {
 exports.create = async (req, res) => {
   const validate = validateIn(req.body, rideRules, errorsMessage)
   const arrayPas = Array.isArray(req.body.passenger)
+  var emptyPas = true
+  var validPass = true
   let pass
+  req.body.rider = await users.findByEmail(req.body.rider)
   if (req.body.passenger.length > 0) {
-    const riderId = await users.findByEmail(req.body.rider).id
-    pass = !req.body.passenger.find(async u => {
-      const passegerId = await users.findByEmail(u).id
-      return passegerId === riderId
+    pass = []
+    for (var i = 0; i < req.body.passenger.length; i++) {
+      req.body.passenger[i] = await users.findByEmail(req.body.passenger[i])
+      if (req.body.passenger[i] === null) validPass = false
+    }
+    pass = req.body.passenger.find(async u => {
+      if (!!u) return u._id === req.body.rider._id
     })
+    pass = !pass
   } else {
+    emptyPas = false
     pass = true
   }
 
-  if (!(validate.pass && arrayPas && pass)) {
-    return res.status(400).send(
-      response(false, validate.errors, 'Ha ocurrido un error en el proceso.')
-    )
+  if (!(validate.pass && arrayPas && emptyPas && pass && validPass)) {
+    var errors = ""
+    var message = ""
+    if (!validate.pass) {
+      errors = validate.errors
+      message = "Los datos introducidos no cumplen con el formato requerido"
+    } else if (!arrayPas) {
+      errors = "Los pasajeros no están en un arreglo"
+      message = "Los pasajeros deben estar en un arreglo"
+    } else if (!emptyPas) {
+      errors = "Arreglo vacío de pasajeros"
+      message = "No puede haber una cola sin pasajeros"
+    } else if (!pass) {
+      errors = "El conductor es un pasajero"
+      message = "El conductor no puede ser un pasajero"
+    } else {
+      errors = "Hay pasajeros no registrados en esta cola"
+      message = "Todo pasajero tiene que ser un usuario registrado"
+    }
+    return res.status(400).send(response(false, errors, message))
   }
 
   const rideInf = await create(req.body)

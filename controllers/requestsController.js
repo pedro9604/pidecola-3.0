@@ -24,7 +24,7 @@ const usr = require('./userController.js')
  * @property {string}  user.lName - Apellido del usuario solicitante
  * @property {string}  user.major - Carrera del usuario solicitante
  * @property {string}  user.prPic - URL foto de perfil del usuario solicitante
- * @property {string}  start_location - Ubicación del usuario solicitante
+ * @property {string}  startLocation - Ubicación del usuario solicitante
  * @property {string}  destination - Destino del usuario solicitante
  * @property {string}  comment - Observación del usuario solicitante
  * @property {string}  im_going - Verdadero destino del usuario solicitante
@@ -69,7 +69,8 @@ const fromNameToInt = (name) => {
   else if (name === 'Chacaito') return 2
   else if (name === 'La Paz') return 3
   else if (name === 'Bellas Artes') return 4
-  else return -1
+  else if (name === 'USB') return -1
+  else return -2
 }
 
 /**
@@ -124,51 +125,14 @@ const errorsMessage = {
 const add = (newRequest) => {
   const fromUSB = newRequest.startLocation === 'USB'
   const toUSB   = newRequest.destination === 'USB'
-  const exists  = alreadyRequested(newRequest.user)
-  try {
-    var req = {
-      email: newRequest.user,
-      user: {
-        usbid: "",
-        phone: "",
-        fName: "",
-        lName: "",
-        major: "",
-        prPic: ""
-      },
-      start_location: newRequest.start_location,
-      destination: newRequest.destination,
-      comment: newRequest.comment,
-      im_going: newRequest.im_going,
-      status: false
-    }
-    if (!exists && (fromUSB || toUSB)) {
-      let index
-      if (fromUSB) {
-        index = fromNameToInt(newRequest.destination)
-      } else {
-        index = fromNameToInt(newRequest.startLocation)
-      }
-      usr.findByEmail(newRequest.user).then((sucs, err) => {
-        if (!err) {
-          req.user.usbid = sucs.email.slice(0, 8),
-          req.user.phone = sucs.phone_number,
-          req.user.fName = sucs.first_name,
-          req.user.lName = sucs.last_name,
-          req.user.major = sucs.major,
-          req.user.prPic = sucs.profile_pic
-        }
-      })
-      req.status = true
-      requestsList[index].requests.push(req)
-      return req
-    } else {
-      return newRequest
-    }
-  } catch (error) {
-    newRequest.status = false
-    return newRequest
+  let index
+  if (fromUSB) {
+    index = fromNameToInt(newRequest.destination)
+  } else {
+    index = fromNameToInt(newRequest.startLocation)
   }
+  requestsList[index].requests.push(newRequest)
+  return newRequest
 }
 
 /**
@@ -181,37 +145,56 @@ const add = (newRequest) => {
  * @param {Object} res - Un HTTP Response
  * @returns {Object} 
  */
-exports.create = (req, res) => {
-  const reqsInf = {
-    user: req.body.user,
+exports.create = async (req, res) => {
+  const validate = validateIn(req.body, requestsRules, errorsMessage)
+  const fromUSB  = req.body.startLocation === 'USB'
+  const toUSB    = req.body.destination === 'USB'
+  const startVal = fromNameToInt(req.body.startLocation) > -2
+  const destVal  = fromNameToInt(req.body.destination) > -2
+  const exists   = alreadyRequested(req.body.user)
+  if (!(validate.pass && !exists && (fromUSB != toUSB) && startVal && destVal)) {
+    var errors = ""
+    var message = ""
+    if (!validate.pass) {
+      errors = validate.errors
+      message = "Los datos introducidos no cumplen con el formato requerido"
+    } else if (exists) {
+      errors = "Solicitud existente"
+      message = "No puedes solicitar más de una cola"
+    } else if (fromUSB) {
+      errors = "Cola es desde la USB"
+      message = "No puede haber una cola desde la USB hasta la USB"
+    } else if (!toUSB) {
+      errors = "Cola no involucra a la USB"
+      message = "No puede haber una cola que no salga de, o llegue a, la USB"
+    } else if (!startVal) {
+      errors = "Cola no empieza en una parada autorizada."
+      message = "Ninguna cola puede involucrar una parada no autorizada"
+    } else {
+      errors = "Cola no termina en una parada autorizada."
+      message = "Ninguna cola puede involucrar una parada no autorizada"
+    }
+    return res.status(400).send(response(false, errors, message))
+  }
+  const user = await usr.findByEmail(req.body.user)
+  const request = {
+    email: req.body.user,
+    user: {
+      usbid: user.email.slice(0, 8),
+      phone: user.phone_number,
+      fName: user.first_name,
+      lName: user.last_name,
+      major: user.major,
+      prPic: user.profile_pic
+    },
     startLocation: req.body.startLocation,
     destination: req.body.destination,
     comment: req.body.comment,
-    im_going: req.body.im_going
+    im_going: req.body.im_going,
+    status: true
   }
-  const validate = validateIn(reqsInf, requestsRules, errorsMessage)
-
-  if (!validate.pass) {
-    return res.status(400).send(
-      response(false, validate.errors, 'Ha ocurrido un error en el proceso.')
-    )
-  }
-  const insert = add(reqsInf)
-  const inf = {
-    user: insert.email,
-    information: insert.user,
-    start_location: insert.start_location,
-    destination: insert.destination,
-    comment: insert.comment,
-    im_going: insert.im_going,
-    status: insert.status
-  }
-  if (insert.status) {
-    // console.log(inf.information.phone_number)
-    return res.status(200).send(response(true, inf, 'Solicitud exitosa.'))
-  } else {
-    return res.status(500).send(response(false, inf, 'Solicitud errada.'))
-  }
+  const insert = add(request)
+  return res.status(200).send(response(true, insert, 'Solicitud exitosa.'))
 }
 
 /**
@@ -253,23 +236,18 @@ const remove = (deleteRequest) => {
  * @returns {Object}
  */
 exports.delete = (req, res) => {
-  const reqsInf = {
-    user: req.body.user,
-    startLocation: req.body.startLocation,
-    destination: req.body.destination,
-    comment: req.body.comment,
-    im_going: req.body.im_going
-  }
-  const validate = validateIn(reqsInf, requestsRules, errorsMessage)
+  const validate = validateIn(req.body, requestsRules, errorsMessage)
 
   if (!validate.pass) {
     return res.status(400).send(
       response(false, validate.errors, 'Ha ocurrido un error en el proceso.')
     )
-  } else if (remove(reqsInf)) {
-    return res.status(200).send(response(true, reqsInf, 'Solicitud exitosa.'))
+  }
+  var del = remove(req.body)
+  if (del) {
+    return res.status(200).send(response(true, '', 'Solicitud exitosa.'))
   } else {
-    return res.status(500).send(response(false, reqsInf, 'Solicitud errada.'))
+    return res.status(500).send(response(false, '', 'Solicitud errada.'))
   }
 }
 
@@ -313,10 +291,10 @@ function alreadyRequested(email) {
  * @param {string} place - Una parada
  */
 function changeStatus(email, place) {
-  const stop = fromNameToInt(place)
-  for (var i = 0; i < requestsList[stop].requests.length; i++) {
+  const s = fromNameToInt(place)
+  for (var i = 0; i < requestsList[s].requests.length; i++) {
     if (requestsList[stop].requests[i].email === email) {
-      requestsList[stop].requests[i].status = !requestsList[stop].requests[i].status
+      requestsList[s].requests[i].status = !requestsList[s].requests[i].status
       break
     }
   }
@@ -366,8 +344,21 @@ const errorMessage = {
 exports.changeStatus = (req, res) => {
   const validate = validateIn(req.body, changeStatusRules, errorMessage)
   const index = fromNameToInt(req.body.place)
-  if (!(validate && req.body.place != "USB" && index > -1)) {
-    return res.status(400).send(response(false, validate.errors, "Los datos no son correctos"))
+  if (!(validate.pass && req.body.place != "USB" && index > -1)) {
+    var errors = ""
+    var message = ""
+    if (!validate.pass) {
+      errors = validate.errors
+      message = "Los datos introducidos no cumplen con el formato requerido"
+    } else if (req.body.place === "USB") {
+      errors = "Lugar es la USB"
+      message = ["Si vas a la USB, di el lugar de donde vienes"]
+      message.push("Si vienes de la USB, di el lugar a donde vas")
+    } else {
+      errors = "El lugar no es una parada autorizada"
+      message = "Debes indicar una parada autorizada"
+    }
+    return res.status(400).send(response(false, errors, message))
   }
   changeStatus(req.body.user, req.body.place)
   return res.status(200).send(response(false, '', "Cambiado exitosamente"))

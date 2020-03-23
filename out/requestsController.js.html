@@ -52,7 +52,7 @@ const usr = require('./userController.js')
  * @property {string}  user.lName - Apellido del usuario solicitante
  * @property {string}  user.major - Carrera del usuario solicitante
  * @property {string}  user.prPic - URL foto de perfil del usuario solicitante
- * @property {string}  start_location - Ubicación del usuario solicitante
+ * @property {string}  startLocation - Ubicación del usuario solicitante
  * @property {string}  destination - Destino del usuario solicitante
  * @property {string}  comment - Observación del usuario solicitante
  * @property {string}  im_going - Verdadero destino del usuario solicitante
@@ -163,7 +163,7 @@ const add = (newRequest) => {
         major: "",
         prPic: ""
       },
-      start_location: newRequest.start_location,
+      startLocation: newRequest.startLocation,
       destination: newRequest.destination,
       comment: newRequest.comment,
       im_going: newRequest.im_going,
@@ -227,7 +227,7 @@ exports.create = (req, res) => {
   const inf = {
     user: insert.email,
     information: insert.user,
-    start_location: insert.start_location,
+    startLocation: insert.startLocation,
     destination: insert.destination,
     comment: insert.comment,
     im_going: insert.im_going,
