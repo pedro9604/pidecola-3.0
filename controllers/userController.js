@@ -103,8 +103,8 @@ const updateUserByEmail = (email, query) => {
   return users.findOneAndUpdate({ email: email }, query, { returnOriginal: false })
 }
 
-exports.findByEmail = async (email, querySelect = { password: 0 }) => {
-  return users.findOne({ email: email }, querySelect).then((sucs, err) => {
+exports.findByEmail = async (email, isVerify = true, querySelect = { password: 0 }) => {
+  return users.findOne({ email: email, isVerify: isVerify }, querySelect).then((sucs, err) => {
     if (!err) return sucs
     return err
   })
@@ -200,7 +200,7 @@ exports.create = async (req, res) => {
 
   if (!validate.pass) return res.status(400).send(response(false, validate.errors, 'Ha ocurrido un error en el proceso'))
 
-  const alreadyRegister = await this.findByEmail(req.body.email)
+  const alreadyRegister = await this.findByEmail(req.body.email, false)
 
   if(alreadyRegister) {
     if (alreadyRegister.isVerify) {
@@ -361,7 +361,7 @@ exports.codeValidate = async (req, res) => {
   if (!code) res.status(403).send(response(false, '', 'El codigo es necesario.'))
   if (!email) res.status(401).send(response(false, '', 'El email es necesario.'))
 
-  const user = await this.findByEmail(email)
+  const user = await this.findByEmail(email, false)
   if (!user) res.status(401).send(response(false, '', 'El usuario no fue encontrado, debe registrarse nuevamente.'))
   if (user.temporalCode !== parseInt(code)) return res.status(401).send(response(false, '', 'El codigo es incorrecto.'))
   user.isVerify = true
