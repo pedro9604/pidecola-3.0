@@ -76,7 +76,7 @@ const create = async (dataRide) => {
     destination: destination,
     time: new Date(),
     ride_finished: false,
-    comment: [{}]
+    comments: [{}]
   }).then((sucs, err) => {
     if (!err) return sucs
     return err
