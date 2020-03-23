@@ -13,7 +13,7 @@
  * @require autentication.js
  * @require models/rideModel.js
  * @require lib/cloudinaryConfig.js.upload
- * @require lib/utils/emails').sendEmail
+ * @require lib/utils/emails.sendEmail
  * @require lib/utils/codeTemplate.template
  */
 
