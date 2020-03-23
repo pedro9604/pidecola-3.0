@@ -165,13 +165,12 @@ function prioridad(stop) {
  * Endpoint para conexión con Front-end.
  * No debería modificarse a no ser que se cambie toda lógica detrás del
  * algoritmo de recomendación.
- * @function
  * @public
  * @param {Object} req - Un HTTP Request
  * @param {Object} res - Un HTTP Response
  * @returns {Object} 
  */
-exports.recommend = (req, res) => {
+function recommend(req, res) {
   try {
     const info = prioridad(req.body.destination)
     return res.status(200).send(response(true, info, ''))
@@ -179,3 +178,5 @@ exports.recommend = (req, res) => {
     return res.status(400).send(response(false, {}, 'Ha ocurrido un error.'))
   }
 }
+
+module.exports.recommend = recommend
