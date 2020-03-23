@@ -217,6 +217,31 @@ exports.addVehicle = (req, res) => {
   })
 }
 
+exports.deleteVehicle = (req, res) => {
+  const email = req.secret.email
+  if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))
+
+  const plate = req.body.plate
+  if (!plate) return res.status(401).send(response(false, '', 'La placa es necesaria'))
+  
+  this.findByEmail(email)
+  .then( async user => {
+
+    let existVehicle = user.vehicles.find( vehicle => vehicle.plate === req.body.plate)
+    if(!existVehicle) return res.status(403).send(response(false, error, 'Vehiculo no existe.')) 
+
+    user.updateOne({"$pull": {"vehicles": {plate: plate}}}, (err, usr) => {
+      if(err) return res.status(500).send(response(false, err, 'Vehiculo no fue eliminado'))
+      return res.status(200).send(response(true, usr, 'Vehiculo eliminado.'))
+    })
+    
+  })
+  .catch( error => {
+    return res.status(500).send(response(false, error, 'Vehiculo no fue eliminado.'))
+  })
+}
+
+
 exports.codeValidate = async (req, res) => {
   const { code, email } = req.body
   if (!code) res.status(403).send(response(false, '', 'El codigo es necesario.'))
