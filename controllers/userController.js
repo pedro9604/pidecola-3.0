@@ -93,8 +93,8 @@ const updateUserByEmail = (email, query) => {
   return users.findOneAndUpdate({ email: email }, query, { returnOriginal: false })
 }
 
-exports.findByEmail = (email, isVerify = true, querySelect = { password: 0 }) => {
-  return users.findOne({ email: email, isVerify: isVerify}, querySelect)
+exports.findByEmail = (email, querySelect = { password: 0 }) => {
+  return users.findOne({ email: email}, querySelect)
 }
 
 exports.getPic = (email) => {
@@ -106,7 +106,7 @@ exports.create = async (req, res) => {
 
   if (!validate.pass) return res.status(400).send(response(false, validate.errors, 'Ha ocurrido un error en el proceso'))
 
-  const alredyRegister = await this.findByEmail(req.body.email, false)
+  const alredyRegister = await this.findByEmail(req.body.email)
 
   // if(alredyRegister)
   if (alredyRegister && alredyRegister.isVerify) return res.status(403).send(response(false, '', 'El usuario ya se encuentra registrado.'))
@@ -219,11 +219,12 @@ exports.addVehicle = (req, res) => {
 
 exports.codeValidate = async (req, res) => {
   const { code, email } = req.body
-  if (!code) res.status(403).send(response(false, '', 'El codigo es necesario.'))
-  if (!email) res.status(401).send(response(false, '', 'El email es necesario.'))
+  if (!code) return res.status(403).send(response(false, '', 'El codigo es necesario.'))
+  if (!email) return res.status(401).send(response(false, '', 'El email es necesario.'))
 
-  const user = await this.findByEmail(email, false)
-  if (!user) res.status(401).send(response(false, '', 'El usuario no fue encontrado, debe registrarse nuevamente.'))
+  const user = await this.findByEmail(email)
+  if (!user) return res.status(401).send(response(false, '', 'El usuario no fue encontrado, debe registrarse nuevamente.'))
+  if(user.isVerify) return res.status(401).send(response(false, '', 'El usuario ya se encuentra verificado.'))
   if (user.temporalCode !== parseInt(code)) return res.status(401).send(response(false, '', 'El codigo es incorrecto.'))
   user.isVerify = true
   user.markModified('isVerify')
