@@ -27,8 +27,7 @@ const template = require('../lib/utils/codeTemplate').template
 const files = require('../lib/cloudinaryConfig.js')
 
 /**
- * Función que modifica el código de confirmación del 
- * proceso de registro.
+ * Función que modifica el código de confirmación del proceso de registro.
  * @function
  * @async
  * @private
@@ -53,8 +52,7 @@ const updateCode = async (email, code = undefined) => {
 }
 
 /**
- * Función que genera el código de confirmación del
- * proceso de registro.
+ * Función que genera el código de confirmación del proceso de registro.
  * @function
  * @private
  * @returns {integer}
@@ -77,8 +75,8 @@ const createHTMLRespose = (code, userName = '') => {
 }
 
 /**
- * Función que envia el correo de confirmacion 
- * para completar el proceso de registro.
+ * Función que envia el correo de confirmacion para completar el proceso de
+ * registro.
  * @function
  * @async
  * @private
@@ -103,8 +101,7 @@ const responseCreate = async (usr, res, already = false) => {
 }
 
 /**
- * Función que utiliza findOneAndUpdate de Mongoose 
- * para actualizar un documento de Usuario dado el email asociado.
+ * Función que actualiza un documento de Usuario dado el email asociado.
  * @function
  * @private
  * @param {String} email
@@ -117,8 +114,8 @@ const updateUserByEmail = (email, query) => {
 }
 
 /**
- * Función que realiza una consulta en la BD para buscar un usuario
- * dado su email.
+ * Función que realiza una consulta en la BD para buscar un usuario dado su
+ * email.
  * @function
  * @async
  * @private
