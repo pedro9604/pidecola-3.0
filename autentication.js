@@ -28,9 +28,10 @@ exports.generateToken = (email, expiresIn = '30d') => {
 exports.signIn = (req, res) => {
   const { email, password } = viewCredentials(req.headers.authorization)
   if (!email || !password) return res.status(401).send(response(false, null, 'Invalid Credentials.'))
-  users.findByEmail(email)
+  users.findByEmail(email, true, {})
     .then(async user => {
       if (!user) return undefined
+      console.log(password, user.password)
       const compare = await bcrypt.compare(password, user.password)
       return [compare, user]
     })
