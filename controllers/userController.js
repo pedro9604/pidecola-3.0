@@ -27,7 +27,8 @@ const template = require('../lib/utils/codeTemplate').template
 const files = require('../lib/cloudinaryConfig.js')
 
 /**
- * Función que modifica el código de confirmación.
+ * Función que modifica el código de confirmación del 
+ * proceso de registro.
  * @function
  * @async
  * @private
@@ -52,7 +53,8 @@ const updateCode = async (email, code = undefined) => {
 }
 
 /**
- * Función que genera el código de confirmación.
+ * Función que genera el código de confirmación del
+ * proceso de registro.
  * @function
  * @private
  * @returns {integer}
@@ -75,7 +77,8 @@ const createHTMLRespose = (code, userName = '') => {
 }
 
 /**
- * Función que crea una respuesta.
+ * Función que envia el correo de confirmacion 
+ * para completar el proceso de registro.
  * @function
  * @async
  * @private
@@ -99,9 +102,31 @@ const responseCreate = async (usr, res, already = false) => {
     })
 }
 
+/**
+ * Función que utiliza findOneAndUpdate de Mongoose 
+ * para actualizar un documento de Usuario dado el email asociado.
+ * @function
+ * @private
+ * @param {String} email
+ * @param {Object} query
+ * @returns {Object}
+ */
+
 const updateUserByEmail = (email, query) => {
   return users.findOneAndUpdate({ email: email }, query, { returnOriginal: false })
 }
+
+/**
+ * Función que realiza una consulta en la BD para buscar un usuario
+ * dado su email.
+ * @function
+ * @async
+ * @private
+ * @param {String} email
+ * @param {Boolean} isVerify
+ * @param {Object} querySelect
+ * @returns {Object}
+ */
 
 exports.findByEmail = async (email, isVerify = true, querySelect = { password: 0 }) => {
   return users.findOne({ email: email, isVerify: isVerify }, querySelect).then((sucs, err) => {
@@ -227,6 +252,16 @@ exports.create = async (req, res) => {
     })
 }
 
+/**
+ * Endpoint para modificar datos de usuario (nombre, apellido, edad, tlf y carrera)
+ * en la BD.
+ * @function
+ * @public
+ * @param {Object} req - Un HTTP Request
+ * @param {Object} res - Un HTTP Response
+ * @returns {Object} 
+ */
+
 exports.updateUser = (req, res) => {
   const email = req.secret.email
   if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))
@@ -247,6 +282,19 @@ exports.updateUser = (req, res) => {
       return res.status(500).send(response(false, err, 'Error, El usuario no fue actualizado.'))
     })
 }
+
+/**
+ * Endpoint para agregar foto de perfil en el perfil de usuario
+ * Se utiliza Cloudinary y Multer para el manejo y almacenamiento
+ * de imagenes. En la BD se almacena el URL de Cloudinary donde se 
+ * encuentra la imagen  
+ * @function
+ * @async
+ * @public
+ * @param {Object} req - Un HTTP Request
+ * @param {Object} res - Un HTTP Response
+ * @returns {Object} 
+ */
 
 exports.updateProfilePic = (req, res) => {
   const email = req.secret.email
@@ -275,6 +323,21 @@ exports.updateProfilePic = (req, res) => {
   })
 }
 
+/**
+ * Reglas que tienen que cumplir las solicitudes enviadas desde Front-End para
+ * registrar un vehiculo.
+ * @name registerRules
+ * @type {Object}
+ * @property {string} plate 
+ * @property {string} brand 
+ * @property {string} model
+ * @property {string} year
+ * @property {string} color
+ * @property {string} vehicle_capacity
+ * @constant
+ * @private
+ */
+
 const addVehicleRules = {
   plate: 'required|string',
   brand: 'required|string',
@@ -283,6 +346,21 @@ const addVehicleRules = {
   color: 'required|string',
   vehicle_capacity: 'required|string'
 }
+
+/**
+ * Mensajes de error en caso de no se cumplan las addVehiclesRules en una
+ * solicitud.
+ * @name errorsMessage
+ * @type {Object}
+ * @property {string} 'required.plate' - Caso: Omisión o error de placa
+ * @property {string} 'required.brand' - Caso: Omisión de la marca
+ * @property {string} 'required.model' - Caso: Omisión del modelo
+ * @property {string} 'required.year' - Caso: Omisión del año
+ * @property {string} 'required.color' - Caso: Omisión del color
+ * @property {string} 'required.vehicle_capacity' - Caso: Omisión de la capacidad
+ * @constant
+ * @private
+ */
 
 const errorsMessageAddVehicle = {
   'required.plate': 'La placa de el vehiculo es necesaria.',
@@ -297,6 +375,9 @@ const errorsMessageAddVehicle = {
  * Endpoint para conexión con Front-end.
  * No debería modificarse a no ser que se cambie toda lógica detrás del
  * algoritmo de recomendación.
+ * Endpoint para agregar vehiculo en la base de datos. Se actualiza el 
+ * respectivo documento de usuario agregando un elemento en el arreglo 
+ * vehiculo. 
  * @function
  * @public
  * @param {Object} req - Un HTTP Request
@@ -369,6 +450,20 @@ exports.codeValidate = async (req, res) => {
   user.save()
   return res.status(200).send(response(true, [{ tkauth: autentication.generateToken(user.email) }], 'Success.'))
 }
+
+
+/**
+ * Endpoint para conexión con Front-end.
+ * No debería modificarse a no ser que se cambie toda lógica detrás del
+ * algoritmo de recomendación.
+ * Endpoint que realiza una consulta sobre la colección Usuario
+ * para mostrar todos los datos asociados a un usuario dado su email.
+ * @function
+ * @public
+ * @param {Object} req - Un HTTP Request
+ * @param {Object} res - Un HTTP Response
+ * @returns {Object} 
+ */
 
 exports.getUserInformation = (req, res) => {
   const email = req.secret.email
