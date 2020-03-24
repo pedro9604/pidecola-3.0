@@ -419,6 +419,40 @@ exports.addVehicle = (req, res) => {
 }
 
 /**
+ * Endpoint para eliminar un vehiculo asociado a un 
+ * documento de usuario dado la placa del vehiculo
+ * @function
+ * @public
+ * @param {Object} req - Un HTTP Request
+ * @param {Object} res - Un HTTP Response
+ * @returns {Object} 
+ */
+exports.deleteVehicle = (req, res) => {
+  const email = req.secret.email
+  if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))
+
+  const plate = req.body.plate
+  if (!plate) return res.status(401).send(response(false, '', 'La placa es necesaria'))
+  
+  this.findByEmail(email)
+  .then( async user => {
+
+    let existVehicle = user.vehicles.find( vehicle => vehicle.plate === req.body.plate)
+    if(!existVehicle) return res.status(403).send(response(false, error, 'Vehiculo no existe.')) 
+
+    user.updateOne({"$pull": {"vehicles": {plate: plate}}}, (err, usr) => {
+      if(err) return res.status(500).send(response(false, err, 'Vehiculo no fue eliminado'))
+      return res.status(200).send(response(true, usr, 'Vehiculo eliminado.'))
+    })
+    
+  })
+  .catch( error => {
+    return res.status(500).send(response(false, error, 'Vehiculo no fue eliminado.'))
+  })
+}
+
+
+/**
  * Endpoint para conexión con Front-end.
  * No debería modificarse a no ser que se cambie toda lógica detrás del
  * algoritmo de recomendación.
