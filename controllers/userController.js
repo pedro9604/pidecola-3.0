@@ -273,6 +273,13 @@ exports.updateUser = (req, res) => {
   }
   updateUserByEmail(email, query)
     .then(usr => {
+      const data = {
+          operation: 'update-user',
+          collection_name: 'users',
+          user: usr.email,
+          message: 'Updated user profile',
+     }
+      usr.log(data)
       return res.status(200).send(response(true, usr, 'El Usuario fue actualizado.'))
     })
     .catch(err => {
