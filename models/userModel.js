@@ -33,13 +33,6 @@ const UserSchema = new Schema(
           vehicle_capacity: { type: Number },
           vehicle_pic: { type: String }
         }],
-    license: { type: String },
-    rides_given: { type: Number },
-    rides_recieved: { type: Number },
-    likes_count: { type: Number },
-    dislikes_count: { type: Number },
-    last_ride: { type: Schema.Types.ObjectId, ref: 'Ride' },
-    frequent_routes: { type: Array },
     isVerify: { type: Boolean },
     temporalCode: { type: Number }
 
