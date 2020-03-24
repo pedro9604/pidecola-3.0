@@ -23,6 +23,7 @@ const response = require('../lib/utils/response').response
 const autentication = require('../autentication.js')
 const users = require('../models/userModel.js')
 const sendEmail = require('../lib/utils/emails').sendEmail
+const callback = require('../lib/utils/utils').callbackReturn
 const template = require('../lib/utils/codeTemplate').template
 const files = require('../lib/cloudinaryConfig.js')
 
@@ -116,31 +117,16 @@ const updateUserByEmail = (email, query) => {
 /**
  * Función que realiza una consulta en la BD para buscar un usuario dado su
  * email.
- * @function
  * @async
  * @private
  * @param {String} email
- * @param {Boolean} isVerify
- * @param {Object} querySelect
+ * @param {Boolean} [val]
+ * @param {Object} [querySelect]
  * @returns {Object}
  */
-
-exports.findByEmail = async (email, isVerify = true, querySelect = { password: 0 }) => {
-  return users.findOne({ email: email, isVerify: isVerify }, querySelect).then((sucs, err) => {
-    if (!err) return sucs
-    return err
-  })
-}
-
-/**
- * Función que devuelve la foto de perfil de un usuario de la base de datos.
- * @function
- * @public
- * @param {string} email
- * @returns {Object}
- */
-exports.getPic = async (email) => {
-  return await findByEmail(email).profile_pic
+async function findByEmail(email, val = true, querySelect = { password: 0 }) {
+  const data = { email: email, isVerify: val }
+  return users.findOne(data, querySelect).then(callback)
 }
 
 /**
@@ -188,22 +174,19 @@ const errorsMessage = {
 
 /**
  * Función que agrega un usuario a la base de datos.
- * @function
  * @private
  * @param {Object} dataUser
  * @returns {Object} información del usuario agregada a la base de datos
  */
-const create = async (dataUser) => {
+function addUser(dataUser) {
   const { email, password, phoneNumber } = dataUser
-  return users.create({
+  const data = {
     email: email,
     password: password,
     phone_number: phoneNumber,
     temporalCode: codeGenerate()
-  }).then((sucs, err) => {
-    if (!err) return sucs
-    return err
-  })
+  }
+  return users.create(data)//.then(callback)
 }
 
 /**
@@ -237,14 +220,14 @@ exports.create = async (req, res) => {
   bcrypt.hash(req.body.password, BCRYPT_SALT_ROUNDS)
     .then(async hashedPassword => {
       req.body.password = hashedPassword
-      return await create(req.body)
+      return addUser(req.body)
     })
     .then(usr => {
       return responseCreate(usr, res)
     })
     .catch(err => {
       let mssg = 'Usuario no ha sido creado.'
-      if (err && err.code && err.code === 11000) mssg = 'Ya existe usuario.'
+      if (!!err && err.code && err.code === 11000) mssg = 'Ya existe usuario.'
       return res.status(500).send(response(false, err, mssg))
     })
 }
@@ -323,7 +306,7 @@ exports.updateProfilePic = (req, res) => {
 /**
  * Reglas que tienen que cumplir las solicitudes enviadas desde Front-End para
  * registrar un vehiculo.
- * @name registerRules
+ * @name addVehicleRules
  * @type {Object}
  * @property {string} plate 
  * @property {string} brand 
@@ -334,7 +317,6 @@ exports.updateProfilePic = (req, res) => {
  * @constant
  * @private
  */
-
 const addVehicleRules = {
   plate: 'required|string',
   brand: 'required|string',
@@ -354,11 +336,11 @@ const addVehicleRules = {
  * @property {string} 'required.model' - Caso: Omisión del modelo
  * @property {string} 'required.year' - Caso: Omisión del año
  * @property {string} 'required.color' - Caso: Omisión del color
- * @property {string} 'required.vehicle_capacity' - Caso: Omisión de la capacidad
+ * @property {string} 'required.vehicle_capacity' - Caso: Omisión de la
+ * capacidad
  * @constant
  * @private
  */
-
 const errorsMessageAddVehicle = {
   'required.plate': 'La placa de el vehiculo es necesaria.',
   'required.brand': 'La marca del vehiculo es necesaria.',
@@ -461,7 +443,6 @@ exports.codeValidate = async (req, res) => {
  * @param {Object} res - Un HTTP Response
  * @returns {Object} 
  */
-
 exports.getUserInformation = (req, res) => {
   const email = req.secret.email
   if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))
@@ -473,3 +454,5 @@ exports.getUserInformation = (req, res) => {
       return res.status(500).send(response(false, err, 'Error, El usuario no fue encontrado o hubo un problema.'))
     })
 }
+
+module.exports.findByEmail = findByEmail
