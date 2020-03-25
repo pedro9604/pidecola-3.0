@@ -109,7 +109,6 @@ const responseCreate = async (usr, res, already = false) => {
  * @param {Object} query
  * @returns {Object}
  */
-
 const updateUserByEmail = (email, query) => {
   return users.findOneAndUpdate({ email: email }, query, { returnOriginal: false })
 }
@@ -250,7 +249,6 @@ exports.create = async (req, res) => {
  * @param {Object} res - Un HTTP Response
  * @returns {Object} 
  */
-
 exports.updateUser = (req, res) => {
   const email = req.secret.email
   if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))
@@ -284,7 +282,6 @@ exports.updateUser = (req, res) => {
  * @param {Object} res - Un HTTP Response
  * @returns {Object} 
  */
-
 exports.updateProfilePic = (req, res) => {
   const email = req.secret.email
   const file = req.file
