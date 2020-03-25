@@ -30,7 +30,7 @@ const rides = require('../models/rideModel.js')
 async function create(dataRide) {
   const { rider, passenger, seats, startLocation, destination } = dataRide
   const ride = {
-    rider: rider._id,
+    rider: rider.email,
     passenger: passenger,
     available_seats: seats,
     status: 'En Espera',
@@ -91,7 +91,7 @@ async function verifyDataRide(dataRide) {
       if (dataRide.passenger[i] === null) validPass = false
     }
     pass = dataRide.passenger.find(async u => {
-      if (!!u) return u._id === dataRide.rider._id
+      if (!!u) return u.email === dataRide.rider.email
     })
     pass = !pass
   } else {
@@ -100,23 +100,23 @@ async function verifyDataRide(dataRide) {
   }
 
   if (!(validate.pass && arrayPas && emptyPas && pass && validPass)) {
-    var errors = ""
-    var message = ""
+    var errors = ''
+    var message = ''
     if (!validate.pass) {
       errors = validate.errors
-      message = "Los datos introducidos no cumplen con el formato requerido"
+      message = 'Los datos introducidos no cumplen con el formato requerido'
     } else if (!arrayPas) {
-      errors = "Los pasajeros no están en un arreglo"
-      message = "Los pasajeros deben estar en un arreglo"
+      errors = 'Los pasajeros no están en un arreglo'
+      message = 'Los pasajeros deben estar en un arreglo'
     } else if (!emptyPas) {
-      errors = "Arreglo vacío de pasajeros"
-      message = "No puede haber una cola sin pasajeros"
+      errors = 'Arreglo vacío de pasajeros'
+      message = 'No puede haber una cola sin pasajeros'
     } else if (!pass) {
-      errors = "El conductor es un pasajero"
-      message = "El conductor no puede ser un pasajero"
+      errors = 'El conductor es un pasajero'
+      message = 'El conductor no puede ser un pasajero'
     } else {
-      errors = "Hay pasajeros no registrados en esta cola"
-      message = "Todo pasajero tiene que ser un usuario registrado"
+      errors = 'Hay pasajeros no registrados en esta cola'
+      message = 'Todo pasajero tiene que ser un usuario registrado'
     }
     return { status: false, errors: errors, message: message, req: dataRide }
   }
@@ -166,14 +166,14 @@ async function endRide(req, res) {
  */
 function verifyStatusRide(status) {
   const obj  = {status: status}
-  const rule = {status: "required|string"}
-  const mssg = {'required.status': "El estado de la solicitud es requerido"}
+  const rule = {status: 'required|string'}
+  const mssg = {'required.status': 'El estado de la solicitud es requerido'}
   const validate = validateIn(obj, rule, mssg)
   if (!validate.pass) {
     return {
       status: false,
       errors: validate.errors,
-      message: "El estado no tiene el formato válido"
+      message: 'El estado no tiene el formato válido'
     }
   } else if (status === 'En Espera') {
     return { status: true, errors: '', message: '' }
@@ -187,7 +187,7 @@ function verifyStatusRide(status) {
     return {
       status: false,
       errors: validate.errors,
-      message: "El estado no tiene el formato válido"
+      message: 'El estado no tiene el formato válido'
     }
   }
 }
@@ -211,12 +211,12 @@ async function changeStatus(req, res) {
   if (!!rideInf) {
     return res.status(200).send(response(true, rideInf, 'Estado cambiado.'))
   } else {
-    const err = "Cola no existe"
+    const err = 'Cola no existe'
     const msg = 'La cola buscada no está registrada'
     return res.status(500).send(response(false, err, msg))
   }
 }
 
-module.exports.create = create
-module.exports.endRide = endRide
+module.exports.create       = create
+module.exports.endRide      = endRide
 module.exports.changeStatus = changeStatus

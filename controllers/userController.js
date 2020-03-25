@@ -4,7 +4,6 @@
  * usuario, ver manual de la base de datos.
  * @module controllers/userController
  * @author Ángel Morante <13-10931@usb.ve>
- * @author Francisco Márquez <12-11163@usb.ve>
  * @author Pedro Madolnado <13-10790@usb.ve>
  * @require bcryptjs
  * @require cloudinary
@@ -127,17 +126,6 @@ exports.findByEmail = (email, querySelect = { password: 0 }) => {
 }
 
 /**
- * Función que devuelve la foto de perfil de un usuario de la base de datos.
- * @function
- * @public
- * @param {string} email
- * @returns {Object}
- */
-exports.getPic = async (email) => {
-  return await findByEmail(email).profile_pic
-}
-
-/**
  * Número de veces que son calculados los BCrypt hash.
  * @const
  * @type {integer}
@@ -184,7 +172,7 @@ const errorsMessage = {
  * Función que agrega un usuario a la base de datos.
  * @private
  * @param {Object} dataUser
- * @returns {Object} información del usuario agregada a la base de datos
+ * @returns {Promise} información del usuario agregada a la base de datos
  */
 function addUser(dataUser) {
   const { email, password, phoneNumber } = dataUser
@@ -495,5 +483,3 @@ exports.getUserInformation = (req, res) => {
       return res.status(500).send(response(false, err, 'Error, El usuario no fue encontrado o hubo un problema.'))
     })
 }
-
-module.exports.findByEmail = findByEmail

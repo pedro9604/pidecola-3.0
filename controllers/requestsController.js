@@ -15,6 +15,11 @@ const validateIn = require('../lib/utils/validation').validateIn
 const requestsRules = require('../lib/utils/validation').requestsRules
 const errorsMessage = require('../lib/utils/validation').requestsMessage
 const response = require('../lib/utils/response').response
+const callback = require('../lib/utils/utils').callbackReturn
+const callbackMail = require('../lib/utils/utils').callbackMail
+const offerTemplate = require('../lib/utils/codeTemplate').offerTemplate
+const responseTemplate = require('../lib/utils/codeTemplate').responseTemplate
+const sendEmail = require('../lib/utils/emails').sendEmail
 const usr = require('./userController.js')
 
 /**
@@ -88,9 +93,9 @@ const fromNameToInt = (name) => {
  */
 function inList(email, list) {
   for (var i = 0; i < list.length; i++) {
-    if (list[i].email === email) return true
+    if (list[i].email === email) return { in: true, elem: list[i] }
   }
-  return false
+  return { in: false, elem: {} }
 }
 
 /**
@@ -103,9 +108,11 @@ function inList(email, list) {
  */
 function alreadyRequested(email) {
   for (var i = 0; i < requestsList.length; i++) {
-    if (inList(email, requestsList[i].requests)) return true
+    if (inList(email, requestsList[i].requests).in) {
+      return inList(email, requestsList[i].requests)
+    }
   }
-  return false
+  return { in: false, elem: {} }
 }
 
 /**
@@ -121,7 +128,7 @@ function verifyRequest(request) {
   const toUSB    = request.destination === 'USB'
   const start    = fromNameToInt(request.startLocation) > -2
   const dest     = fromNameToInt(request.destination) > -2
-  const exists   = alreadyRequested(request.user)
+  const exists   = alreadyRequested(request.user).in
   if (!(validate.pass && !exists && (fromUSB != toUSB) && start && dest)) {
     var errors = ""
     var message = ""
@@ -180,7 +187,7 @@ function add(newRequest) {
 async function create(req, res) {
   const { status, errors, message } = verifyRequest(req.body)
   if (!status) return res.status(400).send(response(false, errors, message))
-  const user = await usr.findByEmail(req.body.user)
+  const user = await usr.findByEmail(req.body.user).then(callback)
   const request = {
     email: req.body.user,
     user: {
@@ -321,8 +328,114 @@ function updateStatus(req, res) {
   return res.status(200).send(response(true, '', "Cambiado exitosamente"))
 }
 
-module.exports.requestsList = requestsList
-module.exports.cast = fromNameToInt
-module.exports.create = create
-module.exports.cancel = cancel
-module.exports.updateStatus = updateStatus
+/**Funcion para ofrecer la cola*/
+async function offerRide(req, res) {
+  const { status, errors, message } = verifyOffer(req.body)
+  if (!status) return res.status(400).send(response(false, errors, message))
+  const offer = await sendOffer(req.body)
+  if (offer.sent) {
+    return res.status(200).send(response(true, offer.log, 'Oferta enviada'))
+  } else {
+    return res.status(500).send(response(false, offer.errors, 'Error'))
+  }
+}
+
+function verifyOffer(dataOffer) {
+  const offerRules = { rider: 'required|email', passenger: 'required|email' }
+  const offerMessage = {
+    'required.rider': 'El conductor es necesario',
+    'required.passenger': 'El pasajero es necesario'
+  }
+  let errors
+  let message
+  const validate = validateIn(dataOffer, offerRules, offerMessage)
+  if (!validate.pass) {
+    errors = validate.errors
+    message = 'Los datos introducidos no cumplen con el formato requerido'
+    return { status: false, errors: errors, message: message }
+  }
+  return { status: true, errors: '', message: '' }
+}
+
+async function sendOffer(offer) {
+  const request = alreadyRequested(offer.passenger).in
+  const fromUSB = request.startLocation === 'USB'
+  const place = fromUSB ? request.destination : request.startLocation
+  changeStatus(offer.passenger, place)
+  const subj = 'Nueva oferta de cola'
+  const name = await users.findByEmail(offer.passenger).then(callback)
+  const html = offerTemplate(name.first_name)
+  return sendEmail(offer.passenger, subj, html).then(callbackMail)
+}
+
+/**Funcion para aceptar/declinar una oferta*/
+async function respondOfferRide(req, res) {
+  const { status, errors, message } = verifyRespondOffer(req.body)
+  if (!status) return res.status(400).send(response(false, errors, message))
+  const answer = await respondOffer(req.body)
+  if (answer.sent) {
+    return res.status(200).send(response(true, answer.log, 'Respondiste'))
+  } else {
+    return res.status(500).send(response(false, answer.errors, 'Error'))
+  }
+}
+
+function verifyRespondOffer(dataResponse) {
+  const responseRules = {
+    rider: 'required|email',
+    passenger: 'required|email',
+    accept: 'required|string'
+  }
+  const offerMessage = {
+    'required.rider': 'El conductor es necesario',
+    'required.passenger': 'El pasajero es necesario'
+    'required.accept': 'La respuesta del solicitante es necesaria'
+  }
+  let errors
+  let message
+  const validate = validateIn(dataResponse, responseRules, offerMessage)
+  const yesOrNot = dataResponse.accept === 'Sí' || dataResponse.accept === 'No'
+  if (!(validate.pass && yesOrNot)) {
+    if (!validate) {
+      errors = validate.errors
+      message = 'Los datos introducidos no cumplen con el formato requerido'
+    } else {
+      errors = 'La respuesta no parece ser Sí o No'
+      message = 'La respuesta tiene que ser Sí o No'
+    }
+    return { status: false, errors: errors, message: message }
+  }
+  return { status: true, errors: '', message: '' }
+}
+
+async function respondOffer(response) {
+  if (response.accept === 'Sí') {
+    if (remove(alreadyRequested(response.passenger).elem)) {
+      const subj = 'Han respondido a tu oferta de cola'
+      const name = await users.findByEmail(response.rider).then(callback)
+      const html = responseTemplate(name.first_name)
+      return sendEmail(offer.rider, subj, html).then(callbackMail)
+    } else {
+      const log = 'Parece que la solicitud de cola no existe'
+      const errors = 'La solicitud de cola no fue encontrada'
+      return { sent: false, log: log, errors: errors }
+    }
+  } else {
+    const request = alreadyRequested(response.passenger).in
+    const fromUSB = request.startLocation === 'USB'
+    const place = fromUSB ? request.destination : request.startLocation
+    changeStatus(response.passenger, place)
+    const subj = 'Han respondido a tu oferta de cola'
+    const name = await users.findByEmail(response.rider).then(callback)
+    const html = responseTemplate(name.first_name)
+    return sendEmail(offer.rider, subj, html).then(callbackMail)
+  }
+}
+
+module.exports.requestsList     = requestsList
+module.exports.cast             = fromNameToInt
+module.exports.create           = create
+module.exports.cancel           = cancel
+module.exports.updateStatus     = updateStatus
+module.exports.offerRide        = offerRide
+module.exports.respondOfferRide = respondOfferRide
