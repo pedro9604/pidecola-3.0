@@ -14,5 +14,6 @@ router.post('/code', userController.codeValidate)
 router.put('/', userController.updateUser)
 router.put('/update/picture', upload.single('file'), userController.updateProfilePic)
 router.put('/add/vehicle', upload.single('file'), userController.addVehicle)
+router.put('/delete/vehicle', userController.deleteVehicle)
 
 module.exports = router
