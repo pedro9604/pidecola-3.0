@@ -4,7 +4,7 @@ const userController = require('../controllers/userController.js')
 const upload = require('../lib/cloudinaryConfig.js').upload
 
 // GETs
-router.get('/', userController.getUserInformation)
+router.get('/view/profile', userController.getUserInformation)
 
 // POSTs
 router.post('/', userController.create)
