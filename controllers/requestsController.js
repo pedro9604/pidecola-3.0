@@ -110,41 +110,6 @@ function fromNameToInt(name) {
  * @author Francisco Márquez <12-11163@usb.ve>
  */
 
-/**
- * Indica si el email se encuentra en la lista list.
- * No debería modificarse a no ser que se cambie toda lógica detrás del
- * algoritmo de recomendación.
- * @author Francisco Márquez <12-11163@usb.ve>
- * @private
- * @param {string} email  - Un email
- * @param {Object[]} list - Una lista de solicitudes
- * @returns {Elem}
- */
-function inList(email, list) {
-  for (var i = 0; i < list.length; i++) {
-    if (list[i].email === email) return { in: true, elem: list[i] }
-  }
-  return { in: false, elem: {} }
-}
-
-/**
- * Indica si el email se encuentra en la lista requestsList.
- * No debería modificarse a no ser que se cambie toda lógica detrás del
- * algoritmo de recomendación.
- * @author Francisco Márquez <12-11163@usb.ve>
- * @private
- * @param {string} email - Un email
- * @returns {Elem}
- */
-function alreadyRequested(email) {
-  for (var i = 0; i < requestsList.length; i++) {
-    if (inList(email, requestsList[i].requests).in) {
-      return inList(email, requestsList[i].requests)
-    }
-  }
-  return { in: false, elem: {} }
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 /////////////////////////// Endpoint Pedir una cola//// ///////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -164,6 +129,7 @@ async function create(req, res) {
   const { status, errors, message } = verifyRequest(req.body)
   if (!status) return res.status(400).send(response(false, errors, message))
   const user = await usr.findByEmail(req.body.user).then(callback)
+  console.log('Usuario ', user)
   const request = {
     email: req.body.user,
     user: {
@@ -221,9 +187,44 @@ function verifyRequest(request) {
       errors = 'Cola no termina en una parada autorizada'
       message = 'Ninguna cola puede involucrar una parada no autorizada'
     }
-    return { valid: false, errors: errors, message: message }
+    return { status: false, errors: errors, message: message }
   }
-  return { valid: true, errors: '', message: '' }
+  return { status: true, errors: '', message: '' }
+}
+
+/**
+ * Indica si el email se encuentra en la lista requestsList.
+ * No debería modificarse a no ser que se cambie toda lógica detrás del
+ * algoritmo de recomendación.
+ * @author Francisco Márquez <12-11163@usb.ve>
+ * @private
+ * @param {string} email - Un email
+ * @returns {Elem}
+ */
+function alreadyRequested(email) {
+  for (var i = 0; i < requestsList.length; i++) {
+    if (inList(email, requestsList[i].requests).in) {
+      return inList(email, requestsList[i].requests)
+    }
+  }
+  return { in: false, elem: {} }
+}
+
+/**
+ * Indica si el email se encuentra en la lista list.
+ * No debería modificarse a no ser que se cambie toda lógica detrás del
+ * algoritmo de recomendación.
+ * @author Francisco Márquez <12-11163@usb.ve>
+ * @private
+ * @param {string} email  - Un email
+ * @param {Object[]} list - Una lista de solicitudes
+ * @returns {Elem}
+ */
+function inList(email, list) {
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].email === email) return { in: true, elem: list[i] }
+  }
+  return { in: false, elem: {} }
 }
 
 /**
@@ -263,7 +264,6 @@ function add(newRequest) {
 function cancel(req, res) {
   const { status, errors, message } = verifyRequest(req.body)
   if (!status) return res.status(400).send(response(false, errors, message))
-
   var del = remove(req.body)
 
   if (del) {
@@ -347,7 +347,7 @@ function verifyStatus(request) {
     if (!validate.pass) {
       errors = validate.errors
       message = 'Los datos introducidos no cumplen con el formato requerido'
-    } else if (req.body.place === 'USB') {
+    } else if (request.place === 'USB') {
       errors = 'Lugar es la USB'
       message = 'Si vas a la USB, di el lugar de donde vienes. '
       message = message + 'Si vienes de la USB, di el lugar a donde vas'
@@ -372,7 +372,7 @@ function verifyStatus(request) {
 function changeStatus(email, place) {
   const s = fromNameToInt(place)
   for (var i = 0; i < requestsList[s].requests.length; i++) {
-    if (requestsList[stop].requests[i].email === email) {
+    if (requestsList[s].requests[i].email === email) {
       requestsList[s].requests[i].status = !requestsList[s].requests[i].status
       break
     }

@@ -18,7 +18,7 @@ describe('requestsList', () => {
     expect(requests.requestsList[2].name).toBe('Chacaito')
   })
 
-  test('requestsList only contains stop at "La Paz"', () => {
+  test('requestsList only contains stop at "LaPaz"', () => {
     expect(requests.requestsList[3].name).toBe('La Paz')
   })
 
@@ -60,7 +60,7 @@ describe('create', () => {
     const data = {
       user: '13-10931@usb.ve',
       startLocation: 'Baruta',
-      destination: "USB",
+      destination: 'USB',
       comment: 'Nothing',
       im_going: 'Who cares?'
     }
@@ -142,7 +142,7 @@ describe('create', () => {
   })
 })
 
-describe('delete', () => {
+describe('cancel', () => {
   beforeEach(() => {
     requests.requestsList[4].requests.push({
       user: '12-11163@usb.ve',
@@ -182,7 +182,7 @@ describe('delete', () => {
       body: data
     })
     var response = httpMocks.createResponse()
-    requests.delete(request, response)
+    requests.cancel(request, response)
     const newSize =
       requests.requestsList[0].requests.length +
       requests.requestsList[1].requests.length +
@@ -192,7 +192,7 @@ describe('delete', () => {
     expect((size - newSize) * response.statusCode).toBe(200)
   })
 
-  test('If request does not exist return code 500', () => {
+  test('If request does not exist return code 200', () => {
     const data = {
       user: '12-11162@usb.ve',
       startLocation: 'Baruta',
@@ -204,8 +204,8 @@ describe('delete', () => {
       body: data
     })
     var response = httpMocks.createResponse()
-    requests.delete(request, response)
-    expect(response.statusCode).toBe(500)
+    requests.cancel(request, response)
+    expect(response.statusCode).toBe(200)
   })
 
   test('A request without email', () => {
@@ -220,7 +220,7 @@ describe('delete', () => {
       body: data
     })
     var response = httpMocks.createResponse()
-    requests.delete(request, response)
+    requests.cancel(request, response)
     expect(response.statusCode).toBe(400)
   })
 
@@ -236,83 +236,79 @@ describe('delete', () => {
       body: data
     })
     var response = httpMocks.createResponse()
-    requests.delete(request, response)
-    expect(response.statusCode).toBe(500)
+    requests.cancel(request, response)
+    expect(response.statusCode).toBe(400)
   })
 })
 
-describe('changeStatus', () => {
+describe('updateStatus', () => {
   beforeEach(() => {
     const data = {
-      user: '13-10931@usb.ve',
+      email: '13-10931@usb.ve',
       startLocation: 'USB',
       destination: 'Bellas Artes',
       comment: 'Nothing',
-      im_going: 'Who cares?'
+      im_going: 'Who cares?',
+      status: true
     }
-    var request = httpMocks.createRequest({
-      body: data
-    })
-    var response = httpMocks.createResponse()
-    requests.create(request, response)
-    expect(response.statusCode).toBe(200)
+    requests.requestsList[4].requests.push(data)
   })
 
   afterEach(() => {
     requests.requestsList.forEach(e => e.requests = [])
   })
 
-  /*test('Change status from an existing request', () => {
-    data = {
-      user: "13-10931@usb.ve",
-      place: "Bellas Artes"
+  test('Change status from an existing request', () => {
+    const data = {
+      user: '13-10931@usb.ve',
+      place: 'Bellas Artes'
     }
     var request = httpMocks.createRequest({
       body: data
     })
     var response = httpMocks.createResponse()
-    requests.changeStatus(request, response)
+    requests.updateStatus(request, response)
     const status = requests.requestsList[4].requests[0].status
     expect(status).toBe(false)
   })
 
   test('No Change status from an not-existing request', () => {
     data = {
-      user: "13-10931@usb.ve",
-      place: "Bellas Artes"
+      user: '12-11163@usb.ve',
+      place: 'Bellas Artes'
     }
     var request = httpMocks.createRequest({
       body: data
     })
     var response = httpMocks.createResponse()
-    requests.changeStatus(request, response)
+    requests.updateStatus(request, response)
     const status = requests.requestsList[4].requests[0].status
     expect(status).toBe(true)
-  })*/
+  })
 
   test('Raise error when place it is USB', () => {
     data = {
-      user: "12-11163@usb.ve",
-      place: "USB"
+      user: '12-11163@usb.ve',
+      place: 'USB'
     }
     var request = httpMocks.createRequest({
       body: data
     })
     var response = httpMocks.createResponse()
-    requests.changeStatus(request, response)
+    requests.updateStatus(request, response)
     expect(response.statusCode).toBe(400)
   })
 
   test('Raise error when place it is not a valid stop (Maracay)', () => {
     data = {
-      user: "12-11163@usb.ve",
-      place: "Maracay"
+      user: '12-11163@usb.ve',
+      place: 'Maracay'
     }
     var request = httpMocks.createRequest({
       body: data
     })
     var response = httpMocks.createResponse()
-    requests.changeStatus(request, response)
+    requests.updateStatus(request, response)
     expect(response.statusCode).toBe(400)
   })
 })
