@@ -89,14 +89,14 @@ const responseCreate = async (usr, res, already = false) => {
   const code = already ? codeGenerate() : usr.temporalCode
   if (already) await updateCode(usr.email, code)
 
-  sendEmail(usr.email, 'Bienvenido a Pide Cola USB, valida tu cuenta.', createHTMLRespose(code, usr.email.split('@')[0]))
+  sendEmail(usr.email, 'Bienvenido a Pide Cola USB, valida tu cuenta', createHTMLRespose(code, usr.email.split('@')[0]))
     .then(() => {
       const userInf = { email: usr.email, phoneNumber: usr.phone_number }
-      return res.status(200).send(response(true, userInf, 'Usuario creado.'))
+      return res.status(200).send(response(true, userInf, 'Usuario creado'))
     })
     .catch(error => {
       console.log('Error Sending Mail', error)
-      return res.status(500).send(response(false, error, 'Perdón, ocurrió un error.'))
+      return res.status(500).send(response(false, error, 'Perdón, ocurrió un error'))
     })
 }
 
@@ -163,9 +163,9 @@ const registerRules = {
  * @private
  */
 const errorsMessage = {
-  'required.email': 'El correo electrónico de la USB es necesario.',
-  'required.password': 'La contraseña es necesaria.',
-  'required.phoneNumber': 'El teléfono celular es necesario.'
+  'required.email': 'El correo electrónico de la USB es necesario',
+  'required.password': 'La contraseña es necesaria',
+  'required.phoneNumber': 'El teléfono celular es necesario'
 }
 
 /**
@@ -205,7 +205,7 @@ exports.create = async (req, res) => {
 
   if(alreadyRegister) {
     if (alreadyRegister.isVerify) {
-      return res.status(403).send(response(false, '', 'El usuario ya se encuentra registrado.'))
+      return res.status(403).send(response(false, '', 'El usuario ya se encuentra registrado'))
     } else {
       if (!alreadyRegister.isVerify) {
         return responseCreate(alreadyRegister, res, true)
@@ -222,8 +222,8 @@ exports.create = async (req, res) => {
       return responseCreate(usr, res)
     })
     .catch(err => {
-      let mssg = 'Usuario no ha sido creado.'
-      if (!!err && err.code && err.code === 11000) mssg = 'Ya existe usuario.'
+      let mssg = 'Usuario no ha sido creado'
+      if (!!err && err.code && err.code === 11000) mssg = 'Ya existe usuario'
       return res.status(500).send(response(false, err, mssg))
     })
 }
@@ -239,7 +239,7 @@ exports.create = async (req, res) => {
  */
 exports.updateUser = (req, res) => {
   const email = req.secret.email
-  if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))
+  if (!email) return res.status(401).send(response(false, '', 'El Email es necesario'))
   const query = {
     $set: {
       first_name: req.body.first_name,
@@ -251,10 +251,10 @@ exports.updateUser = (req, res) => {
   }
   updateUserByEmail(email, query)
     .then(usr => {
-      return res.status(200).send(response(true, usr, 'El Usuario fue actualizado.'))
+      return res.status(200).send(response(true, usr, 'El Usuario fue actualizado'))
     })
     .catch(err => {
-      return res.status(500).send(response(false, err, 'Error, El usuario no fue actualizado.'))
+      return res.status(500).send(response(false, err, 'Error, El usuario no fue actualizado'))
     })
 }
 
@@ -274,13 +274,13 @@ exports.updateProfilePic = (req, res) => {
   const email = req.secret.email
   const file = req.file
   if(!file) return res.status(401).send(response(false, '', 'File is required'))
-  if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))
+  if (!email) return res.status(401).send(response(false, '', 'El Email es necesario'))
 
   this.findByEmail(email)
   .then( async user => {
 
     let picture = await files.uploadFile(file.path)
-    if(!picture) return res.status(500).send(response(false, '', 'Ocurrio un error en el proceso, disculpe.'))
+    if(!picture) return res.status(500).send(response(false, '', 'Ocurrio un error en el proceso, disculpe'))
 
     user.$set({
       profile_pic: picture.secure_url
@@ -336,12 +336,12 @@ const addVehicleRules = {
  * @private
  */
 const errorsMessageAddVehicle = {
-  'required.plate': 'La placa de el vehiculo es necesaria.',
-  'required.brand': 'La marca del vehiculo es necesaria.',
-  'required.model': 'El modelo del vehiculo es  necesario.',
-  'required.year': 'El año del vehiculo es  necesario.',
-  'required.color': 'El color del vehiculo es  necesario.',
-  'required.vehicle_capacity': 'La capacidad del vehiculo es  necesaria.',
+  'required.plate': 'La placa de el vehiculo es necesaria',
+  'required.brand': 'La marca del vehiculo es necesaria',
+  'required.model': 'El modelo del vehiculo es  necesario',
+  'required.year': 'El año del vehiculo es  necesario',
+  'required.color': 'El color del vehiculo es  necesario',
+  'required.vehicle_capacity': 'La capacidad del vehiculo es  necesaria',
 }
 
 /**
@@ -361,10 +361,10 @@ exports.addVehicle = (req, res) => {
   const email = req.secret.email
   const file = req.file
   if(!file) return res.status(401).send(response(false, '', 'File is requires'))
-  if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))
+  if (!email) return res.status(401).send(response(false, '', 'El Email es necesario'))
 
   const validate = validateIn(req.body, addVehicleRules, errorsMessageAddVehicle)
-  if (!validate.pass) return res.status(400).send(response(false, validate.errors, 'Los campos requeridos deben ser enviados.'))
+  if (!validate.pass) return res.status(400).send(response(false, validate.errors, 'Los campos requeridos deben ser enviados'))
 
   this.findByEmail(email)
   .then( async user => {
@@ -372,10 +372,10 @@ exports.addVehicle = (req, res) => {
     if(user.vehicles && user.vehicles.length)existVehicle = user.vehicles.find( vehicle => vehicle.plate === req.body.plate)
     else user.vehicles = []
     
-    if(existVehicle) return res.status(403).send(response(false, error, 'Vehiculo ya existe.')) 
+    if(existVehicle) return res.status(403).send(response(false, error, 'Vehiculo ya existe')) 
 
     let picture = await files.uploadFile(file.path)
-    if(!picture) return res.status(500).send(response(false, '', 'Ocurrio un error en el proceso, disculpe.'))
+    if(!picture) return res.status(500).send(response(false, '', 'Ocurrio un error en el proceso, disculpe'))
 
     user.vehicles.push({
       plate: req.body.plate,
@@ -390,7 +390,7 @@ exports.addVehicle = (req, res) => {
     user.markModified('vehicles')
     user.save( (err, usr) => {
       if(err) return res.status(500).send(response(false, err, 'Vehiculo no fue agregado'))
-      return res.status(200).send(response(true, usr, 'Vehiculo agregado.'))
+      return res.status(200).send(response(true, usr, 'Vehiculo agregado'))
     })
     
   })
@@ -410,7 +410,7 @@ exports.addVehicle = (req, res) => {
  */
 exports.deleteVehicle = (req, res) => {
   const email = req.secret.email
-  if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))
+  if (!email) return res.status(401).send(response(false, '', 'El Email es necesario'))
 
   const plate = req.body.plate
   if (!plate) return res.status(401).send(response(false, '', 'La placa es necesaria'))
@@ -419,16 +419,16 @@ exports.deleteVehicle = (req, res) => {
   .then( async user => {
 
     let existVehicle = user.vehicles.find( vehicle => vehicle.plate === req.body.plate)
-    if(!existVehicle) return res.status(403).send(response(false, error, 'Vehiculo no existe.')) 
+    if(!existVehicle) return res.status(403).send(response(false, error, 'Vehiculo no existe')) 
 
-    user.updateOne({"$pull": {"vehicles": {plate: plate}}}, (err, usr) => {
+    user.updateOne({'$pull': {'vehicles': {plate: plate}}}, (err, usr) => {
       if(err) return res.status(500).send(response(false, err, 'Vehiculo no fue eliminado'))
-      return res.status(200).send(response(true, usr, 'Vehiculo eliminado.'))
+      return res.status(200).send(response(true, usr, 'Vehiculo eliminado'))
     })
     
   })
   .catch( error => {
-    return res.status(500).send(response(false, error, 'Vehiculo no fue eliminado.'))
+    return res.status(500).send(response(false, error, 'Vehiculo no fue eliminado'))
   })
 }
 
@@ -446,17 +446,17 @@ exports.deleteVehicle = (req, res) => {
  */
 exports.codeValidate = async (req, res) => {
   const { code, email } = req.body
-  if (!code) return res.status(403).send(response(false, '', 'El codigo es necesario.'))
-  if (!email) return res.status(401).send(response(false, '', 'El email es necesario.'))
+  if (!code) return res.status(403).send(response(false, '', 'El codigo es necesario'))
+  if (!email) return res.status(401).send(response(false, '', 'El email es necesario'))
 
   const user = await this.findByEmail(email)
-  if (!user) return res.status(401).send(response(false, '', 'El usuario no fue encontrado, debe registrarse nuevamente.'))
-  if(user.isVerify) return res.status(401).send(response(false, '', 'El usuario ya se encuentra verificado.'))
-  if (user.temporalCode !== parseInt(code)) return res.status(401).send(response(false, '', 'El codigo es incorrecto.'))
+  if (!user) return res.status(401).send(response(false, '', 'El usuario no fue encontrado, debe registrarse nuevamente'))
+  if(user.isVerify) return res.status(401).send(response(false, '', 'El usuario ya se encuentra verificado'))
+  if (user.temporalCode !== parseInt(code)) return res.status(401).send(response(false, '', 'El codigo es incorrecto'))
   user.isVerify = true
   user.markModified('isVerify')
   user.save()
-  return res.status(200).send(response(true, [{ tkauth: autentication.generateToken(user.email) }], 'Success.'))
+  return res.status(200).send(response(true, [{ tkauth: autentication.generateToken(user.email) }], 'Success'))
 }
 
 
@@ -474,12 +474,12 @@ exports.codeValidate = async (req, res) => {
  */
 exports.getUserInformation = (req, res) => {
   const email = req.secret.email
-  if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))
+  if (!email) return res.status(401).send(response(false, '', 'El Email es necesario'))
   this.findByEmail(email)
     .then(usr => {
-      return res.status(200).send(response(true, usr, 'Peticion ejecutada con exito.'))
+      return res.status(200).send(response(true, usr, 'Peticion ejecutada con exito'))
     })
     .catch(err => {
-      return res.status(500).send(response(false, err, 'Error, El usuario no fue encontrado o hubo un problema.'))
+      return res.status(500).send(response(false, err, 'Error, El usuario no fue encontrado o hubo un problema'))
     })
 }
