@@ -3,7 +3,7 @@
  * que la manejan para solicitar una cola, cancelar una solicitud y para ser
  * usado por el módulo controllers/algorithmController en la recomendación de
  * solicitudes de cola a un usuario conductor del sistema PideCola.
- * @module controllers/requestsController
+ * @module requestsController
  * @author Francisco Márquez <12-11163@usb.ve>
  * @require módulo: controllers/userController
  * @require lib/utils/emails.sendEmail
@@ -445,7 +445,7 @@ function verifyOffer(dataOffer) {
 
 /**
  * Función que envía un correo electrónico notificando que hay una oferta de
- * cola para una solicitud y cambia consecuentemente el estado de la solicitud.
+ * cola para una solicitud.
  * No debería modificarse a no ser que se cambie toda lógica detrás del
  * algoritmo de recomendación.
  * @author Francisco Márquez <12-11163@usb.ve>
@@ -457,10 +457,6 @@ function verifyOffer(dataOffer) {
  * @returns {SentStatus}
  */
 async function sendOffer(offer) {
-  const request = alreadyRequested(offer.passenger).in
-  const fromUSB = request.startLocation === 'USB'
-  const place = fromUSB ? request.destination : request.startLocation
-  changeStatus(offer.passenger, place)
   const subj = 'Nueva oferta de cola'
   const name = await users.findByEmail(offer.passenger).then(callback)
   const html = offerTemplate(name.first_name)
@@ -513,7 +509,7 @@ function verifyRespondOffer(dataResponse) {
   }
   const offerMessage = {
     'required.rider': 'El conductor es necesario',
-    'required.passenger': 'El pasajero es necesario'
+    'required.passenger': 'El pasajero es necesario',
     'required.accept': 'La respuesta del solicitante es necesaria'
   }
   let errors
@@ -535,8 +531,7 @@ function verifyRespondOffer(dataResponse) {
 
 /**
  * Función que envía un correo electrónico notificando que la cola ha sido
- * aceptada y elimina la solicitud de la lista; o rechazada y cambia
- * consecuentemente el estado de la solicitud.
+ * aceptada y elimina la solicitud de la lista; o rechazada.
  * No debería modificarse a no ser que se cambie toda lógica detrás del
  * algoritmo de recomendación.
  * @author Francisco Márquez <12-11163@usb.ve>
@@ -560,10 +555,6 @@ async function respondOffer(response) {
       return { sent: false, log: log, errors: errors }
     }
   } else {
-    const request = alreadyRequested(response.passenger).in
-    const fromUSB = request.startLocation === 'USB'
-    const place = fromUSB ? request.destination : request.startLocation
-    changeStatus(response.passenger, place)
     const subj = 'Han respondido a tu oferta de cola'
     const name = await users.findByEmail(response.rider).then(callback)
     const html = responseTemplate(name.first_name)

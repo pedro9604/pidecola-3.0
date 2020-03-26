@@ -2,7 +2,7 @@
  * Este módulo contiene el grafo no dirigido e implícito de las paradas del
  * PideCola y las funciones que hacen posible recomendarle a usuarios
  * conductores los posibles usuarios a los que se les puede dar una cola.
- * @module controllers/algorithmController
+ * @module algorithmController
  * @author Francisco Márquez <12-11163@usb.ve>
  * @require módulo: controllers/algorithmController
  * @require lib/utils/response.response

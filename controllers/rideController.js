@@ -2,7 +2,7 @@
  * Este módulo contiene los métodos para manejar las colas en la base de datos.
  * Para conocer los datos que se almacenan por cola, ver manual de la base de
  * datos.
- * @module controllers/rideController
+ * @module rideController
  * @author Francisco Márquez <12-11163@usb.ve>
  * @require módulo: controllers/userController
  * @require módulo: models/rideModel.js

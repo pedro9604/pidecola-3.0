@@ -2,7 +2,7 @@
  * Este módulo contiene los métodos para manejar la información de los
  * usuarios del sistema PideCola. Para conocer los datos que se almacenan por
  * usuario, ver manual de la base de datos.
- * @module controllers/userController
+ * @module userController
  * @author Ángel Morante <13-10931@usb.ve>
  * @author Pedro Madolnado <13-10790@usb.ve>
  * @require bcryptjs
