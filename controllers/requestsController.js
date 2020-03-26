@@ -155,6 +155,7 @@ function alreadyRequested(email) {
  * algoritmo de recomendación.
  * @author Francisco Márquez <12-11163@usb.ve>
  * @public
+ * @async
  * @param {Object} req - Un HTTP Request
  * @param {Object} res - Un HTTP Response
  * @returns {Object} 
@@ -388,6 +389,7 @@ function changeStatus(email, place) {
  * algoritmo de recomendación.
  * @author Francisco Márquez <12-11163@usb.ve>
  * @public
+ * @async
  * @param {Object} req - Un HTTP Request
  * @param {Object} res - Un HTTP Response
  * @returns {Object}
@@ -410,9 +412,9 @@ async function offerRide(req, res) {
  * algoritmo de recomendación.
  * @author Francisco Márquez <12-11163@usb.ve>
  * @private
- * @param {Object} request 
- * @param {string} request.rider    - El correo del ofertante
- * @param {string} request.passeger - El correo del solicitante
+ * @param {Object} dataOffer 
+ * @param {string} dataOffer.rider     - El correo del ofertante
+ * @param {string} dataOffer.passenger - El correo del solicitante
  * @returns {Verification}
  */
 function verifyOffer(dataOffer) {
@@ -433,11 +435,26 @@ function verifyOffer(dataOffer) {
 }
 
 /**
+ * @typedef SentStatus
+ * @type {Object}
+ * @property {boolean}       sent   - Estado del envío
+ * @property {string}        log    - Información del servicio de email
+ * @property {Object|string} errors - Errores experimentados
+ * @author Francisco Márquez <12-11163@usb.ve>
+ */
+
+/**
  * Función que envía un correo electrónico notificando que hay una oferta de
  * cola para una solicitud y cambia consecuentemente el estado de la solicitud.
  * No debería modificarse a no ser que se cambie toda lógica detrás del
  * algoritmo de recomendación.
  * @author Francisco Márquez <12-11163@usb.ve>
+ * @private
+ * @async
+ * @param {Object} offer
+ * @param {string} offer.rider     - El correo del ofertante
+ * @param {string} offer.passenger - El correo del solicitante
+ * @returns {SentStatus}
  */
 async function sendOffer(offer) {
   const request = alreadyRequested(offer.passenger).in
@@ -460,6 +477,7 @@ async function sendOffer(offer) {
  * algoritmo de recomendación.
  * @author Francisco Márquez <12-11163@usb.ve>
  * @public
+ * @async
  * @param {Object} req - Un HTTP Request
  * @param {Object} res - Un HTTP Response
  * @returns {Object}
@@ -522,6 +540,12 @@ function verifyRespondOffer(dataResponse) {
  * No debería modificarse a no ser que se cambie toda lógica detrás del
  * algoritmo de recomendación.
  * @author Francisco Márquez <12-11163@usb.ve>
+ * @private
+ * @async
+ * @param {Object} response
+ * @param {string} response.rider     - El correo del ofertante
+ * @param {string} response.passenger - El correo del solicitante
+ * @returns {SentStatus}
  */
 async function respondOffer(response) {
   if (response.accept === 'Sí') {
