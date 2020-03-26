@@ -74,7 +74,7 @@ async function verifyDataRide(dataRide) {
   var emptyPas = true
   var validPass = true
   let pass
-  dataRide.rider = await users.findByEmail(dataRide.rider)
+  dataRide.rider = await users.findByEmail(dataRide.rider).then(callback)
   if (dataRide.passenger.length > 0) {
     pass = []
     for (var i = 0; i < dataRide.passenger.length; i++) {

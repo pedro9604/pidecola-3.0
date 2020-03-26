@@ -17,7 +17,7 @@ describe('create', () => {
 
   afterEach(() => { usr.deleteOne({ email: 'XXXXXX@usb.ve' }) })
 
-  test('rider with a passenger from A to B', () => {
+  test('rider with a passenger from A to B', async () => {
     const data = {
       rider: 'XXXXXX@usb.ve',
       passenger: [],
@@ -29,12 +29,11 @@ describe('create', () => {
       body: data
     })
     var response = httpMocks.createResponse()
-    ride.create(request, response)
+    await ride.create(request, response)
     expect(response.statusCode).toBe(200)
   })
 
-  /*
-  test('rider is not an email', () => {
+  test('rider is not an email', async () => {
     const data = {
       rider: 'XXXXXX',
       passenger: ["13-10931@usb.ve"],
@@ -46,11 +45,11 @@ describe('create', () => {
       body: data
     })
     var response = httpMocks.createResponse()
-    ride.create(request, response)
+    await ride.create(request, response)
     expect(response.statusCode).toBe(400)
   })
 
-  test('seats is not a number', () => {
+  test('seats is not a number', async () => {
     const data = {
       rider: 'XXXXXX@usb.ve',
       passenger: ["13-10931@usb.ve"],
@@ -62,11 +61,11 @@ describe('create', () => {
       body: data
     })
     var response = httpMocks.createResponse()
-    ride.create(request, response)
+    await ride.create(request, response)
     expect(response.statusCode).toBe(400)
   })
 
-  test('startLocation is not an string', () => {
+  test('startLocation is not an string', async () => {
     const data = {
       rider: 'XXXXXX@usb.ve',
       passenger: ["13-10931@usb.ve"],
@@ -78,11 +77,11 @@ describe('create', () => {
       body: data
     })
     var response = httpMocks.createResponse()
-    ride.create(request, response)
+    await ride.create(request, response)
     expect(response.statusCode).toBe(400)
   })
 
-  test('destination is not an string', () => {
+  test('destination is not an string', async () => {
     const data = {
       rider: 'XXXXXX@usb.ve',
       passenger: ["13-10931@usb.ve"],
@@ -94,11 +93,11 @@ describe('create', () => {
       body: data
     })
     var response = httpMocks.createResponse()
-    ride.create(request, response)
+    await ride.create(request, response)
     expect(response.statusCode).toBe(400)
   })
 
-  test('Rider cannot be a passenger', () => {
+  test('Rider cannot be a passenger', async () => {
     const data = {
       rider: 'XXXXXX@usb.ve',
       passenger: ['XXXXXX@usb.ve'],
@@ -110,9 +109,10 @@ describe('create', () => {
       body: data
     })
     var response = httpMocks.createResponse()
-    ride.create(request, response)
+    await ride.create(request, response)
     expect(response.statusCode).toBe(400)
   })
+  /*
   */
 })
 

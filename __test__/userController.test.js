@@ -1,8 +1,10 @@
 const user = require('../controllers/userController.js')
+const usr  = require('../models/userModel.js')
 const httpMocks = require('node-mocks-http')
+const callback = require('../lib/utils/utils').callbackReturn
 
 describe('create', () => {
-  test('A new user is created', () => {
+  /*test('A new user is created', async () => {
     const data = {
       email: '12-11163@usb.ve',
       password: 'C0N5T4Nz4',
@@ -12,35 +14,31 @@ describe('create', () => {
       body: data
     })
     var response = httpMocks.createResponse()
-    user.create(request, response)
+    await user.create(request, response)
     expect(response.statusCode).toBe(200)
   })
 
-  /*test('An existed user is not created', () => {
-    const data1 = {
+  test('An existed user is not created', async () => {
+    usr.create({
+      email: '12-11163@usb.ve',
+      password: 'C0N5T4Nz4',
+      phone_number: '09876543210',
+      isVerify: true
+    }).then(callback)
+    const data = {
       email: '12-11163@usb.ve',
       password: 'C0N5T4Nz4',
       phoneNumber: '09876543210'
     }
-    var request1 = httpMocks.createRequest({
-      body: data1
+    var request = httpMocks.createRequest({
+      body: data
     })
-    var response1 = httpMocks.createResponse()
-    user.create(request1, response1)
-    const data2 = {
-      email: '12-11163@usb.ve',
-      password: 'C0N5T4Nz4',
-      phoneNumber: '09876543210'
-    }
-    var request2 = httpMocks.createRequest({
-      body: data2
-    })
-    var response2 = httpMocks.createResponse()
-    user.create(request2, response2)
-    expect(response2.statusCode).toBe(403)
+    var response = httpMocks.createResponse()
+    await user.create(request, response)
+    expect(response.statusCode).toBe(403)
   })*/
 
-  test('A request without email fails', () => {
+  test('A request without email fails', async () => {
     const data = {
       email: '12-11163usb.ve',
       password: 'C0N5T4Nz4',
@@ -50,11 +48,11 @@ describe('create', () => {
       body: data
     })
     var response = httpMocks.createResponse()
-    user.create(request, response)
+    await user.create(request, response)
     expect(response.statusCode).toBe(400)
   })
 
-  test('A request without password fails', () => {
+  test('A request without password fails', async () => {
     const data = {
       email: '12-11163@usb.ve',
       password: '',
@@ -64,11 +62,11 @@ describe('create', () => {
       body: data
     })
     var response = httpMocks.createResponse()
-    user.create(request, response)
+    await user.create(request, response)
     expect(response.statusCode).toBe(400)
   })
 
-  test('A request without phone number fails', () => {
+  test('A request without phone number fails', async () => {
     const data = {
       email: '12-11163@usb.ve',
       password: 'C0N5T4Nz4',
@@ -78,7 +76,7 @@ describe('create', () => {
       body: data
     })
     var response = httpMocks.createResponse()
-    user.create(request, response)
+    await user.create(request, response)
     expect(response.statusCode).toBe(400)
   })
 })
