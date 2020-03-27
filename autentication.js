@@ -31,7 +31,6 @@ exports.signIn = (req, res) => {
   users.findByEmail(email, null)
     .then(async user => {
       if (!user) return undefined
-      console.log(password, user.password)
       const compare = await bcrypt.compare(password, user.password)
       return [compare, user]
     })
