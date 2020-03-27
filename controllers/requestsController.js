@@ -22,7 +22,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // Modulos
-const usr = require('./userController.js')
+const users = require('./userController.js')
 
 // Funciones
 const callback         = require('../lib/utils/utils').callbackReturn
@@ -128,12 +128,12 @@ function fromNameToInt(name) {
 async function create(req, res) {
   const { status, errors, message } = verifyRequest(req.body)
   if (!status) return res.status(400).send(response(false, errors, message))
-  const user = await usr.findByEmail(req.body.user).then(callback)
+  const user = await users.findByEmail(req.body.user).then(callback)
   console.log('Usuario ', user)
   const request = {
     email: req.body.user,
     user: {
-      usbid: user.email.slice(0, 8),
+      usbid: user.email.split('@')[0],
       phone: user.phone_number,
       fName: user.first_name,
       lName: user.last_name,

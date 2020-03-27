@@ -44,10 +44,14 @@ const validateIn    = require('../lib/utils/validation').validateIn
  * @returns {Object} 
  */
 async function create(req, res) {
-  const { status, errors, message, request } = await verifyDataRide(req.body)
+  const { status, errors, message } = await verifyDataRide(req.body)
   if (!status) return res.status(400).send(response(false, errors, message))
-  const rideInf = await newRide(request)
-  return res.status(200).send(response(true, rideInf, 'Cola creada'))
+  const rideInf = await newRide(req.body)
+  if (!!rideInf) {
+    return res.status(200).send(response(true, rideInf, 'Cola creada'))
+  } else {
+    return res.status(500).send(response(true, rideInf, 'Cola no fue creada'))
+  }
 }
 
 /**
@@ -71,25 +75,22 @@ async function create(req, res) {
 async function verifyDataRide(dataRide) {
   const validate = validateIn(dataRide, rideRules, errorsMessage)
   const arrayPas = Array.isArray(dataRide.passenger)
-  var emptyPas = true
-  var validPass = true
-  let pass
-  dataRide.rider = await users.findByEmail(dataRide.rider).then(callback)
+  var emptyPas   = true
+  var pass       = true
+  var validPass  = true
+  const valSeats = parseInt(dataRide.seats) >= dataRide.passenger.length
+  const rider = await users.findByEmail(dataRide.rider).then(callback) != null
   if (dataRide.passenger.length > 0) {
-    pass = []
+    pass = !(dataRide.rider in dataRide.passenger)
     for (var i = 0; i < dataRide.passenger.length; i++) {
-      dataRide.passenger[i] = await users.findByEmail(dataRide.passenger[i])
-      if (dataRide.passenger[i] === null) validPass = false
+      if (await users.findByEmail(dataRide.passenger[i]) === null) {
+        validPass = false
+      }
     }
-    pass = dataRide.passenger.find(async u => {
-      if (!!u) return u.email === dataRide.rider.email
-    })
-    pass = !pass
   } else {
     emptyPas = false
-    pass = true
   }
-  if (!(validate.pass && arrayPas && emptyPas && pass && validPass)) {
+  if (!(validate.pass && arrayPas && emptyPas && pass && validPass && valSeats && rider)) {
     var errors = ''
     var message = ''
     if (!validate.pass) {
@@ -104,13 +105,19 @@ async function verifyDataRide(dataRide) {
     } else if (!pass) {
       errors = 'El conductor es un pasajero'
       message = 'El conductor no puede ser un pasajero'
-    } else {
+    } else if (!validPass) {
       errors = 'Hay pasajeros no registrados en esta cola'
       message = 'Todo pasajero tiene que ser un usuario registrado'
+    } else if (!valSeats) {
+      errors = 'Hay más pasajeros que asientos disponibles'
+      message = 'Debe haber a lo sumo tantos pasajeros como asientos haya'
+    } else {
+      errors = 'El conductor no está registrado'
+      message = 'El conductor tiene que estar registrado'
     }
-    return { status: false, errors: errors, message: message, req: dataRide }
+    return { status: false, errors: errors, message: message }
   }
-  return { status: true, errors: '', message: '', req: dataRide }
+  return { status: true, errors: '', message: '' }
 }
 
 /**
@@ -153,11 +160,15 @@ async function newRide(dataRide) {
  * @returns {Object} 
  */
 async function endRide(req, res) {
-  const { status, errors, message, request } = await verifyDataRide(req.body)
+  const { status, errors, message } = await verifyDataRide(req.body)
   if (!status) return res.status(400).send(response(false, errors, message))
-  const query = {ride_finished: true, status: 'Finalizado'}
-  const rideInf = await updateRide(request, query)
-  return res.status(200).send(response(true, rideInf, 'Cola finalizada'))
+  const query = { ride_finished: true, status: 'Finalizado' }
+  const rideInf = await updateRide(req.body, query)
+  if (!!rideInf) {
+    return res.status(200).send(response(true, rideInf, 'Cola finalizada'))
+  } else {
+    return res.status(500).send(response(false, '', 'Cola no existe'))
+  }
 }
 
 /**
@@ -191,7 +202,7 @@ async function updateRide(data, query) {
  * @returns {Object} 
  */
 async function changeStatus(req, res) {
-  const { status, errors, message } = verifyStatusRide(req.body.status)
+  const { status, errors, message } = verifyStatusRide(req.body)
   if (!status) return res.status(400).send(response(false, errors, message))
   const rideInf = await updateRide(req.body, {status: req.body.status})
   if (!!rideInf) {
@@ -210,10 +221,12 @@ async function changeStatus(req, res) {
  * @param {string} status
  * @returns {Verification}
  */
-function verifyStatusRide(status) {
-  const obj  = {status: status}
-  const rule = {status: 'required|string'}
-  const mssg = {'required.status': 'El estado de la solicitud es requerido'}
+function verifyStatusRide(statusRide) {
+  const { status, errors, message } = verifyDataRide(statusRide)
+  if (!status) return { status: status, errors: errors, message: message }
+  const obj  = { status: statusRide }
+  const rule = { status: 'required|string' }
+  const mssg = { 'required.status': 'El estado de la solicitud es requerido' }
   const validate = validateIn(obj, rule, mssg)
   if (!validate.pass) {
     return {
@@ -221,13 +234,13 @@ function verifyStatusRide(status) {
       errors: validate.errors,
       message: 'El estado no tiene el formato válido'
     }
-  } else if (status === 'En Espera') {
+  } else if (statusRide.status === 'En Espera') {
     return { status: true, errors: '', message: '' }
-  } else if (status != 'En Camino') {
+  } else if (statusRide.status === 'En Camino') {
     return { status: true, errors: '', message: '' }
-  } else if (status != 'Accidentado') {
+  } else if (statusRide.status === 'Accidentado') {
     return { status: true, err: '', message: '' }
-  } else if (status != 'Finalizado') {
+  } else if (statusRide.status === 'Finalizado') {
     return { status: true, errors: '', message: '' }
   } else {
     return {
@@ -254,9 +267,9 @@ function verifyStatusRide(status) {
  * @returns {Object} 
  */
 async function commentARide(req, res) {
-  const { status, errors, message } = verifyComments(req.body)
+  const { status, errors, message } = await verifyComments(req.body)
   if (!status) return res.status(400).send(response(false, errors, message))
-  const rideInf = await comment(req.body, {status: req.body.status})
+  const rideInf = await comment(req.body)
   if (!!rideInf) {
     return res.status(200).send(response(true, rideInf, 'Comentario agregado'))
   } else {
@@ -271,35 +284,45 @@ async function commentARide(req, res) {
  * agregar comentarios a una cola ya finalizada.
  * @author Francisco Márquez <12-11163@usb.ve>
  * @private
+ * @async
  * @param {string} dataRide
  * @returns {Verification}
  */
-function verifyComments(dataRide) {
+async function verifyComments(dataRide) {
   const rules = {
     rider: 'required|email',
     user: 'required|email',
     startLocation: 'required|string',
     destination: 'required|string',
-    like: 'required|string'
+    like: 'required|string',
+    comment: 'string'
   }
   const mssg = {
     'required.rider': 'El correo del conductor es necesario',
     'required.user': 'El correo del pasajero es necesario',
     'required.startLocation': 'El lugar de partida es necesario',
     'required.destination': 'El lugar de destino es necesario',
-    'required.like': 'El like es necesario'
+    'required.like': 'El like es necesario',
+    'string': 'El comentario es necesario'
   }
   const validate = validateIn(dataRide, rules, mssg)
   const like = dataRide.like == 'Sí' || dataRide.like == 'No'
-  if (!(validate.pass && like)) {
+  const rider = await users.findByEmail(dataRide.rider).then((sucs, err) => {
+    console.log(!err && !!sucs)
+    return !err && !!sucs
+  })
+  if (!(validate.pass && like && rider)) {
     var errors = ''
     var message = ''
     if (!validate.pass) {
       errors = validate.errors
       message = 'Los datos introducidos no cumplen con el formato requerido'
-    } else {
+    } else if (!like) {
       errors = 'Parece que el like no es Sí ni No'
       message = 'El like debe ser Sí o No'
+    } else {
+      errors = 'Parece que el conductor no se encuentra registrado'
+      message = 'El conductor debe ser un usuario registrado'
     }
     return { status: false, errors: errors, message: message }
   }
@@ -312,7 +335,7 @@ function verifyComments(dataRide) {
  * @private
  * @async
  * @param {string} dataRide
- * @returns {Verification}
+ * @returns {Object}
  */
 async function comment(dataRide) {
   const user  = dataRide.user
@@ -320,20 +343,20 @@ async function comment(dataRide) {
   const comen = !dataRide.comment ? undefined : dataRide.comment
   const data  = {
     rider: dataRide.rider,
-    start_location: dataRider.startLocation,
+    start_location: dataRide.startLocation,
     destination: dataRide.destination,
     status: 'Finalizado',
     ride_finished: true
   }
   const query = { user_id: user, like: like, dislike: !like, comment: comen }
   return await rides.findOne(data).then((sucs, err) => {
-    if (!err & !!sucs) {
-      for (var i = 0; i < sucs.comment.length; i++) {
-        if (sucs.comment[i].user_id === query.user) {
+    if (!err && !!sucs) {
+      for (var i = 0; i < sucs.comments.length; i++) {
+        if (sucs.comments[i].user_id === query.user) {
           return sucs
         }
       }
-      sucs.comment.push(query) 
+      sucs.comments.push(query) 
       sucs.markModified('comment')
       return sucs.save(callback)
     } else {

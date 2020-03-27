@@ -1,7 +1,7 @@
-const user = require('../controllers/userController.js')
-const usr  = require('../models/userModel.js')
+const callback  = require('../lib/utils/utils').callbackReturn
 const httpMocks = require('node-mocks-http')
-const callback = require('../lib/utils/utils').callbackReturn
+const user      = require('../controllers/userController.js')
+const usr       = require('../models/userModel.js')
 
 describe('create', () => {
   test('A new user is created', () => {
