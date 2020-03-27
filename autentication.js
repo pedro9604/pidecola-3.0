@@ -50,7 +50,7 @@ exports.signIn = (req, res) => {
 
 exports.verifyAutentication = (req, res, next) => {
   const token = viewAuthorization(req.headers.authorization)
-  if (token === 'code validation' || req.body.register) {
+  if (token === 'code validation' || req.path === '/users') {
     return next()
   }
   if (!token) return res.status(401).send(response(false, null, 'Unauthorized.'))
