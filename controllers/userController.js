@@ -110,7 +110,7 @@ const responseCreate = async (usr, res, already = false) => {
  */
 
 const updateUserByEmail = (email, query) => {
-  return users.findOneAndUpdate({ email: email }, query, { returnOriginal: false })
+  return users.findOneAndUpdate({ email: email }, query, { returnOriginal: false, projection: {password: 0} })
 }
 /**
  * Función que realiza una consulta en la BD para buscar un usuario dado su
