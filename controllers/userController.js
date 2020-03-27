@@ -111,6 +111,7 @@ const responseCreate = async (usr, res, already = false) => {
 const updateUserByEmail = (email, query) => {
   return users.findOneAndUpdate({ email: email }, query, { returnOriginal: false })
 }
+
 /**
  * Función que realiza una consulta en la BD para buscar un usuario dado su
  * email.
@@ -120,7 +121,6 @@ const updateUserByEmail = (email, query) => {
  * @param {Object} querySelect
  * @returns {Promise}
  */
-
 exports.findByEmail = (email, querySelect = { password: 0 }) => {
   return users.findOne({ email: email}, querySelect)
 }
@@ -432,7 +432,6 @@ exports.deleteVehicle = (req, res) => {
   })
 }
 
-
 /**
  * Endpoint para conexión con Front-end.
  * No debería modificarse a no ser que se cambie toda lógica detrás del
@@ -458,7 +457,6 @@ exports.codeValidate = async (req, res) => {
   user.save()
   return res.status(200).send(response(true, [{ tkauth: autentication.generateToken(user.email) }], 'Success'))
 }
-
 
 /**
  * Endpoint para conexión con Front-end.
