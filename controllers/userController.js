@@ -201,7 +201,7 @@ exports.create = async (req, res) => {
 
   if (!validate.pass) return res.status(400).send(response(false, validate.errors, 'Ha ocurrido un error en el proceso'))
 
-  const alredyRegister = await this.findByEmail(req.body.email)
+  const alreadyRegister = await this.findByEmail(req.body.email)
 
   if(alreadyRegister) {
     if (alreadyRegister.isVerify) {
@@ -214,7 +214,7 @@ exports.create = async (req, res) => {
   }
 
   bcrypt.hash(req.body.password, BCRYPT_SALT_ROUNDS)
-    .then(async hashedPassword => {
+    .then(hashedPassword => {
       req.body.password = hashedPassword
       return addUser(req.body)
     })
