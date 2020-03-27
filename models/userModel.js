@@ -15,11 +15,11 @@ const UserSchema = new Schema(
     major: {
       type: String,
       enum:
-      ['', 'Ciclo Básico', 'Ing. Eléctrica', 'Ing. Mecánica', 'Ing. Química', 'Ing. Electrónica', 'Ing. de Materiales',
+      [null, 'Ciclo Básico', 'Ing. Eléctrica', 'Ing. Mecánica', 'Ing. Química', 'Ing. Electrónica', 'Ing. de Materiales',
         'Ing. de Computación', 'Ing. Geofísica', 'Ing. de Producción', 'Ing. de Telecomunicaciones',
         'Arquitectura', 'Urbanismo', 'Lic. en Química', 'Lic. en Matemáticas', 'Lic. en Física', 'Lic. en Biología',
         'Lic. en Comercio Internacional', 'Lic. en Estudios y Artes Liberales', 'Economía'],
-      default: ''
+      default: null
     },
     profile_pic: { type: String },
     status: { type: String, enum: ['Disponible', 'No Disponible'] },
