@@ -472,7 +472,7 @@ exports.deleteVehicle = async (req, res) => {
     let existVehicle = user.vehicles.map(vehicle => vehicle.plate === req.body.plate)
     if(!existVehicle) return res.status(403).send(response(false, error, 'Vehiculo no existe'))
 
-    user.updateOne({'$pull': {'vehicles': {plate: plate}}}, (err, usr) => {
+    user.updateOne({'$pull': {'vehicles': {plate: req.body.plate}}}, (err, usr) => {
       if(err) return res.status(500).send(response(false, err, 'Vehiculo no fue eliminado'))
       return res.status(200).send(response(true, usr, 'Vehiculo eliminado'))
     })
