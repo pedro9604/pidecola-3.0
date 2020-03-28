@@ -471,11 +471,12 @@ exports.codeValidate = async (req, res) => {
  * @returns {Object} 
  */
 exports.getUserInformation = (req, res) => {
-  const email = req.secret.email
-  if (!email) return res.status(401).send(response(false, '', 'El Email es necesario'))
-  this.findByEmail(email)
+  const validate = validateIn(req.secret, {'email': 'required|email'}, {'required.email': 'El e-mail es necesario'})
+  if (!validate.pass) return res.status(401).send(response(false, 'Los datos no cumplen con el formato requerido', 'El Email es necesario'))
+  this.findByEmail(req.secret.email)
     .then(usr => {
-      return res.status(200).send(response(true, usr, 'Peticion ejecutada con exito'))
+      if (!!usr) return res.status(200).send(response(true, usr, 'Peticion ejecutada con exito'))
+      return res.status(500).send(response(false, null, 'Error, El usuario no existe'))
     })
     .catch(err => {
       return res.status(500).send(response(false, err, 'Error, El usuario no fue encontrado o hubo un problema'))

@@ -160,17 +160,69 @@ describe('codeValidate', () => {
       expect(sucs.statusCode).toBe(401)
     })
   })
-
 })
 
 describe('getUserInformation', () => {
-  beforeEach(() => {})
-
-  afterEach(() => {})
-
-  test('test case', () => {
-    //test code
+  beforeEach(() => {
+    userDB.create({
+      email: '00-00000@usb.ve',
+      password: 'password',
+      phone_number: 'phoneNumber',
+      first_name: 'Usuario',
+      last_name: '0',
+      age: 0,
+      gender: 'O',
+      major: 'Ing. de Computación',
+      profile_pic: 'Foto0',
+      status: 'Disponible',
+      community: 'Estudiante',
+      vehicles: [{
+        plate: 'placa',
+        brand: 'marca',
+        model: 'modelo',
+        year: 0,
+        color: 'black',
+        vehicle_capacity: 1,
+        vehicle_pic: 'FotoCarro'
+      }],
+      isVerify: true,
+      temporalCode: 0
+    }).then(callback)
   })
+
+  afterEach(() => { userDB.deleteOne({ email: '00-00000@usb.ve' }, callback) })
+
+  test('User can get his profile info', () => {
+    const request  = httpMocks.createRequest({
+      secret: { email: '00-00000@usb.ve' }
+    })
+    const response = httpMocks.createResponse()
+    user.getUserInformation(request, response)
+    expect(response.statusCode).toBe(200)
+  })
+
+  test('Request without e-mail', () => {
+    const request  = httpMocks.createRequest({ secret: { email: '' } })
+    const response = httpMocks.createResponse()
+    user.getUserInformation(request, response)
+    expect(response.statusCode).toBe(401)
+  })
+
+  test('Email does not have e-mail format', () => {
+    const request  = httpMocks.createRequest({ secret: { email: '00-00000' } })
+    const response = httpMocks.createResponse()
+    user.getUserInformation(request, response)
+    expect(response.statusCode).toBe(401)
+  })
+
+  // test('User not registered cannot get any profile info', () => {
+  //   const request  = httpMocks.createRequest({
+  //     secret: { email: '00-00001@usb.ve' }
+  //   })
+  //   const response = httpMocks.createResponse()
+  //   user.getUserInformation(request, response)
+  //   expect(response.statusCode).toBe(500)
+  // })
 })
 
 describe('updateUser', () => {
