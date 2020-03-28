@@ -109,7 +109,7 @@ const responseCreate = async (usr, res, already = false) => {
  * @returns {Object}
  */
 const updateUserByEmail = (email, query) => {
-  return users.findOneAndUpdate({ email: email }, query, { returnOriginal: false, projection: {password: 0} })
+  return users.findOneAndUpdate({ email: email }, query, { returnOriginal: false, useFindAndModify: false, projection: {password: 0} })
 }
 
 /**
