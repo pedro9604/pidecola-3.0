@@ -2,9 +2,8 @@
  * Este módulo contiene los métodos para manejar la información de los
  * usuarios del sistema PideCola. Para conocer los datos que se almacenan por
  * usuario, ver manual de la base de datos.
- * @module controllers/userController
+ * @module userController
  * @author Ángel Morante <13-10931@usb.ve>
- * @author Francisco Márquez <12-11163@usb.ve>
  * @author Pedro Madolnado <13-10790@usb.ve>
  * @require bcryptjs
  * @require cloudinary
@@ -23,6 +22,7 @@ const response = require('../lib/utils/response').response
 const autentication = require('../autentication.js')
 const users = require('../models/userModel.js')
 const sendEmail = require('../lib/utils/emails').sendEmail
+const callback = require('../lib/utils/utils').callbackReturn
 const template = require('../lib/utils/codeTemplate').template
 const files = require('../lib/cloudinaryConfig.js')
 
@@ -89,14 +89,14 @@ const responseCreate = async (usr, res, already = false) => {
   const code = already ? codeGenerate() : usr.temporalCode
   if (already) await updateCode(usr.email, code)
 
-  sendEmail(usr.email, 'Bienvenido a Pide Cola USB, valida tu cuenta.', createHTMLRespose(code, usr.email.split('@')[0]))
+  sendEmail(usr.email, 'Bienvenido a Pide Cola USB, valida tu cuenta', createHTMLRespose(code, usr.email.split('@')[0]))
     .then(() => {
       const userInf = { email: usr.email, phoneNumber: usr.phone_number }
-      return res.status(200).send(response(true, userInf, 'Usuario creado.'))
+      return res.status(200).send(response(true, userInf, 'Usuario creado'))
     })
     .catch(error => {
       console.log('Error Sending Mail', error)
-      return res.status(500).send(response(false, error, 'Perdón, ocurrió un error.'))
+      return res.status(500).send(response(false, error, 'Perdón, ocurrió un error'))
     })
 }
 
@@ -108,34 +108,21 @@ const responseCreate = async (usr, res, already = false) => {
  * @param {Object} query
  * @returns {Object}
  */
-
 const updateUserByEmail = (email, query) => {
   return users.findOneAndUpdate({ email: email }, query, { returnOriginal: false, projection: {password: 0} })
 }
+
 /**
  * Función que realiza una consulta en la BD para buscar un usuario dado su
  * email.
- * @function
  * @async
  * @private
  * @param {String} email
  * @param {Object} querySelect
  * @returns {Promise}
  */
-
 exports.findByEmail = (email, querySelect = { password: 0 }) => {
-  return users.findOne({ email: email}, querySelect)
-}
-
-/**
- * Función que devuelve la foto de perfil de un usuario de la base de datos.
- * @function
- * @public
- * @param {string} email
- * @returns {Object}
- */
-exports.getPic = async (email) => {
-  return await findByEmail(email).profile_pic
+  return users.findOne({ email: email }, querySelect)
 }
 
 /**
@@ -176,30 +163,27 @@ const registerRules = {
  * @private
  */
 const errorsMessage = {
-  'required.email': 'El correo electrónico de la USB es necesario.',
-  'required.password': 'La contraseña es necesaria.',
-  'required.phoneNumber': 'El teléfono celular es necesario.'
+  'required.email': 'El correo electrónico de la USB es necesario',
+  'required.password': 'La contraseña es necesaria',
+  'required.phoneNumber': 'El teléfono celular es necesario'
 }
 
 /**
  * Función que agrega un usuario a la base de datos.
- * @function
  * @private
  * @param {Object} dataUser
- * @returns {Object} información del usuario agregada a la base de datos
+ * @returns {Promise} información del usuario agregada a la base de datos
  */
-const create = async (dataUser) => {
+function addUser(dataUser) {
   const { email, password, phoneNumber } = dataUser
-  if (email.split("@")[1] !== "usb.ve") return err
-  return users.create({
+if (email.split("@")[1] !== "usb.ve") return err 
+const data = {
     email: email,
     password: password,
     phone_number: phoneNumber,
     temporalCode: codeGenerate()
-  }).then((sucs, err) => {
-    if (!err) return sucs
-    return err
-  })
+  }
+  return users.create(data)//.then(callback)
 }
 
 /**
@@ -222,7 +206,7 @@ exports.create = async (req, res) => {
 
   if(alreadyRegister) {
     if (alreadyRegister.isVerify) {
-      return res.status(403).send(response(false, '', 'El usuario ya se encuentra registrado.'))
+      return res.status(403).send(response(false, '', 'El usuario ya se encuentra registrado'))
     } else {
       if (!alreadyRegister.isVerify) {
         return responseCreate(alreadyRegister, res, true)
@@ -231,16 +215,16 @@ exports.create = async (req, res) => {
   }
 
   bcrypt.hash(req.body.password, BCRYPT_SALT_ROUNDS)
-    .then(async hashedPassword => {
+    .then(hashedPassword => {
       req.body.password = hashedPassword
-      return await create(req.body)
+      return addUser(req.body)
     })
     .then(usr => {
       return responseCreate(usr, res)
     })
     .catch(err => {
-      let mssg = 'Usuario no ha sido creado.'
-      if (err && err.code && err.code === 11000) mssg = 'Ya existe usuario.'
+      let mssg = 'Usuario no ha sido creado'
+      if (!!err && err.code && err.code === 11000) mssg = 'Ya existe usuario'
       return res.status(500).send(response(false, err, mssg))
     })
 }
@@ -254,25 +238,47 @@ exports.create = async (req, res) => {
  * @param {Object} res - Un HTTP Response
  * @returns {Object} 
  */
-
 exports.updateUser = (req, res) => {
-  const email = req.secret.email
-  if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))
+  const updateRules = {
+    'body.first_name': 'required|string',
+    'body.last_name': 'required|string',
+    'body.age': 'required|integer',
+    'body.major': 'required|string',
+    'secret.email': 'required|email'
+  }
+  const errorsMessage = {
+    'required.body.first_name': 'El nombre es requerido',
+    'required.body.last_name': 'El apellido es requerido',
+    'required.body.age': 'La edad es requerida',
+    'required.body.major': 'La carrera es requerida',
+    'required.secret.email': 'El e-mail es necesario'
+  }
+  const validate = validateIn(req, updateRules, errorsMessage)
+  if (!validate.pass) return res.status(401).send(response(false, validate.errors, 'Los datos no cumplen con el formato requerido'))
   const query = {
     $set: {
       first_name: req.body.first_name,
       last_name: req.body.last_name,
       age: req.body.age,
+      gender: req.body.gender,
       phone_number: req.body.phone_number,
-      major: req.body.major
+      major: req.body.major,
+      status: req.body.status,
+      community: req.body.community
     }
   }
-  updateUserByEmail(email, query)
+  updateUserByEmail(req.secret.email, query)
     .then(usr => {
-      return res.status(200).send(response(true, usr, 'El Usuario fue actualizado.'))
+      if (!!usr && usr.isVerify) {
+        return res.status(200).send(response(true, usr, 'El Usuario fue actualizado'))
+      } else if (!usr.isVerify) {
+        return res.status(500).send(response(false, 'El usuario no ha sido verificado', 'Para editar el perfil debes estar verificado'))
+      } else {
+        return res.status(500).send(response(false, null, 'El Usuario no existe'))
+      }
     })
     .catch(err => {
-      return res.status(500).send(response(false, err, 'Error, El usuario no fue actualizado.'))
+      return res.status(500).send(response(false, err, 'Error, El usuario no fue actualizado'))
     })
 }
 
@@ -288,18 +294,17 @@ exports.updateUser = (req, res) => {
  * @param {Object} res - Un HTTP Response
  * @returns {Object} 
  */
-
 exports.updateProfilePic = (req, res) => {
   const email = req.secret.email
   const file = req.file
   if(!file) return res.status(401).send(response(false, '', 'File is required'))
-  if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))
+  if (!email) return res.status(401).send(response(false, '', 'El Email es necesario'))
 
   this.findByEmail(email)
   .then( async user => {
 
     let picture = await files.uploadFile(file.path)
-    if(!picture) return res.status(500).send(response(false, '', 'Ocurrio un error en el proceso, disculpe.'))
+    if(!picture) return res.status(500).send(response(false, '', 'Ocurrio un error en el proceso, disculpe'))
 
     user.$set({
       profile_pic: picture.secure_url
@@ -319,7 +324,7 @@ exports.updateProfilePic = (req, res) => {
 /**
  * Reglas que tienen que cumplir las solicitudes enviadas desde Front-End para
  * registrar un vehiculo.
- * @name registerRules
+ * @name addVehicleRules
  * @type {Object}
  * @property {string} plate 
  * @property {string} brand 
@@ -330,7 +335,6 @@ exports.updateProfilePic = (req, res) => {
  * @constant
  * @private
  */
-
 const addVehicleRules = {
   plate: 'required|string',
   brand: 'required|string',
@@ -350,18 +354,18 @@ const addVehicleRules = {
  * @property {string} 'required.model' - Caso: Omisión del modelo
  * @property {string} 'required.year' - Caso: Omisión del año
  * @property {string} 'required.color' - Caso: Omisión del color
- * @property {string} 'required.vehicle_capacity' - Caso: Omisión de la capacidad
+ * @property {string} 'required.vehicle_capacity' - Caso: Omisión de la
+ * capacidad
  * @constant
  * @private
  */
-
 const errorsMessageAddVehicle = {
-  'required.plate': 'La placa de el vehiculo es necesaria.',
-  'required.brand': 'La marca del vehiculo es necesaria.',
-  'required.model': 'El modelo del vehiculo es  necesario.',
-  'required.year': 'El año del vehiculo es  necesario.',
-  'required.color': 'El color del vehiculo es  necesario.',
-  'required.vehicle_capacity': 'La capacidad del vehiculo es  necesaria.',
+  'required.plate': 'La placa de el vehiculo es necesaria',
+  'required.brand': 'La marca del vehiculo es necesaria',
+  'required.model': 'El modelo del vehiculo es  necesario',
+  'required.year': 'El año del vehiculo es  necesario',
+  'required.color': 'El color del vehiculo es  necesario',
+  'required.vehicle_capacity': 'La capacidad del vehiculo es  necesaria',
 }
 
 /**
@@ -381,10 +385,10 @@ exports.addVehicle = (req, res) => {
   const email = req.secret.email
   const file = req.file
   if(!file) return res.status(401).send(response(false, '', 'File is requires'))
-  if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))
+  if (!email) return res.status(401).send(response(false, '', 'El Email es necesario'))
 
   const validate = validateIn(req.body, addVehicleRules, errorsMessageAddVehicle)
-  if (!validate.pass) return res.status(400).send(response(false, validate.errors, 'Los campos requeridos deben ser enviados.'))
+  if (!validate.pass) return res.status(400).send(response(false, validate.errors, 'Los campos requeridos deben ser enviados'))
 
   this.findByEmail(email)
   .then( async user => {
@@ -392,10 +396,10 @@ exports.addVehicle = (req, res) => {
     if(user.vehicles && user.vehicles.length)existVehicle = user.vehicles.find( vehicle => vehicle.plate === req.body.plate)
     else user.vehicles = []
     
-    if(existVehicle) return res.status(403).send(response(false, error, 'Vehiculo ya existe.')) 
+    if(existVehicle) return res.status(403).send(response(false, error, 'Vehiculo ya existe')) 
 
     let picture = await files.uploadFile(file.path)
-    if(!picture) return res.status(500).send(response(false, '', 'Ocurrio un error en el proceso, disculpe.'))
+    if(!picture) return res.status(500).send(response(false, '', 'Ocurrio un error en el proceso, disculpe'))
 
     user.vehicles.push({
       plate: req.body.plate,
@@ -410,7 +414,7 @@ exports.addVehicle = (req, res) => {
     user.markModified('vehicles')
     user.save( (err, usr) => {
       if(err) return res.status(500).send(response(false, err, 'Vehiculo no fue agregado'))
-      return res.status(200).send(response(true, usr, 'Vehiculo agregado.'))
+      return res.status(200).send(response(true, usr, 'Vehiculo agregado'))
     })
     
   })
@@ -429,29 +433,33 @@ exports.addVehicle = (req, res) => {
  * @returns {Object} 
  */
 exports.deleteVehicle = (req, res) => {
-  const email = req.secret.email
-  if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))
+  const deleteRules = {
+    'body.plate': 'required|string',
+    'secret.email': 'required|email'
+  }
+  const errorsMessage = {
+    'required.body.plate': 'La placa es necesaria',
+    'required.secret.email': 'El Email es necesario'
+  }
+  const validate = validateIn(req, deleteRules, errorsMessage)
+  if (!validate.pass) return res.status(401).send(response(false, validate.errors, 'Los datos no cumplen con el formato requerido'))
 
-  const plate = req.body.plate
-  if (!plate) return res.status(401).send(response(false, '', 'La placa es necesaria'))
-  
-  this.findByEmail(email)
+  this.findByEmail(req.secret.email)
   .then( async user => {
 
-    let existVehicle = user.vehicles.find( vehicle => vehicle.plate === req.body.plate)
-    if(!existVehicle) return res.status(403).send(response(false, error, 'Vehiculo no existe.')) 
+    let existVehicle = user.vehicles.map(vehicle => vehicle.plate === req.body.plate)
+    if(!existVehicle) return res.status(403).send(response(false, error, 'Vehiculo no existe')) 
 
-    user.updateOne({"$pull": {"vehicles": {plate: plate}}}, (err, usr) => {
+    user.updateOne({'$pull': {'vehicles': {plate: plate}}}, (err, usr) => {
       if(err) return res.status(500).send(response(false, err, 'Vehiculo no fue eliminado'))
-      return res.status(200).send(response(true, usr, 'Vehiculo eliminado.'))
+      return res.status(200).send(response(true, usr, 'Vehiculo eliminado'))
     })
     
   })
   .catch( error => {
-    return res.status(500).send(response(false, error, 'Vehiculo no fue eliminado.'))
+    return res.status(500).send(response(false, error, 'Vehiculo no fue eliminado'))
   })
 }
-
 
 /**
  * Endpoint para conexión con Front-end.
@@ -466,19 +474,18 @@ exports.deleteVehicle = (req, res) => {
  */
 exports.codeValidate = async (req, res) => {
   const { code, email } = req.body
-  if (!code) return res.status(403).send(response(false, '', 'El codigo es necesario.'))
-  if (!email) return res.status(401).send(response(false, '', 'El email es necesario.'))
+  if (!code) return res.status(403).send(response(false, '', 'El codigo es necesario'))
+  if (!email) return res.status(401).send(response(false, '', 'El email es necesario'))
 
   const user = await this.findByEmail(email)
-  if (!user) return res.status(401).send(response(false, '', 'El usuario no fue encontrado, debe registrarse nuevamente.'))
-  if(user.isVerify) return res.status(401).send(response(false, '', 'El usuario ya se encuentra verificado.'))
-  if (user.temporalCode !== parseInt(code)) return res.status(401).send(response(false, '', 'El codigo es incorrecto.'))
+  if (!user) return res.status(401).send(response(false, '', 'El usuario no fue encontrado, debe registrarse nuevamente'))
+  if(user.isVerify) return res.status(401).send(response(false, '', 'El usuario ya se encuentra verificado'))
+  if (user.temporalCode !== parseInt(code)) return res.status(401).send(response(false, '', 'El codigo es incorrecto'))
   user.isVerify = true
   user.markModified('isVerify')
   user.save()
-  return res.status(200).send(response(true, [{ tkauth: autentication.generateToken(user.email) }], 'Success.'))
+  return res.status(200).send(response(true, [{ tkauth: autentication.generateToken(user.email) }], 'Success'))
 }
-
 
 /**
  * Endpoint para conexión con Front-end.
@@ -492,15 +499,15 @@ exports.codeValidate = async (req, res) => {
  * @param {Object} res - Un HTTP Response
  * @returns {Object} 
  */
-
 exports.getUserInformation = (req, res) => {
-  const email = req.secret.email
-  if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))
-  this.findByEmail(email)
+  const validate = validateIn(req.secret, {'email': 'required|email'}, {'required.email': 'El e-mail es necesario'})
+  if (!validate.pass) return res.status(401).send(response(false, 'Los datos no cumplen con el formato requerido', 'El Email es necesario'))
+  this.findByEmail(req.secret.email)
     .then(usr => {
-      return res.status(200).send(response(true, usr, 'Peticion ejecutada con exito.'))
+      if (!!usr) return res.status(200).send(response(true, usr, 'Peticion ejecutada con exito'))
+      return res.status(500).send(response(false, null, 'Error, El usuario no existe'))
     })
     .catch(err => {
-      return res.status(500).send(response(false, err, 'Error, El usuario no fue encontrado o hubo un problema.'))
+      return res.status(500).send(response(false, err, 'Error, El usuario no fue encontrado o hubo un problema'))
     })
 }
