@@ -190,6 +190,7 @@ const errorsMessage = {
  */
 const create = async (dataUser) => {
   const { email, password, phoneNumber } = dataUser
+  if (email.split("@")[1] !== "usb.ve") return err
   return users.create({
     email: email,
     password: password,
@@ -217,7 +218,7 @@ exports.create = async (req, res) => {
 
   if (!validate.pass) return res.status(400).send(response(false, validate.errors, 'Ha ocurrido un error en el proceso'))
 
-  const alredyRegister = await this.findByEmail(req.body.email)
+  const alreadyRegister = await this.findByEmail(req.body.email)
 
   if(alreadyRegister) {
     if (alreadyRegister.isVerify) {
