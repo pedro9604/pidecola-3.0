@@ -109,7 +109,7 @@ const responseCreate = async (usr, res, already = false) => {
  * @returns {Object}
  */
 const updateUserByEmail = (email, query) => {
-  return users.findOneAndUpdate({ email: email }, query, { returnOriginal: false, useFindAndModify: false })
+  return users.findOneAndUpdate({ email: email }, query, { returnOriginal: false, useFindAndModify: false, projection: {password: 0} })
 }
 
 /**
@@ -260,11 +260,8 @@ exports.updateUser = (req, res) => {
       first_name: req.body.first_name,
       last_name: req.body.last_name,
       age: req.body.age,
-      gender: req.body.gender,
       phone_number: req.body.phone_number,
-      major: req.body.major,
-      status: req.body.status,
-      community: req.body.community
+      major: req.body.major
     }
   }
   updateUserByEmail(req.secret.email, query)
