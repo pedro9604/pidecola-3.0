@@ -662,6 +662,9 @@ describe('updateUser', () => {
 
 // Pendiente, averiguar sobre mockFiles
 describe('updateProfilePic', () => {
+  const filePath = `./testFiles/testUserPic.png`
+  //from: https://commons.wikimedia.org/wiki/File:User.svg
+
   beforeEach(() => {
     userDB.create({
       email: '00-00000@usb.ve',
@@ -687,13 +690,16 @@ describe('updateProfilePic', () => {
     }
   })
 
-  test('test case', () => {
+  test('should upload the test file to CDN', () => {
     //test code
   })
 })
 
 // Pendiente, mismas razones que updateProfilePic
 describe('addVehicle', () => {
+  const filePath = `./testFiles/testCarPic.png`
+  //from: https://pngimg.com/download/22574
+
   beforeEach(() => {})
 
   afterEach(() => {})
@@ -703,6 +709,7 @@ describe('addVehicle', () => {
   })
 })
 
+// Falta 1 caso
 describe('deleteVehicle', () => {
   beforeEach(() => {
     userDB.create({
