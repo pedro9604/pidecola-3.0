@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Module: controllers/requestsController</title>
+    <title>JSDoc: Module: requestsController</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Module: controllers/requestsController</h1>
+    <h1 class="page-title">Module: requestsController</h1>
 
     
 
@@ -38,10 +38,7 @@
     <div class="container-overview">
     
         
-            <div class="description">Este módulo contiene la lista global de solicitudes de cola y las funciones
-que la manejan para solicitar una cola, cancelar una solicitud y para ser
-usado por el módulo controllers/algorithmController en la recomendación de
-solicitudes de cola a un usuario conductor del sistema PideCola.</div>
+            <div class="description">Este módulo contiene la lista global de solicitudes de cola y las funcionesque la manejan para solicitar una cola, cancelar una solicitud y para serusado por el módulo controllers/algorithmController en la recomendación desolicitudes de cola a un usuario conductor del sistema PideCola.</div>
         
 
         
@@ -83,7 +80,7 @@ solicitudes de cola a un usuario conductor del sistema PideCola.</div>
     <dt class="tag-author">Author:</dt>
     <dd class="tag-author">
         <ul>
-            <li><a href="mailto:12-11163@gmail.com">Francisco Márquez</a></li>
+            <li><a href="mailto:12-11163@usb.ve">Francisco Márquez</a></li>
         </ul>
     </dd>
     
@@ -148,407 +145,13 @@ solicitudes de cola a un usuario conductor del sistema PideCola.</div>
 
         
             
-<h4 class="name" id="~errorsMessage"><span class="type-signature">(private, inner, constant) </span>errorsMessage<span class="type-signature"> :Object</span></h4>
-
-
-
-
-<div class="description">
-    Mensajes de error en caso de no se cumplan las requestsRules en una
-solicitud.
-</div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">Object</span>
-
-
-        </li>
-    </ul>
-
-
-
-
-
-    <h5 class="subsection-title">Properties:</h5>
-
-    
-
-<table class="props">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>'required.user'</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Caso: Omisión o error del user</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>'required.startLocation'</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Caso: Omisión del startLocation</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>'required.destination'</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Caso: Omisión del destination</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="requestsController.js.html">requestsController.js</a>, <a href="requestsController.js.html#line100">line 100</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-            
-<h4 class="name" id="~requestsRules"><span class="type-signature">(private, inner, constant) </span>requestsRules<span class="type-signature"> :Object</span></h4>
-
-
-
-
-<div class="description">
-    Reglas que tienen que cumplir las solicitudes enviadas desde Front-End para
-generar una nueva solicitud de cola o eliminar una ya existente.
-</div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">Object</span>
-
-
-        </li>
-    </ul>
-
-
-
-
-
-    <h5 class="subsection-title">Properties:</h5>
-
-    
-
-<table class="props">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>user</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Campo user de la solicitud es obligatorio y debe
-tener formato de e-mail</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>startLocation</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Campo startLocation de la solicitud es
-obligatorio</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>destination</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Campo destination de la solicitud es
-obligatorio</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>comment</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Campo comment de la solicitud no es obligatorio</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>im_going</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Campo im_going de la solicitud no es
-obligatorio</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="requestsController.js.html">requestsController.js</a>, <a href="requestsController.js.html#line75">line 75</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-            
 <h4 class="name" id="~stops"><span class="type-signature">(inner, constant) </span>stops<span class="type-signature"> :Array.&lt;Stop></span></h4>
 
 
 
 
 <div class="description">
-    Lista global de paradas donde se almacenan ordenadas como una cola First In-
-First Out, las solicitudes de cola por parada de destino o de origen. El
-orden de las paradas obdece a la distancia de cada parada desde la USB.
+    Lista global de paradas donde se almacenan ordenadas como una cola First In-First Out, las solicitudes de cola por parada de destino o de origen. Elorden de las paradas obdece a la distancia de cada parada desde la USB.
 </div>
 
 
@@ -586,6 +189,13 @@ orden de las paradas obdece a la distancia de cada parada desde la USB.
     
 
     
+    <dt class="tag-author">Author:</dt>
+    <dd class="tag-author">
+        <ul>
+            <li><a href="mailto:12-11163@usb.ve">Francisco Márquez</a></li>
+        </ul>
+    </dd>
+    
 
     
 
@@ -596,7 +206,7 @@ orden de las paradas obdece a la distancia de cada parada desde la USB.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="requestsController.js.html">requestsController.js</a>, <a href="requestsController.js.html#line41">line 41</a>
+        <a href="requestsController.js.html">requestsController.js</a>, <a href="requestsController.js.html#line69">line 69</a>
     </li></ul></dd>
     
 
@@ -624,7 +234,7 @@ orden de las paradas obdece a la distancia de cada parada desde la USB.
     
 
     
-    <h4 class="name" id=".create"><span class="type-signature">(static) </span>create<span class="signature">(req, res)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    <h4 class="name" id="~cancel"><span class="type-signature">(inner) </span>cancel<span class="signature">(req, res)</span><span class="type-signature"> &rarr; {Object}</span></h4>
     
 
     
@@ -632,9 +242,7 @@ orden de las paradas obdece a la distancia de cada parada desde la USB.
 
 
 <div class="description">
-    Endpoint para conexión con Front-end.
-No debería modificarse a no ser que se cambie toda lógica detrás del
-algoritmo de recomendación.
+    Endpoint para cancelar una solicitud de cola.No debería modificarse a no ser que se cambie toda lógica detrás delalgoritmo de recomendación.
 </div>
 
 
@@ -740,6 +348,13 @@ algoritmo de recomendación.
     
 
     
+    <dt class="tag-author">Author:</dt>
+    <dd class="tag-author">
+        <ul>
+            <li><a href="mailto:12-11163@usb.ve">Francisco Márquez</a></li>
+        </ul>
+    </dd>
+    
 
     
 
@@ -750,7 +365,7 @@ algoritmo de recomendación.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="requestsController.js.html">requestsController.js</a>, <a href="requestsController.js.html#line183">line 183</a>
+        <a href="requestsController.js.html">requestsController.js</a>, <a href="requestsController.js.html#line263">line 263</a>
     </li></ul></dd>
     
 
@@ -804,7 +419,7 @@ algoritmo de recomendación.
     
 
     
-    <h4 class="name" id=".delete"><span class="type-signature">(static) </span>delete<span class="signature">(req, res)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    <h4 class="name" id="~create"><span class="type-signature">(async, inner) </span>create<span class="signature">(req, res)</span><span class="type-signature"> &rarr; {Object}</span></h4>
     
 
     
@@ -812,9 +427,7 @@ algoritmo de recomendación.
 
 
 <div class="description">
-    Endpoint para conexión con Front-end.
-No debería modificarse a no ser que se cambie toda lógica detrás del
-algoritmo de recomendación.
+    Endpoint que crea una solicitud de cola.No debería modificarse a no ser que se cambie toda lógica detrás delalgoritmo de recomendación.
 </div>
 
 
@@ -920,6 +533,13 @@ algoritmo de recomendación.
     
 
     
+    <dt class="tag-author">Author:</dt>
+    <dd class="tag-author">
+        <ul>
+            <li><a href="mailto:12-11163@usb.ve">Francisco Márquez</a></li>
+        </ul>
+    </dd>
+    
 
     
 
@@ -930,7 +550,7 @@ algoritmo de recomendación.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="requestsController.js.html">requestsController.js</a>, <a href="requestsController.js.html#line254">line 254</a>
+        <a href="requestsController.js.html">requestsController.js</a>, <a href="requestsController.js.html#line163">line 163</a>
     </li></ul></dd>
     
 
@@ -984,7 +604,7 @@ algoritmo de recomendación.
     
 
     
-    <h4 class="name" id="~add"><span class="type-signature">(private, inner) </span>add<span class="signature">(newRequest)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    <h4 class="name" id="~fromNameToInt"><span class="type-signature">(protected, inner) </span>fromNameToInt<span class="signature">(name)</span><span class="type-signature"> &rarr; {number}</span></h4>
     
 
     
@@ -992,167 +612,7 @@ algoritmo de recomendación.
 
 
 <div class="description">
-    Función que agrega una solicitud de cola a su respectiva parada.
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>newRequest</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Object</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="requestsController.js.html">requestsController.js</a>, <a href="requestsController.js.html#line124">line 124</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    Solicitud insertada o solicitud recibida si hay error
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Object</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="~fromNameToInt"><span class="type-signature">(private, inner) </span>fromNameToInt<span class="signature">(name)</span><span class="type-signature"> &rarr; {number}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Función que dado el nombre de una parada devuelve lo que sería su índice
-dentro de requestsList.
+    Función que dado el nombre de una parada devuelve lo que sería su índicedentro de requestsList. Debe ir en este módulo para facilitar su edición.
 </div>
 
 
@@ -1235,6 +695,13 @@ dentro de requestsList.
     
 
     
+    <dt class="tag-author">Author:</dt>
+    <dd class="tag-author">
+        <ul>
+            <li><a href="mailto:12-11163@usb.ve">Francisco Márquez</a></li>
+        </ul>
+    </dd>
+    
 
     
 
@@ -1245,7 +712,7 @@ dentro de requestsList.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="requestsController.js.html">requestsController.js</a>, <a href="requestsController.js.html#line66">line 66</a>
+        <a href="requestsController.js.html">requestsController.js</a>, <a href="requestsController.js.html#line95">line 95</a>
     </li></ul></dd>
     
 
@@ -1274,7 +741,7 @@ dentro de requestsList.
 
         
 <div class="param-desc">
-    Índice válido o -1 si no se recibe el nombre de una parada
+    Índice válido, -1 si name === 'USB', -2 si no
 </div>
 
 
@@ -1303,7 +770,7 @@ dentro de requestsList.
     
 
     
-    <h4 class="name" id="~remove"><span class="type-signature">(private, inner) </span>remove<span class="signature">(deleteRequest)</span><span class="type-signature"> &rarr; {boolean}</span></h4>
+    <h4 class="name" id="~offerRide"><span class="type-signature">(async, inner) </span>offerRide<span class="signature">(req, res)</span><span class="type-signature"> &rarr; {Object}</span></h4>
     
 
     
@@ -1311,7 +778,7 @@ dentro de requestsList.
 
 
 <div class="description">
-    Función que elimina una solicitud de cola a su respectiva parada.
+    Endpoint para ofrecer la colaNo debería modificarse a no ser que se cambie toda lógica detrás delalgoritmo de recomendación.
 </div>
 
 
@@ -1347,7 +814,7 @@ dentro de requestsList.
 
         <tr>
             
-                <td class="name"><code>deleteRequest</code></td>
+                <td class="name"><code>req</code></td>
             
 
             <td class="type">
@@ -1363,7 +830,400 @@ dentro de requestsList.
 
             
 
-            <td class="description last"></td>
+            <td class="description last">Un HTTP Request</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>res</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Un HTTP Response</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-author">Author:</dt>
+    <dd class="tag-author">
+        <ul>
+            <li><a href="mailto:12-11163@usb.ve">Francisco Márquez</a></li>
+        </ul>
+    </dd>
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="requestsController.js.html">requestsController.js</a>, <a href="requestsController.js.html#line397">line 397</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Object</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="~respondOfferRide"><span class="type-signature">(async, inner) </span>respondOfferRide<span class="signature">(req, res)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Endpoint para responder una oferta de cola.No debería modificarse a no ser que se cambie toda lógica detrás delalgoritmo de recomendación.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>req</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Un HTTP Request</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>res</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Un HTTP Response</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-author">Author:</dt>
+    <dd class="tag-author">
+        <ul>
+            <li><a href="mailto:12-11163@usb.ve">Francisco Márquez</a></li>
+        </ul>
+    </dd>
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="requestsController.js.html">requestsController.js</a>, <a href="requestsController.js.html#line481">line 481</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Object</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="~updateStatus"><span class="type-signature">(inner) </span>updateStatus<span class="signature">(req, res)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Endpoint para cambiar el estado de una solicitud de cola.No debería modificarse a no ser que se cambie toda lógica detrás delalgoritmo de recomendación.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>req</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Un HTTP Request</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>res</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Un HTTP Response</td>
         </tr>
 
     
@@ -1404,7 +1264,7 @@ dentro de requestsList.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="requestsController.js.html">requestsController.js</a>, <a href="requestsController.js.html#line223">line 223</a>
+        <a href="requestsController.js.html">requestsController.js</a>, <a href="requestsController.js.html#line315">line 315</a>
     </li></ul></dd>
     
 
@@ -1432,10 +1292,6 @@ dentro de requestsList.
 <h5>Returns:</h5>
 
         
-<div class="param-desc">
-    true si y solo si fue correctamente eliminada
-</div>
-
 
 
 <dl>
@@ -1444,7 +1300,7 @@ dentro de requestsList.
     </dt>
     <dd>
         
-<span class="param-type">boolean</span>
+<span class="param-type">Object</span>
 
 
     </dd>
@@ -1463,6 +1319,156 @@ dentro de requestsList.
         <h3 class="subsection-title">Type Definitions</h3>
 
         
+                
+<h4 class="name" id="~Elem">Elem</h4>
+
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>in</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Indica si el elemento existe en una Stop</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>elem</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Request</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Solicitud existente en una Stop</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-author">Author:</dt>
+    <dd class="tag-author">
+        <ul>
+            <li><a href="mailto:12-11163@usb.ve">Francisco Márquez</a></li>
+        </ul>
+    </dd>
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="requestsController.js.html">requestsController.js</a>, <a href="requestsController.js.html#line105">line 105</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+            
                 
 <h4 class="name" id="~Request">Request</h4>
 
@@ -1540,7 +1546,7 @@ dentro de requestsList.
             <td class="type">
             
                 
-<span class="param-type">Objtect</span>
+<span class="param-type">Object</span>
 
 
             
@@ -1857,6 +1863,13 @@ dentro de requestsList.
     
 
     
+    <dt class="tag-author">Author:</dt>
+    <dd class="tag-author">
+        <ul>
+            <li><a href="mailto:12-11163@usb.ve">Francisco Márquez</a></li>
+        </ul>
+    </dd>
+    
 
     
 
@@ -1867,7 +1880,183 @@ dentro de requestsList.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="requestsController.js.html">requestsController.js</a>, <a href="requestsController.js.html#line16">line 16</a>
+        <a href="requestsController.js.html">requestsController.js</a>, <a href="requestsController.js.html#line42">line 42</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+            
+                
+<h4 class="name" id="~SentStatus">SentStatus</h4>
+
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>sent</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Estado del envío</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>log</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Información del servicio de email</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>errors</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+|
+
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Errores experimentados</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-author">Author:</dt>
+    <dd class="tag-author">
+        <ul>
+            <li><a href="mailto:12-11163@usb.ve">Francisco Márquez</a></li>
+        </ul>
+    </dd>
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="requestsController.js.html">requestsController.js</a>, <a href="requestsController.js.html#line437">line 437</a>
     </li></ul></dd>
     
 
@@ -2000,6 +2189,13 @@ dentro de requestsList.
     
 
     
+    <dt class="tag-author">Author:</dt>
+    <dd class="tag-author">
+        <ul>
+            <li><a href="mailto:12-11163@usb.ve">Francisco Márquez</a></li>
+        </ul>
+    </dd>
+    
 
     
 
@@ -2010,7 +2206,7 @@ dentro de requestsList.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="requestsController.js.html">requestsController.js</a>, <a href="requestsController.js.html#line34">line 34</a>
+        <a href="requestsController.js.html">requestsController.js</a>, <a href="requestsController.js.html#line61">line 61</a>
     </li></ul></dd>
     
 
@@ -2040,13 +2236,13 @@ dentro de requestsList.
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-controllers_algorithmController.html">controllers/algorithmController</a></li><li><a href="module-controllers_requestsController.html">controllers/requestsController</a></li><li><a href="module-controllers_rideController.html">controllers/rideController</a></li><li><a href="module-controllers_userController.html">controllers/userController</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-algorithmController.html">algorithmController</a></li><li><a href="module-requestsController.html">requestsController</a></li><li><a href="module-rideController.html">rideController</a></li><li><a href="module-userController.html">userController</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Wed Mar 18 2020 01:25:53 GMT-0400 (hora de Venezuela)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Mar 26 2020 03:30:32 GMT-0400 (hora de Venezuela)
 </footer>
 
 <script> prettyPrint(); </script>
