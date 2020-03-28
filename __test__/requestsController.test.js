@@ -51,16 +51,46 @@ describe('requestsList', () => {
 
 describe('create', () => {
   beforeEach(() => {
-    requests.requestsList.forEach(e => e.requests = [])
+    for (var i = 0; i < 2; i++) {
+      userDB.create({
+        email: i + (i + '-' + i + i + i + i + i + '@usb.ve'),
+        password: 'password' + i,
+        phone_number: 'phoneNumber' + i,
+        first_name: 'Usuario',
+        last_name: '' + i,
+        age: i,
+        gender: 'O',
+        major: 'Ing. de Computación',
+        profile_pic: 'Foto' + i,
+        status: 'Disponible',
+        community: 'Estudiante',
+        vehicles: [{
+          plate: 'placa' + i,
+          brand: 'marca' + i,
+          model: 'modelo' + i,
+          year: i,
+          color: 'black',
+          vehicle_capacity: 1,
+          vehicle_pic: 'FotoCarro' + i
+        }],
+        isVerify: true,
+        temporalCode: i
+      }).then(callback)
+    }
   })
 
   afterEach(() => {
-    requests.requestsList.forEach(e => e.requests = [])
+    for (var i = 0; i < 2; i++) {
+      userDB.deleteOne({
+        email: i + (i + '-' + i + i + i + i + i + '@usb.ve')
+      }).then(callback)
+    }
+    requests.requestsList[0].requests = []
   })
 
   test('A new request is added to the resquestsList', () => {
     const data = {
-      user: '13-10931@usb.ve',
+      user: '00-00000@usb.ve',
       startLocation: 'Baruta',
       destination: 'USB',
       comment: 'Nothing',
@@ -76,7 +106,7 @@ describe('create', () => {
 
   test('A request without "USB"', () => {
     const data = {
-      user: '13-10931@usb.ve',
+      user: '00-00000@usb.ve',
       startLocation: 'Bellas Artes',
       destination: 'Baruta',
       comment: 'Nothing',
@@ -92,7 +122,7 @@ describe('create', () => {
 
   test('A request without email', () => {
     const data = {
-      user: 'XXXXXXusb.ve',
+      user: '00-00000',
       startLocation: 'USB',
       destination: 'Baruta',
       comment: 'Nothing',
@@ -108,7 +138,7 @@ describe('create', () => {
 
   test('A request out of our stops (Maracay)', () => {
     const data = {
-      user: 'XXXXXX@usb.ve',
+      user: '00-00000@usb.ve',
       startLocation: 'USB',
       destination: 'Maracay',
       comment: 'Nothing',
@@ -124,7 +154,7 @@ describe('create', () => {
 
   test('You cannot request for a ride twice', () => {
     const data = {
-      user: 'XXXXXX@usb.ve',
+      user: '00-00000@usb.ve',
       startLocation: 'USB',
       destination: 'Maracay',
       comment: 'Nothing',
@@ -147,14 +177,14 @@ describe('create', () => {
 describe('cancel', () => {
   beforeEach(() => {
     requests.requestsList[4].requests.push({
-      user: '12-11163@usb.ve',
+      user: '00-00000@usb.ve',
       startLocation: 'USB',
       destination: 'Bellas Artes',
       comment: 'Nothing',
       im_going: 'Who cares?'
     })
     requests.requestsList[0].requests.push({
-      user: '12-11164@usb.ve',
+      user: '11-11111@usb.ve',
       startLocation: 'Baruta',
       destination: 'USB',
       comment: 'Nothing',
@@ -174,7 +204,7 @@ describe('cancel', () => {
       requests.requestsList[3].requests.length +
       requests.requestsList[4].requests.length
     const data = {
-      user: '12-11163@usb.ve',
+      user: '00-00000@usb.ve',
       startLocation: 'USB',
       destination: 'Bellas Artes',
       comment: 'Nothing',
@@ -196,7 +226,7 @@ describe('cancel', () => {
 
   test('If request does not exist return code 200', () => {
     const data = {
-      user: '12-11162@usb.ve',
+      user: '00-00001@usb.ve',
       startLocation: 'Baruta',
       destination: 'USB',
       comment: 'Nothing',
@@ -212,7 +242,7 @@ describe('cancel', () => {
 
   test('A request without email', () => {
     const data = {
-      user: 'XXXXXXusb.ve',
+      user: '00-00000',
       startLocation: 'USB',
       destination: 'Baruta',
       comment: 'Nothing',
@@ -228,7 +258,7 @@ describe('cancel', () => {
 
   test('A request without "USB"', () => {
     const data = {
-      user: 'XXXXXX@usb.ve',
+      user: '00-00000@usb.ve',
       startLocation: 'Baruta',
       destination: 'Bellas Artes',
       comment: 'Nothing',
@@ -246,7 +276,7 @@ describe('cancel', () => {
 describe('updateStatus', () => {
   beforeEach(() => {
     const data = {
-      email: '13-10931@usb.ve',
+      email: '00-00000@usb.ve',
       startLocation: 'USB',
       destination: 'Bellas Artes',
       comment: 'Nothing',
@@ -262,7 +292,7 @@ describe('updateStatus', () => {
 
   test('Change status from an existing request', () => {
     const data = {
-      user: '13-10931@usb.ve',
+      user: '00-00000@usb.ve',
       place: 'Bellas Artes'
     }
     var request = httpMocks.createRequest({
@@ -276,7 +306,7 @@ describe('updateStatus', () => {
 
   test('No Change status from an nonexisting request', () => {
     data = {
-      user: '12-11163@usb.ve',
+      user: '00-00001@usb.ve',
       place: 'Bellas Artes'
     }
     var request = httpMocks.createRequest({
@@ -290,7 +320,7 @@ describe('updateStatus', () => {
 
   test('Raise error when place it is USB', () => {
     data = {
-      user: '12-11163@usb.ve',
+      user: '00-00000@usb.ve',
       place: 'USB'
     }
     var request = httpMocks.createRequest({
@@ -303,7 +333,7 @@ describe('updateStatus', () => {
 
   test('Raise error when place it is not a valid stop (Maracay)', () => {
     data = {
-      user: '12-11163@usb.ve',
+      user: '00-00000@usb.ve',
       place: 'Maracay'
     }
     var request = httpMocks.createRequest({

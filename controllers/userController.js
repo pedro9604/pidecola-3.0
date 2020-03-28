@@ -109,7 +109,7 @@ const responseCreate = async (usr, res, already = false) => {
  * @returns {Object}
  */
 const updateUserByEmail = (email, query) => {
-  return users.findOneAndUpdate({ email: email }, query, { returnOriginal: false })
+  return users.findOneAndUpdate({ email: email }, query, { returnOriginal: false, useFindAndModify: false })
 }
 
 /**
@@ -122,7 +122,7 @@ const updateUserByEmail = (email, query) => {
  * @returns {Promise}
  */
 exports.findByEmail = (email, querySelect = { password: 0 }) => {
-  return users.findOne({ email: email}, querySelect)
+  return users.findOne({ email: email }, querySelect)
 }
 
 /**
