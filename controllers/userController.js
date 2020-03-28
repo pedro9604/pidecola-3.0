@@ -239,7 +239,7 @@ exports.create = async (req, res) => {
  */
 exports.updateUser = (req, res) => {
   const updateRules = {
-    'body.first_name': 'string',
+    'body.first_name': 'required|string',
     'body.last_name': 'required|string',
     'body.age': 'required|integer',
     'body.major': 'required|string',
@@ -432,16 +432,21 @@ exports.addVehicle = (req, res) => {
  * @returns {Object} 
  */
 exports.deleteVehicle = (req, res) => {
-  const email = req.secret.email
-  if (!email) return res.status(401).send(response(false, '', 'El Email es necesario'))
+  const deleteRules = {
+    'body.plate': 'required|string',
+    'secret.email': 'required|email'
+  }
+  const errorsMessage = {
+    'required.body.plate': 'La placa es necesaria',
+    'required.secret.email': 'El Email es necesario'
+  }
+  const validate = validateIn(req, deleteRules, errorsMessage)
+  if (!validate.pass) return res.status(401).send(response(false, validate.errors, 'Los datos no cumplen con el formato requerido'))
 
-  const plate = req.body.plate
-  if (!plate) return res.status(401).send(response(false, '', 'La placa es necesaria'))
-  
-  this.findByEmail(email)
+  this.findByEmail(req.secret.email)
   .then( async user => {
 
-    let existVehicle = user.vehicles.find( vehicle => vehicle.plate === req.body.plate)
+    let existVehicle = user.vehicles.map(vehicle => vehicle.plate === req.body.plate)
     if(!existVehicle) return res.status(403).send(response(false, error, 'Vehiculo no existe')) 
 
     user.updateOne({'$pull': {'vehicles': {plate: plate}}}, (err, usr) => {

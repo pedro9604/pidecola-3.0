@@ -225,6 +225,7 @@ describe('getUserInformation', () => {
   // })
 })
 
+// Falta resolver 8 casos
 describe('updateUser', () => {
   beforeEach(() => {
     userDB.create({
@@ -253,7 +254,7 @@ describe('updateUser', () => {
   })
 
   afterEach(() => {
-    for (var i = 0; i < 2; i++) {
+    for (var i = 0; i < 3; i++) {
       userDB.deleteOne({
         email: i + (i + '-' + i + i + i + i + i + '@usb.ve')
       }).then(callback)
@@ -659,6 +660,7 @@ describe('updateUser', () => {
   // })
 })
 
+// Pendiente, averiguar sobre mockFiles
 describe('updateProfilePic', () => {
   beforeEach(() => {
     userDB.create({
@@ -690,6 +692,7 @@ describe('updateProfilePic', () => {
   })
 })
 
+// Pendiente, mismas razones que updateProfilePic
 describe('addVehicle', () => {
   beforeEach(() => {})
 
@@ -701,11 +704,88 @@ describe('addVehicle', () => {
 })
 
 describe('deleteVehicle', () => {
-  beforeEach(() => {})
+  beforeEach(() => {
+    userDB.create({
+      email: '00-00000@usb.ve',
+      password: 'password0',
+      phone_number: 'phoneNumber0',
+      first_name: 'Usuario',
+      last_name: '0',
+      vehicles: [{
+        plate: 'placa',
+        brand: 'marca',
+        model: 'modelo',
+        year: 0,
+        color: 'black',
+        vehicle_capacity: 1,
+        vehicle_pic: 'FotoCarro'
+      }],
+    }).then(callback)
+    userDB.create({
+      email: '11-11111@usb.ve',
+      password: 'password1',
+      phone_number: 'phoneNumber1',
+      first_name: 'Usuario',
+      last_name: '1',
+      vehicles: [],
+    }).then(callback)
+  })
 
-  afterEach(() => {})
+  afterEach(() => {
+    for (var i = 0; i < 2; i++) {
+      userDB.deleteOne({
+        email: i + (i + '-' + i + i + i + i + i + '@usb.ve')
+      }).then(callback)
+    }
+  })
 
-  test('test case', () => {
-    //test code
+  test('User deletes one of his vehicules', () => {
+    const request = httpMocks.createRequest({
+      body: { plate: 'placa' },
+      secret: { email: '00-00000@usb.ve' }
+    })
+    const response = httpMocks.createResponse()
+    user.deleteVehicle(request, response)
+    expect(response.statusCode).toBe(200)
+  })
+
+  // test('User cannot delete a nonexisting vehicule', () => {
+  //   const request = httpMocks.createRequest({
+  //     body: { plate: 'placa' },
+  //     secret: { email: '11-11111@usb.ve' }
+  //   })
+  //   const response = httpMocks.createResponse()
+  //   user.deleteVehicle(request, response)
+  //   expect(response.statusCode).toBe(403)
+  // })
+
+  test('A request without plate', () => {
+    const request = httpMocks.createRequest({
+      body: { plate: '' },
+      secret: { email: '11-11111@usb.ve' }
+    })
+    const response = httpMocks.createResponse()
+    user.deleteVehicle(request, response)
+    expect(response.statusCode).toBe(401)
+  })
+
+  test('Email does not have an e-mail format', () => {
+    const request = httpMocks.createRequest({
+      body: { plate: 'placa' },
+      secret: { email: '00-00000' }
+    })
+    const response = httpMocks.createResponse()
+    user.deleteVehicle(request, response)
+    expect(response.statusCode).toBe(401)
+  })
+
+  test('A request without email', () => {
+    const request = httpMocks.createRequest({
+      body: { plate: 'placa' },
+      secret: { email: '' }
+    })
+    const response = httpMocks.createResponse()
+    user.deleteVehicle(request, response)
+    expect(response.statusCode).toBe(401)
   })
 })
