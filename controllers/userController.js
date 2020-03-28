@@ -260,11 +260,8 @@ exports.updateUser = (req, res) => {
       first_name: req.body.first_name,
       last_name: req.body.last_name,
       age: req.body.age,
-      gender: req.body.gender,
       phone_number: req.body.phone_number,
-      major: req.body.major,
-      status: req.body.status,
-      community: req.body.community
+      major: req.body.major
     }
   }
   updateUserByEmail(req.secret.email, query)
