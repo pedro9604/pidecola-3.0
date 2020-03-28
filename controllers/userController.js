@@ -268,8 +268,13 @@ exports.updateUser = (req, res) => {
   }
   updateUserByEmail(req.secret.email, query)
     .then(usr => {
-      if (!!usr) return res.status(200).send(response(true, usr, 'El Usuario fue actualizado'))
-      return res.status(500).send(response(false, null, 'El Usuario no existe'))
+      if (!!usr && usr.isVerify) {
+        return res.status(200).send(response(true, usr, 'El Usuario fue actualizado'))
+      } else if (!usr.isVerify) {
+        return res.status(500).send(response(false, 'El usuario no ha sido verificado', 'Para editar el perfil debes estar verificado'))
+      } else {
+        return res.status(500).send(response(false, null, 'El Usuario no existe'))
+      }
     })
     .catch(err => {
       return res.status(500).send(response(false, err, 'Error, El usuario no fue actualizado'))

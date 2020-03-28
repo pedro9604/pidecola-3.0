@@ -229,10 +229,17 @@ describe('updateUser', () => {
   beforeEach(() => {
     userDB.create({
       email: '00-00000@usb.ve',
-      password: 'password',
-      phone_number: 'phoneNumber',
+      password: 'password0',
+      phone_number: 'phoneNumber0',
       isVerify: true,
       temporalCode: 0
+    }).then(callback)
+    userDB.create({
+      email: '11-11111@usb.ve',
+      password: 'password1',
+      phone_number: 'phoneNumber1',
+      isVerify: false,
+      temporalCode: 123456789
     }).then(callback)
   })
 
@@ -277,6 +284,46 @@ describe('updateUser', () => {
     user.updateUser(request, response)
     expect(response.statusCode).toBe(401)
   })
+
+  // test('User is not registered', () => {
+  //   const data = {
+  //     first_name: 'Usuario',
+  //     last_name: '0',
+  //     age: '0',
+  //     gender: 'O',
+  //     phone_number: 'newPhoneNumber',
+  //     major: 'Ing. de Computación',
+  //     status: 'Disponible',
+  //     community: 'Estudiante'
+  //   }
+  //   const request = httpMocks.createRequest({
+  //     secret: { email: '00-00001@usb.ve' },
+  //     body: data
+  //   })
+  //   const response = httpMocks.createResponse()
+  //   user.updateUser(request, response)
+  //   expect(response.statusCode).toBe(500)
+  // })
+
+  // test('User is not verified', () => {
+  //   const data = {
+  //     first_name: 'Usuario',
+  //     last_name: '1',
+  //     age: '1',
+  //     gender: 'O',
+  //     phone_number: 'newPhoneNumber',
+  //     major: 'Ing. de Computación',
+  //     status: 'Disponible',
+  //     community: 'Estudiante'
+  //   }
+  //   const request = httpMocks.createRequest({
+  //     secret: { email: '11-11111@usb.ve' },
+  //     body: data
+  //   })
+  //   const response = httpMocks.createResponse()
+  //   user.updateUser(request, response)
+  //   expect(response.statusCode).toBe(500)
+  // })
 
   test('Request without email', () => {
     const data = {
