@@ -241,9 +241,24 @@ describe('updateUser', () => {
       isVerify: false,
       temporalCode: 123456789
     }).then(callback)
+    userDB.create({
+      first_name: 'Usuario',
+      last_name: '2',
+      email: '22-22222@usb.ve',
+      password: 'password2',
+      phone_number: 'phoneNumber2',
+      isVerify: true,
+      temporalCode: 0
+    }).then(callback)
   })
 
-  afterEach(() => { userDB.deleteOne({ email: '00-00000@usb.ve' }, callback) })
+  afterEach(() => {
+    for (var i = 0; i < 2; i++) {
+      userDB.deleteOne({
+        email: i + (i + '-' + i + i + i + i + i + '@usb.ve')
+      }).then(callback)
+    }
+  })
 
   test('User updates his profile info', () => {
     const data = {
@@ -264,6 +279,44 @@ describe('updateUser', () => {
     user.updateUser(request, response)
     expect(response.statusCode).toBe(200)
   })
+
+  // test('User cannot change its first name', () => {
+  //   const data = {
+  //     first_name: 'Usuario',
+  //     age: '2',
+  //     gender: 'O',
+  //     phone_number: 'newPhoneNumber',
+  //     major: 'Ing. de Computación',
+  //     status: 'Disponible',
+  //     community: 'Estudiante'
+  //   }
+  //   const request = httpMocks.createRequest({
+  //     secret: { email: '22-22222@usb.ve' },
+  //     body: data
+  //   })
+  //   const response = httpMocks.createResponse()
+  //   user.updateUser(request, response)
+  //   expect(response.statusCode).toBe(500)
+  // })
+
+  // test('User cannot change its last name', () => {
+  //   const data = {
+  //     last_name: '2',
+  //     age: '2',
+  //     gender: 'O',
+  //     phone_number: 'newPhoneNumber',
+  //     major: 'Ing. de Computación',
+  //     status: 'Disponible',
+  //     community: 'Estudiante'
+  //   }
+  //   const request = httpMocks.createRequest({
+  //     secret: { email: '22-22222@usb.ve' },
+  //     body: data
+  //   })
+  //   const response = httpMocks.createResponse()
+  //   user.updateUser(request, response)
+  //   expect(response.statusCode).toBe(500)
+  // })
 
   test('Email does not have an e-mail format', () => {
     const data = {
@@ -607,9 +660,30 @@ describe('updateUser', () => {
 })
 
 describe('updateProfilePic', () => {
-  beforeEach(() => {})
+  beforeEach(() => {
+    userDB.create({
+      email: '00-00000@usb.ve',
+      password: 'password0',
+      phone_number: 'phoneNumber0',
+      isVerify: true,
+      temporalCode: 0
+    }).then(callback)
+    userDB.create({
+      email: '11-11111@usb.ve',
+      password: 'password1',
+      phone_number: 'phoneNumber1',
+      isVerify: false,
+      temporalCode: 123456789
+    }).then(callback)
+  })
 
-  afterEach(() => {})
+  afterEach(() => {
+    for (var i = 0; i < 2; i++) {
+      userDB.deleteOne({
+        email: i + (i + '-' + i + i + i + i + i + '@usb.ve')
+      }).then(callback)
+    }
+  })
 
   test('test case', () => {
     //test code

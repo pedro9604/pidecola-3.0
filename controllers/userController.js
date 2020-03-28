@@ -239,7 +239,7 @@ exports.create = async (req, res) => {
  */
 exports.updateUser = (req, res) => {
   const updateRules = {
-    'body.first_name': 'required|string',
+    'body.first_name': 'string',
     'body.last_name': 'required|string',
     'body.age': 'required|integer',
     'body.major': 'required|string',
