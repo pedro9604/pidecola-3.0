@@ -295,12 +295,12 @@ exports.updateUser = (req, res) => {
  * @returns {Object} 
  */
 exports.updateProfilePic = (req, res) => {
-  const email = req.secret.email
+  const validate = validateIn(req.secret, {'email': 'required|email'}, {'required.email': 'El e-mail es necesario'})
+  if (!validate.pass) return res.status(401).send(response(false, validate.errors, 'Los datos no cumplen con el formato requerido'))
   const file = req.file
   if(!file) return res.status(401).send(response(false, '', 'File is required'))
-  if (!email) return res.status(401).send(response(false, '', 'El Email es necesario'))
 
-  this.findByEmail(email)
+  this.findByEmail(req.secret.email)
   .then( async user => {
 
     let picture = await files.uploadFile(file.path)
@@ -336,12 +336,13 @@ exports.updateProfilePic = (req, res) => {
  * @private
  */
 const addVehicleRules = {
-  plate: 'required|string',
-  brand: 'required|string',
-  model: 'required|string',
-  year: 'required|string',
-  color: 'required|string',
-  vehicle_capacity: 'required|string'
+  'body.plate': 'required|string',
+  'body.brand': 'required|string',
+  'body.model': 'required|string',
+  'body.year': 'required|integer',
+  'body.color': 'required|string',
+  'body.vehicle_capacity': 'required|integer',
+  'secret.email': 'required|email'
 }
 
 /**
@@ -366,6 +367,7 @@ const errorsMessageAddVehicle = {
   'required.year': 'El año del vehiculo es  necesario',
   'required.color': 'El color del vehiculo es  necesario',
   'required.vehicle_capacity': 'La capacidad del vehiculo es  necesaria',
+  'required.secret.email': 'El email es necesario'
 }
 
 /**
@@ -382,15 +384,12 @@ const errorsMessageAddVehicle = {
  * @returns {Object} 
  */
 exports.addVehicle = (req, res) => {
-  const email = req.secret.email
-  const file = req.file
-  if(!file) return res.status(401).send(response(false, '', 'File is requires'))
-  if (!email) return res.status(401).send(response(false, '', 'El Email es necesario'))
+  if(!req.file) return res.status(401).send(response(false, '', 'File is requires'))
 
-  const validate = validateIn(req.body, addVehicleRules, errorsMessageAddVehicle)
-  if (!validate.pass) return res.status(400).send(response(false, validate.errors, 'Los campos requeridos deben ser enviados'))
+  const validate = validateIn(req, addVehicleRules, errorsMessageAddVehicle)
+  if (!validate.pass) return res.status(401).send(response(false, validate.errors, 'Los campos requeridos deben ser enviados'))
 
-  this.findByEmail(email)
+  this.findByEmail(req.secret.email)
   .then( async user => {
     let existVehicle
     if(user.vehicles && user.vehicles.length)existVehicle = user.vehicles.find( vehicle => vehicle.plate === req.body.plate)
@@ -501,7 +500,7 @@ exports.codeValidate = async (req, res) => {
  */
 exports.getUserInformation = (req, res) => {
   const validate = validateIn(req.secret, {'email': 'required|email'}, {'required.email': 'El e-mail es necesario'})
-  if (!validate.pass) return res.status(401).send(response(false, 'Los datos no cumplen con el formato requerido', 'El Email es necesario'))
+  if (!validate.pass) return res.status(401).send(response(false, validate.errors, 'Los datos no cumplen con el formato requerido'))
   this.findByEmail(req.secret.email)
     .then(usr => {
       if (!!usr) return res.status(200).send(response(true, usr, 'Peticion ejecutada con exito'))

@@ -1,6 +1,4 @@
 const callback   = require('../lib/utils/utils').callbackReturn
-const cloudinary = require('cloudinary')
-const config     = require('../Config.js')
 const httpMocks  = require('node-mocks-http')
 const user       = require('../controllers/userController.js')
 const userDB     = require('../models/userModel.js')
@@ -662,8 +660,10 @@ describe('updateUser', () => {
   // })
 })
 
-// Pendiente, averiguar sobre mockFiles
+// Falta resolver 3 casos
 describe('updateProfilePic', () => {
+  const cloudinary = require('cloudinary')
+  const config     = require('../Config.js')
   cloudinary.config({
     cloud_name: config.CLOUD_NAME,
     api_key: config.API_KEY,
@@ -710,19 +710,409 @@ describe('updateProfilePic', () => {
     user.updateProfilePic(request, response)
     expect(response.statusCode).toBe(200)
   })
+
+  test('User does not provide any file', () => {
+    const request = httpMocks.createRequest({
+      secret: { email: '00-00000@usb.ve' }
+    })
+    const response = httpMocks.createResponse()
+    user.updateProfilePic(request, response)
+    expect(response.statusCode).toBe(401)
+  })
+
+  // test('User provides a not-image file', () => {
+  //   const filePath = `./__test__/testFiles/noImageFile.txt`
+  //   fileReader = fs.createReadStream(filePath, code).pipe(stream)
+  //   const request = httpMocks.createRequest({
+  //     file: fileReader,
+  //     secret: { email: '00-00000@usb.ve' }
+  //   })
+  //   const response = httpMocks.createResponse()
+  //   user.updateProfilePic(request, response)
+  //   expect(response.statusCode).toBe(401)
+  // })
+
+  test('Request without email', () => {
+    const request = httpMocks.createRequest({
+      file: fileReader,
+      secret: { email: '' }
+    })
+    const response = httpMocks.createResponse()
+    user.updateProfilePic(request, response)
+    expect(response.statusCode).toBe(401)
+  })
+
+  test('Email does not have an e-mail format', () => {
+    const request = httpMocks.createRequest({
+      file: fileReader,
+      secret: { email: '00-00000' }
+    })
+    const response = httpMocks.createResponse()
+    user.updateProfilePic(request, response)
+    expect(response.statusCode).toBe(401)
+  })
+
+  // test('User is not registered', () => {
+  //   const request = httpMocks.createRequest({
+  //     file: fileReader,
+  //     secret: { email: '00-00001@usb.ve' }
+  //   })
+  //   const response = httpMocks.createResponse()
+  //   user.updateProfilePic(request, response)
+  //   expect(response.statusCode).toBe(500)
+  // })
+
+  // test('User is not verified', () => {
+  //   const request = httpMocks.createRequest({
+  //     file: fileReader,
+  //     secret: { email: '00-00001@usb.ve' }
+  //   })
+  //   const response = httpMocks.createResponse()
+  //   user.updateProfilePic(request, response)
+  //   expect(response.statusCode).toBe(500)
+  // })
 })
 
-// Pendiente, mismas razones que updateProfilePic
+// Falta resolver 3 casos
 describe('addVehicle', () => {
-  const filePath = `./testFiles/testCarPic.png`
+  const cloudinary = require('cloudinary')
+  const config     = require('../Config.js')
+  cloudinary.config({
+    cloud_name: config.CLOUD_NAME,
+    api_key: config.API_KEY,
+    api_secret: config.API_SECRET
+  })
+  var fs = require('fs')
+  var stream = cloudinary.uploader.upload_stream(callback)
+  const filePath = `./__test__/testFiles/testCarPic.png`
   //from: https://pngimg.com/download/22574
+  const code = { encoding: 'binary' }
+  var fileReader = fs.createReadStream(filePath, code).pipe(stream)
 
-  beforeEach(() => {})
+  beforeEach(() => {
+    userDB.create({
+      email: '00-00000@usb.ve',
+      password: 'password0',
+      phone_number: 'phoneNumber0',
+      vehicles: [],
+      isVerify: true,
+      temporalCode: 0
+    }).then(callback)
+    userDB.create({
+      email: '11-11111@usb.ve',
+      password: 'password1',
+      phone_number: 'phoneNumber1',
+      isVerify: false,
+      temporalCode: 123456789
+    }).then(callback)
+    userDB.create({
+      email: '22-22222@usb.ve',
+      password: 'password0',
+      phone_number: 'phoneNumber0',
+      vehicles: [{
+        plate: 'placa',
+        brand: 'marca',
+        model: 'modelo',
+        year: 2,
+        color: 'black',
+        vehicle_capacity: 1,
+        vehicle_pic: 'FotoCarro'
+      }],
+      isVerify: true,
+      temporalCode: 0
+    }).then(callback)
+  })
 
-  afterEach(() => {})
+  afterEach(() => {
+    for (var i = 0; i < 2; i++) {
+      userDB.deleteOne({
+        email: i + (i + '-' + i + i + i + i + i + '@usb.ve')
+      }).then(callback)
+    }
+  })
 
-  test('test case', () => {
-    //test code
+  test('User add sucessfully a new Vehicle', () => {
+    const data = {
+      plate: 'placa',
+      brand: 'marca',
+      model: 'modelo',
+      year: '0',
+      color: 'black',
+      vehicle_capacity: '1'
+    }
+    const request = httpMocks.createRequest({
+      body: data,
+      file: fileReader,
+      secret: { email: '00-00000@usb.ve' }
+    })
+    const response = httpMocks.createResponse()
+    user.addVehicle(request, response)
+    expect(response.statusCode).toBe(200)
+  })
+
+  test('Email does not have an e-mail format', () => {
+    const data = {
+      plate: 'placa',
+      brand: 'marca',
+      model: 'modelo',
+      year: '0',
+      color: 'black',
+      vehicle_capacity: '1'
+    }
+    const request = httpMocks.createRequest({
+      body: data,
+      file: fileReader,
+      secret: { email: '00-00000' }
+    })
+    const response = httpMocks.createResponse()
+    user.addVehicle(request, response)
+    expect(response.statusCode).toBe(401)
+  })
+
+  test('Request without email', () => {
+    const data = {
+      plate: 'placa',
+      brand: 'marca',
+      model: 'modelo',
+      year: '0',
+      color: 'black',
+      vehicle_capacity: '1'
+    }
+    const request = httpMocks.createRequest({
+      body: data,
+      file: fileReader,
+      secret: { email: '' }
+    })
+    const response = httpMocks.createResponse()
+    user.addVehicle(request, response)
+    expect(response.statusCode).toBe(401)
+  })
+
+  // test('User is not registered', () => {
+  //   const data = {
+  //     plate: 'placa',
+  //     brand: 'marca',
+  //     model: 'modelo',
+  //     year: '0',
+  //     color: 'black',
+  //     vehicle_capacity: '1'
+  //   }
+  //   const request = httpMocks.createRequest({
+  //     body: data,
+  //     file: fileReader,
+  //     secret: { email: '00-00001@usb.ve' }
+  //   })
+  //   const response = httpMocks.createResponse()
+  //   user.addVehicle(request, response)
+  //   expect(response.statusCode).toBe(500)
+  // })
+
+  // test('User is not verified', () => {
+  //   const data = {
+  //     plate: 'placa',
+  //     brand: 'marca',
+  //     model: 'modelo',
+  //     year: '0',
+  //     color: 'black',
+  //     vehicle_capacity: '1'
+  //   }
+  //   const request = httpMocks.createRequest({
+  //     body: data,
+  //     file: fileReader,
+  //     secret: { email: '11-11111@usb.ve' }
+  //   })
+  //   const response = httpMocks.createResponse()
+  //   user.addVehicle(request, response)
+  //   expect(response.statusCode).toBe(500)
+  // })
+
+  // test('User cannot add same vehicle twice', () => {
+  //   const data = {
+  //     plate: 'placa',
+  //     brand: 'marca',
+  //     model: 'modelo',
+  //     year: '0',
+  //     color: 'black',
+  //     vehicle_capacity: '1'
+  //   }
+  //   const request = httpMocks.createRequest({
+  //     body: data,
+  //     file: fileReader,
+  //     secret: { email: '22-22222@usb.ve' }
+  //   })
+  //   const response = httpMocks.createResponse()
+  //   user.addVehicle(request, response)
+  //   expect(response.statusCode).toBe(403)
+  // })
+
+  test('User does not provide any vehicle picture', () => {
+    const data = {
+      plate: 'placa',
+      brand: 'marca',
+      model: 'modelo',
+      year: '0',
+      color: 'black',
+      vehicle_capacity: '1'
+    }
+    const request = httpMocks.createRequest({
+      body: data,
+      secret: { email: '00-00000@usb.ve' }
+    })
+    const response = httpMocks.createResponse()
+    user.addVehicle(request, response)
+    expect(response.statusCode).toBe(401)
+  })
+
+  test('Request without plate', () => {
+    const data = {
+      plate: '',
+      brand: 'marca',
+      model: 'modelo',
+      year: '0',
+      color: 'black',
+      vehicle_capacity: '1'
+    }
+    const request = httpMocks.createRequest({
+      body: data,
+      file: fileReader,
+      secret: { email: '00-00000@usb.ve' }
+    })
+    const response = httpMocks.createResponse()
+    user.addVehicle(request, response)
+    expect(response.statusCode).toBe(401)
+  })
+
+  test('Request without brand', () => {
+    const data = {
+      plate: 'placa',
+      brand: '',
+      model: 'modelo',
+      year: '0',
+      color: 'black',
+      vehicle_capacity: '1'
+    }
+    const request = httpMocks.createRequest({
+      body: data,
+      file: fileReader,
+      secret: { email: '00-00000@usb.ve' }
+    })
+    const response = httpMocks.createResponse()
+    user.addVehicle(request, response)
+    expect(response.statusCode).toBe(401)
+  })
+
+  test('Request without model', () => {
+    const data = {
+      plate: 'placa',
+      brand: 'marca',
+      model: '',
+      year: '0',
+      color: 'black',
+      vehicle_capacity: '1'
+    }
+    const request = httpMocks.createRequest({
+      body: data,
+      file: fileReader,
+      secret: { email: '00-00000@usb.ve' }
+    })
+    const response = httpMocks.createResponse()
+    user.addVehicle(request, response)
+    expect(response.statusCode).toBe(401)
+  })
+
+  test('Request without year', () => {
+    const data = {
+      plate: 'placa',
+      brand: 'marca',
+      model: 'modelo',
+      year: '',
+      color: 'black',
+      vehicle_capacity: '1'
+    }
+    const request = httpMocks.createRequest({
+      body: data,
+      file: fileReader,
+      secret: { email: '00-00000@usb.ve' }
+    })
+    const response = httpMocks.createResponse()
+    user.addVehicle(request, response)
+    expect(response.statusCode).toBe(401)
+  })
+
+  test('Year is not an integer', () => {
+    const data = {
+      plate: 'placa',
+      brand: 'marca',
+      model: 'modelo',
+      year: 'a',
+      color: 'black',
+      vehicle_capacity: '1'
+    }
+    const request = httpMocks.createRequest({
+      body: data,
+      file: fileReader,
+      secret: { email: '00-00000@usb.ve' }
+    })
+    const response = httpMocks.createResponse()
+    user.addVehicle(request, response)
+    expect(response.statusCode).toBe(401)
+  })
+
+  test('Request without color', () => {
+    const data = {
+      plate: 'placa',
+      brand: 'marca',
+      model: 'modelo',
+      year: '0',
+      color: '',
+      vehicle_capacity: '1'
+    }
+    const request = httpMocks.createRequest({
+      body: data,
+      file: fileReader,
+      secret: { email: '00-00000@usb.ve' }
+    })
+    const response = httpMocks.createResponse()
+    user.addVehicle(request, response)
+    expect(response.statusCode).toBe(401)
+  })
+
+  test('Request without capacity', () => {
+    const data = {
+      plate: 'placa',
+      brand: 'marca',
+      model: 'modelo',
+      year: '0',
+      color: 'black',
+      vehicle_capacity: ''
+    }
+    const request = httpMocks.createRequest({
+      body: data,
+      file: fileReader,
+      secret: { email: '00-00000@usb.ve' }
+    })
+    const response = httpMocks.createResponse()
+    user.addVehicle(request, response)
+    expect(response.statusCode).toBe(401)
+  })
+
+  test('Vehicle capacity is not an integer', () => {
+    const data = {
+      plate: 'placa',
+      brand: 'marca',
+      model: 'modelo',
+      year: '0',
+      color: 'black',
+      vehicle_capacity: 'a'
+    }
+    const request = httpMocks.createRequest({
+      body: data,
+      file: fileReader,
+      secret: { email: '00-00000@usb.ve' }
+    })
+    const response = httpMocks.createResponse()
+    user.addVehicle(request, response)
+    expect(response.statusCode).toBe(401)
   })
 })
 
