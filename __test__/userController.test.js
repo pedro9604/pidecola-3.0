@@ -1,7 +1,9 @@
-const callback  = require('../lib/utils/utils').callbackReturn
-const httpMocks = require('node-mocks-http')
-const user      = require('../controllers/userController.js')
-const userDB    = require('../models/userModel.js')
+const callback   = require('../lib/utils/utils').callbackReturn
+const cloudinary = require('cloudinary')
+const config     = require('../Config.js')
+const httpMocks  = require('node-mocks-http')
+const user       = require('../controllers/userController.js')
+const userDB     = require('../models/userModel.js')
 
 describe('create', () => {
   test('A new user is created', () => {
@@ -662,8 +664,17 @@ describe('updateUser', () => {
 
 // Pendiente, averiguar sobre mockFiles
 describe('updateProfilePic', () => {
-  const filePath = `./testFiles/testUserPic.png`
+  cloudinary.config({
+    cloud_name: config.CLOUD_NAME,
+    api_key: config.API_KEY,
+    api_secret: config.API_SECRET
+  })
+  var fs = require('fs')
+  var stream = cloudinary.uploader.upload_stream(callback)
+  const filePath = `./__test__/testFiles/testUserPic.png`
   //from: https://commons.wikimedia.org/wiki/File:User.svg
+  const code = { encoding: 'binary' }
+  var fileReader = fs.createReadStream(filePath, code).pipe(stream)
 
   beforeEach(() => {
     userDB.create({
@@ -690,8 +701,14 @@ describe('updateProfilePic', () => {
     }
   })
 
-  test('should upload the test file to CDN', () => {
-    //test code
+  test('User upload his profile picture', () => {
+    const request = httpMocks.createRequest({
+      file: fileReader,
+      secret: { email: '00-00000@usb.ve' }
+    })
+    const response = httpMocks.createResponse()
+    user.updateProfilePic(request, response)
+    expect(response.statusCode).toBe(200)
   })
 })
 
