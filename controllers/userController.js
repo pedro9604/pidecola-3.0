@@ -238,7 +238,7 @@ exports.create = async (req, res) => {
  * @param {Object} res - Un HTTP Response
  * @returns {Object} 
  */
-exports.updateUser = (req, res) => {
+exports.updateUser = async (req, res) => {
   const updateRules = {
     'body.first_name': 'required|string',
     'body.last_name': 'required|string',
@@ -264,19 +264,17 @@ exports.updateUser = (req, res) => {
       major: req.body.major
     }
   }
-  updateUserByEmail(req.secret.email, query)
-    .then(usr => {
-      if (!!usr && usr.isVerify) {
-        return res.status(200).send(response(true, usr, 'El Usuario fue actualizado'))
-      } else if (!usr.isVerify) {
-        return res.status(500).send(response(false, 'El usuario no ha sido verificado', 'Para editar el perfil debes estar verificado'))
-      } else {
-        return res.status(500).send(response(false, null, 'El Usuario no existe'))
-      }
-    })
-    .catch(err => {
-      return res.status(500).send(response(false, err, 'Error, El usuario no fue actualizado'))
-    })
+  const usr = await updateUserByEmail(req.secret.email, query).then(callback)
+  if (!!usr && usr.isVerify) {
+    return res.status(200).send(response(true, usr, 'El Usuario fue actualizado'))
+  } else if (!usr.isVerify) {
+    return res.status(500).send(response(false, 'El usuario no ha sido verificado', 'Para editar el perfil debes estar verificado'))
+  } else {
+    return res.status(500).send(response(false, null, 'El Usuario no existe'))
+  }
+    // .catch(err => {
+      // return res.status(500).send(response(false, err, 'Error, El usuario no fue actualizado'))
+    // })
 }
 
 /**
@@ -291,31 +289,43 @@ exports.updateUser = (req, res) => {
  * @param {Object} res - Un HTTP Response
  * @returns {Object} 
  */
-exports.updateProfilePic = (req, res) => {
+exports.updateProfilePic = async (req, res) => {
   const validate = validateIn(req.secret, {'email': 'required|email'}, {'required.email': 'El e-mail es necesario'})
   if (!validate.pass) return res.status(401).send(response(false, validate.errors, 'Los datos no cumplen con el formato requerido'))
   const file = req.file
   if(!file) return res.status(401).send(response(false, '', 'File is required'))
 
-  this.findByEmail(req.secret.email)
+  const usr = await this.findByEmail(req.secret.email)
   .then( async user => {
 
     let picture = await files.uploadFile(file.path)
-    if(!picture) return res.status(500).send(response(false, '', 'Ocurrio un error en el proceso, disculpe'))
+    // if(!picture) return res.status(500).send(response(false, '', 'Ocurrio un error en el proceso, disculpe'))
+    if (!picture) return 500
 
     user.$set({
       profile_pic: picture.secure_url
     })
 
-    user.save( (err, usr) => {
-      if(err) return res.status(500).send(response(false, err, 'Foto de perfil no fue agregada'))
-      return res.status(200).send(response(true, usr, 'Foto de perfil agregada'))
+    return user.save( (usr, err) => {
+      // if(!err) return res.status(200).send(response(true, usr, 'Foto de perfil agregada'))
+      if (!err) return 200
+      // return res.status(500).send(response(false, err, 'Foto de perfil no fue agregada'))
+      return 501
     })
     
   })
   .catch( error => {
-    return res.status(500).send(response(false, error, 'Foto de perfil no fue agregada'))
+    return 502
+    // return res.status(500).send(response(false, error, 'Foto de perfil no fue agregada'))
   })
+
+  if (usr == 200) {
+    return res.status(200).send(response(true, usr, 'Foto de perfil agregada'))
+  } else if (usr == 500) {
+    return res.status(500).send(response(false, '', 'Ocurrio un error en el proceso, disculpe'))
+  } else {
+    return res.status(500).send(response(false, err, 'Foto de perfil no fue agregada'))
+  }
 }
 
 /**
@@ -380,22 +390,24 @@ const errorsMessageAddVehicle = {
  * @param {Object} res - Un HTTP Response
  * @returns {Object} 
  */
-exports.addVehicle = (req, res) => {
+exports.addVehicle = async (req, res) => {
   if(!req.file) return res.status(401).send(response(false, '', 'File is requires'))
 
   const validate = validateIn(req, addVehicleRules, errorsMessageAddVehicle)
   if (!validate.pass) return res.status(401).send(response(false, validate.errors, 'Los campos requeridos deben ser enviados'))
 
-  this.findByEmail(req.secret.email)
+  const usr = await this.findByEmail(req.secret.email)
   .then( async user => {
     let existVehicle
     if(user.vehicles && user.vehicles.length)existVehicle = user.vehicles.find( vehicle => vehicle.plate === req.body.plate)
     else user.vehicles = []
     
-    if(existVehicle) return res.status(403).send(response(false, error, 'Vehiculo ya existe')) 
+    // if(existVehicle) return res.status(403).send(response(false, error, 'Vehiculo ya existe'))
+    if(existVehicle) 403
 
     let picture = await files.uploadFile(file.path)
-    if(!picture) return res.status(500).send(response(false, '', 'Ocurrio un error en el proceso, disculpe'))
+    // if(!picture) return res.status(500).send(response(false, '', 'Ocurrio un error en el proceso, disculpe'))
+    if(!picture) return 500
 
     user.vehicles.push({
       plate: req.body.plate,
@@ -408,15 +420,29 @@ exports.addVehicle = (req, res) => {
     })
 
     user.markModified('vehicles')
-    user.save( (err, usr) => {
-      if(err) return res.status(500).send(response(false, err, 'Vehiculo no fue agregado'))
-      return res.status(200).send(response(true, usr, 'Vehiculo agregado'))
+    user.save( (usr, err) => {
+      // if(!err) return res.status(200).send(response(true, usr, 'Vehiculo agregado'))
+      if(!err) return 200
+      // return res.status(500).send(response(false, err, 'Vehiculo no fue agregado'))
+      return 501
     })
     
   })
   .catch( error => {
-    return res.status(500).send(response(false, error, 'Vehiculo no fue agregado'))
+    // return res.status(500).send(response(false, error, 'Vehiculo no fue agregado'))
+    return 502
   })
+  if (usr === 200) {
+    return res.status(200).send(response(true, usr, 'Vehiculo agregado'))
+  } else if (usr === 403) {
+    return res.status(403).send(response(false, error, 'Vehiculo ya existe'))
+  } else if (usr == 500) {
+    return res.status(500).send(response(false, '', 'Ocurrio un error en el proceso, disculpe'))
+  } else if (usr == 501) {
+    return res.status(500).send(response(false, err, 'Vehiculo no fue agregado'))
+  } else {
+    return res.status(500).send(response(false, error, 'Vehiculo no fue agregado'))
+  }
 }
 
 /**
@@ -428,7 +454,7 @@ exports.addVehicle = (req, res) => {
  * @param {Object} res - Un HTTP Response
  * @returns {Object} 
  */
-exports.deleteVehicle = (req, res) => {
+exports.deleteVehicle = async (req, res) => {
   const deleteRules = {
     'body.plate': 'required|string',
     'secret.email': 'required|email'
@@ -440,11 +466,11 @@ exports.deleteVehicle = (req, res) => {
   const validate = validateIn(req, deleteRules, errorsMessage)
   if (!validate.pass) return res.status(401).send(response(false, validate.errors, 'Los datos no cumplen con el formato requerido'))
 
-  this.findByEmail(req.secret.email)
+  const usr = await this.findByEmail(req.secret.email)
   .then( async user => {
 
     let existVehicle = user.vehicles.map(vehicle => vehicle.plate === req.body.plate)
-    if(!existVehicle) return res.status(403).send(response(false, error, 'Vehiculo no existe')) 
+    if(!existVehicle) return res.status(403).send(response(false, error, 'Vehiculo no existe'))
 
     user.updateOne({'$pull': {'vehicles': {plate: plate}}}, (err, usr) => {
       if(err) return res.status(500).send(response(false, err, 'Vehiculo no fue eliminado'))
@@ -455,6 +481,16 @@ exports.deleteVehicle = (req, res) => {
   .catch( error => {
     return res.status(500).send(response(false, error, 'Vehiculo no fue eliminado'))
   })
+
+  if (usr === 200) {
+    return res.status(200).send(response(true, usr, 'Vehiculo eliminado'))
+  } else if (usr === 403) {
+     return res.status(403).send(response(false, error, 'Vehiculo no existe'))
+  } else if (usr === 500) {
+    return res.status(500).send(response(false, err, 'Vehiculo no fue eliminado'))
+  } else {
+    return res.status(500).send(response(false, error, 'Vehiculo no fue eliminado'))
+  }
 }
 
 /**
@@ -495,15 +531,16 @@ exports.codeValidate = async (req, res) => {
  * @param {Object} res - Un HTTP Response
  * @returns {Object} 
  */
-exports.getUserInformation = (req, res) => {
+exports.getUserInformation = async (req, res) => {
   const validate = validateIn(req.secret, {'email': 'required|email'}, {'required.email': 'El e-mail es necesario'})
   if (!validate.pass) return res.status(401).send(response(false, validate.errors, 'Los datos no cumplen con el formato requerido'))
-  this.findByEmail(req.secret.email)
-    .then(usr => {
-      if (!!usr) return res.status(200).send(response(true, usr, 'Peticion ejecutada con exito'))
-      return res.status(500).send(response(false, null, 'Error, El usuario no existe'))
-    })
-    .catch(err => {
-      return res.status(500).send(response(false, err, 'Error, El usuario no fue encontrado o hubo un problema'))
-    })
+  const usr = await this.findByEmail(req.secret.email).then(callback)
+  if (!!usr && usr.isVerify) {
+    return res.status(200).send(response(true, usr, 'Peticion ejecutada con exito'))
+  } else {
+    return res.status(500).send(response(false, null, 'Error, El usuario no existe'))
+  }
+    // .catch(err => {
+    //   return res.status(500).send(response(false, err, 'Error, El usuario no fue encontrado o hubo un problema'))
+    // })
 }
