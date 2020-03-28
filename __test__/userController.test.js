@@ -90,14 +90,14 @@ describe('codeValidate', () => {
   beforeEach(() => {
     userDB.create({
       email: '00-00000@usb.ve',
-      password: 'password',
-      phone_number: 'phoneNumber',
+      password: 'password0',
+      phone_number: 'phoneNumber0',
       temporalCode: 123456789
     }).then(callback)
     userDB.create({
       email: '11-11111@usb.ve',
-      password: 'password',
-      phone_number: 'phoneNumber',
+      password: 'password1',
+      phone_number: 'phoneNumber1',
       isVerify: true,
       temporalCode: 0
     }).then(callback)
@@ -226,13 +226,337 @@ describe('getUserInformation', () => {
 })
 
 describe('updateUser', () => {
-  beforeEach(() => {})
-
-  afterEach(() => {})
-
-  test('test case', () => {
-    //test code
+  beforeEach(() => {
+    userDB.create({
+      email: '00-00000@usb.ve',
+      password: 'password',
+      phone_number: 'phoneNumber',
+      isVerify: true,
+      temporalCode: 0
+    }).then(callback)
   })
+
+  afterEach(() => { userDB.deleteOne({ email: '00-00000@usb.ve' }, callback) })
+
+  test('User updates his profile info', () => {
+    const data = {
+      first_name: 'Usuario',
+      last_name: '0',
+      age: '0',
+      gender: 'O',
+      phone_number: 'newPhoneNumber',
+      major: 'Ing. de Computación',
+      status: 'Disponible',
+      community: 'Estudiante'
+    }
+    const request = httpMocks.createRequest({
+      secret: { email: '00-00000@usb.ve' },
+      body: data
+    })
+    const response = httpMocks.createResponse()
+    user.updateUser(request, response)
+    expect(response.statusCode).toBe(200)
+  })
+
+  test('Email does not have an e-mail format', () => {
+    const data = {
+      first_name: 'Usuario',
+      last_name: '0',
+      age: '0',
+      gender: 'O',
+      phone_number: 'newPhoneNumber',
+      major: 'Ing. de Computación',
+      status: 'Disponible',
+      community: 'Estudiante'
+    }
+    const request = httpMocks.createRequest({
+      secret: { email: '00-00000' },
+      body: data
+    })
+    const response = httpMocks.createResponse()
+    user.updateUser(request, response)
+    expect(response.statusCode).toBe(401)
+  })
+
+  test('Request without email', () => {
+    const data = {
+      first_name: 'Usuario',
+      last_name: '0',
+      age: '0',
+      gender: 'O',
+      phone_number: 'newPhoneNumber',
+      major: 'Ing. de Computación',
+      status: 'Disponible',
+      community: 'Estudiante'
+    }
+    const request = httpMocks.createRequest({
+      secret: { email: '' },
+      body: data
+    })
+    const response = httpMocks.createResponse()
+    user.updateUser(request, response)
+    expect(response.statusCode).toBe(401)
+  })
+
+  test('Request without first name', () => {
+    const data = {
+      first_name: '',
+      last_name: '0',
+      age: '0',
+      gender: 'O',
+      phone_number: 'newPhoneNumber',
+      major: 'Ing. de Computación',
+      status: 'Disponible',
+      community: 'Estudiante'
+    }
+    const request = httpMocks.createRequest({
+      secret: { email: '00-00000@usb.ve' },
+      body: data
+    })
+    const response = httpMocks.createResponse()
+    user.updateUser(request, response)
+    expect(response.statusCode).toBe(401)
+  })
+
+  test('Request without last name', () => {
+    const data = {
+      first_name: 'Usuario',
+      last_name: '',
+      age: '0',
+      gender: 'O',
+      phone_number: 'newPhoneNumber',
+      major: 'Ing. de Computación',
+      status: 'Disponible',
+      community: 'Estudiante'
+    }
+    const request = httpMocks.createRequest({
+      secret: { email: '00-00000@usb.ve' },
+      body: data
+    })
+    const response = httpMocks.createResponse()
+    user.updateUser(request, response)
+    expect(response.statusCode).toBe(401)
+  })
+
+  test('Request without age', () => {
+    const data = {
+      first_name: 'Usuario',
+      last_name: '0',
+      age: '',
+      gender: 'O',
+      phone_number: 'newPhoneNumber',
+      major: 'Ing. de Computación',
+      status: 'Disponible',
+      community: 'Estudiante'
+    }
+    const request = httpMocks.createRequest({
+      secret: { email: '00-00000@usb.ve' },
+      body: data
+    })
+    const response = httpMocks.createResponse()
+    user.updateUser(request, response)
+    expect(response.statusCode).toBe(401)
+  })
+
+  test('Age is not an integer', () => {
+    const data = {
+      first_name: 'Usuario',
+      last_name: '0',
+      age: 'a',
+      gender: 'O',
+      phone_number: 'newPhoneNumber',
+      major: 'Ing. de Computación',
+      status: 'Disponible',
+      community: 'Estudiante'
+    }
+    const request = httpMocks.createRequest({
+      secret: { email: '00-00000@usb.ve' },
+      body: data
+    })
+    const response = httpMocks.createResponse()
+    user.updateUser(request, response)
+    expect(response.statusCode).toBe(401)
+  })
+
+  test('Request without gender', () => {
+    const data = {
+      first_name: 'Usuario',
+      last_name: '0',
+      age: '0',
+      gender: '',
+      phone_number: 'newPhoneNumber',
+      major: 'Ing. de Computación',
+      status: 'Disponible',
+      community: 'Estudiante'
+    }
+    const request = httpMocks.createRequest({
+      secret: { email: '00-00000@usb.ve' },
+      body: data
+    })
+    const response = httpMocks.createResponse()
+    user.updateUser(request, response)
+    expect(response.statusCode).toBe(200)
+  })
+
+  // test('Gender is not valid', () => {
+  //   const data = {
+  //     first_name: 'Usuario',
+  //     last_name: '0',
+  //     age: '',
+  //     gender: 'LGBTII...',
+  //     phone_number: 'newPhoneNumber',
+  //     major: 'Ing. de Computación',
+  //     status: 'Disponible',
+  //     community: 'Estudiante'
+  //   }
+  //   const request = httpMocks.createRequest({
+  //     secret: { email: '00-00000@usb.ve' },
+  //     body: data
+  //   })
+  //   const response = httpMocks.createResponse()
+  //   user.updateUser(request, response)
+  //   expect(response.statusCode).toBe(500)
+  // })
+
+  test('Request without phone', () => {
+    const data = {
+      first_name: 'Usuario',
+      last_name: '0',
+      age: '0',
+      gender: 'O',
+      phone_number: '',
+      major: 'Ing. de Computación',
+      status: 'Disponible',
+      community: 'Estudiante'
+    }
+    const request = httpMocks.createRequest({
+      secret: { email: '00-00000@usb.ve' },
+      body: data
+    })
+    const response = httpMocks.createResponse()
+    user.updateUser(request, response)
+    expect(response.statusCode).toBe(200)
+  })
+
+  test('Request without major', () => {
+    const data = {
+      first_name: 'Usuario',
+      last_name: '0',
+      age: '',
+      gender: 'O',
+      phone_number: 'newPhoneNumber',
+      major: '',
+      status: 'Disponible',
+      community: 'Estudiante'
+    }
+    const request = httpMocks.createRequest({
+      secret: { email: '00-00000@usb.ve' },
+      body: data
+    })
+    const response = httpMocks.createResponse()
+    user.updateUser(request, response)
+    expect(response.statusCode).toBe(401)
+  })
+
+  // test('Major is not valid', () => {
+  //   const data = {
+  //     first_name: 'Usuario',
+  //     last_name: '0',
+  //     age: '0',
+  //     gender: 'O',
+  //     phone_number: 'newPhoneNumber',
+  //     major: 'Lic. en Computación',
+  //     status: 'Disponible',
+  //     community: 'Estudiante'
+  //   }
+  //   const request = httpMocks.createRequest({
+  //     secret: { email: '00-00000@usb.ve' },
+  //     body: data
+  //   })
+  //   const response = httpMocks.createResponse()
+  //   user.updateUser(request, response)
+  //   expect(response.statusCode).toBe(500)
+  // })
+
+  test('Request without status', () => {
+    const data = {
+      first_name: 'Usuario',
+      last_name: '0',
+      age: '0',
+      gender: 'O',
+      phone_number: 'newPhoneNumber',
+      major: 'Ing. de Computación',
+      status: '',
+      community: 'Estudiante'
+    }
+    const request = httpMocks.createRequest({
+      secret: { email: '00-00000@usb.ve' },
+      body: data
+    })
+    const response = httpMocks.createResponse()
+    user.updateUser(request, response)
+    expect(response.statusCode).toBe(200)
+  })
+
+  // test('Status is not valid', () => {
+  //   const data = {
+  //     first_name: 'Usuario',
+  //     last_name: '0',
+  //     age: '0',
+  //     gender: 'O',
+  //     phone_number: 'newPhoneNumber',
+  //     major: 'Ing. de Computación',
+  //     status: 'Available',
+  //     community: 'Estudiante'
+  //   }
+  //   const request = httpMocks.createRequest({
+  //     secret: { email: '00-00000@usb.ve' },
+  //     body: data
+  //   })
+  //   const response = httpMocks.createResponse()
+  //   user.updateUser(request, response)
+  //   expect(response.statusCode).toBe(500)
+  // })
+
+  test('Request without community', () => {
+    const data = {
+      first_name: 'Usuario',
+      last_name: '0',
+      age: '0',
+      gender: 'O',
+      phone_number: 'newPhoneNumber',
+      major: 'Ing. de Computación',
+      status: 'Disponible',
+      community: ''
+    }
+    const request = httpMocks.createRequest({
+      secret: { email: '00-00000@usb.ve' },
+      body: data
+    })
+    const response = httpMocks.createResponse()
+    user.updateUser(request, response)
+    expect(response.statusCode).toBe(200)
+  })
+
+  // test('Community is not valid', () => {
+  //   const data = {
+  //     first_name: 'Usuario',
+  //     last_name: '0',
+  //     age: '0',
+  //     gender: 'O',
+  //     phone_number: 'newPhoneNumber',
+  //     major: 'Ing. de Computación',
+  //     status: 'Disponible',
+  //     community: 'Externo'
+  //   }
+  //   const request = httpMocks.createRequest({
+  //     secret: { email: '00-00000@usb.ve' },
+  //     body: data
+  //   })
+  //   const response = httpMocks.createResponse()
+  //   user.updateUser(request, response)
+  //   expect(response.statusCode).toBe(500)
+  // })
 })
 
 describe('updateProfilePic', () => {

@@ -238,20 +238,38 @@ exports.create = async (req, res) => {
  * @returns {Object} 
  */
 exports.updateUser = (req, res) => {
-  const email = req.secret.email
-  if (!email) return res.status(401).send(response(false, '', 'El Email es necesario'))
+  const updateRules = {
+    'body.first_name': 'required|string',
+    'body.last_name': 'required|string',
+    'body.age': 'required|integer',
+    'body.major': 'required|string',
+    'secret.email': 'required|email'
+  }
+  const errorsMessage = {
+    'required.body.first_name': 'El nombre es requerido',
+    'required.body.last_name': 'El apellido es requerido',
+    'required.body.age': 'La edad es requerida',
+    'required.body.major': 'La carrera es requerida',
+    'required.secret.email': 'El e-mail es necesario'
+  }
+  const validate = validateIn(req, updateRules, errorsMessage)
+  if (!validate.pass) return res.status(401).send(response(false, validate.errors, 'Los datos no cumplen con el formato requerido'))
   const query = {
     $set: {
       first_name: req.body.first_name,
       last_name: req.body.last_name,
       age: req.body.age,
+      gender: req.body.gender,
       phone_number: req.body.phone_number,
-      major: req.body.major
+      major: req.body.major,
+      status: req.body.status,
+      community: req.body.community
     }
   }
-  updateUserByEmail(email, query)
+  updateUserByEmail(req.secret.email, query)
     .then(usr => {
-      return res.status(200).send(response(true, usr, 'El Usuario fue actualizado'))
+      if (!!usr) return res.status(200).send(response(true, usr, 'El Usuario fue actualizado'))
+      return res.status(500).send(response(false, null, 'El Usuario no existe'))
     })
     .catch(err => {
       return res.status(500).send(response(false, err, 'Error, El usuario no fue actualizado'))
