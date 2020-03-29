@@ -264,7 +264,6 @@ exports.updateUser = async (req, res) => {
       major: req.body.major
     }
   }
-  console.log(req.secret.email)
   const usr = await updateUserByEmail(req.secret.email, query).then(callback)
   if (!!usr && usr.isVerify) {
     return res.status(200).send(response(true, usr, 'El Usuario fue actualizado'))

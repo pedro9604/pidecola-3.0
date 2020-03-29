@@ -44,6 +44,7 @@ const validateIn    = require('../lib/utils/validation').validateIn
  * @returns {Object} 
  */
 async function create(req, res) {
+  // rides.deleteMany({}, callback)
   const { status, errors, message } = await verifyDataRide(req.body)
   if (!status) return res.status(400).send(response(false, errors, message))
   const rideInf = await newRide(req.body)
@@ -162,7 +163,7 @@ async function newRide(dataRide) {
 async function endRide(req, res) {
   const { status, errors, message } = await verifyDataRide(req.body)
   if (!status) return res.status(400).send(response(false, errors, message))
-  const query = { ride_finished: true, status: 'Finalizado' }
+  const query = { $set: { ride_finished: true, status: 'Finalizado' } }
   const rideInf = await updateRide(req.body, query)
   if (!!rideInf) {
     return res.status(200).send(response(true, rideInf, 'Cola finalizada'))
@@ -177,12 +178,19 @@ async function endRide(req, res) {
  * @author Francisco Márquez <12-11163@usb.ve>
  * @private
  * @async
- * @param {Object} data  - Datos de la cola a modificar
+ * @param {Object} rideInf  - Datos de la cola a modificar
  * @param {Object} query - Campos a modificar con valores nuevos 
  * @returns {Object} Datos de la cola modificada en la base de datos
  */
-async function updateRide(data, query) {
+async function updateRide(rideInf, query) {
   const original = { returnOriginal: false }
+  const data = {
+    rider: rideInf.rider,
+    passenger: rideInf.passenger,
+    available_seats: rideInf.seats,
+    start_location: rideInf.startLocation,
+    destination: rideInf.destination
+  }
   return await rides.findOneAndUpdate(data, query, original, callback)
 }
 
@@ -308,7 +316,6 @@ async function verifyComments(dataRide) {
   const validate = validateIn(dataRide, rules, mssg)
   const like = dataRide.like == 'Sí' || dataRide.like == 'No'
   const rider = await users.findByEmail(dataRide.rider).then((sucs, err) => {
-    console.log(!err && !!sucs)
     return !err && !!sucs
   })
   if (!(validate.pass && like && rider)) {
@@ -357,7 +364,7 @@ async function comment(dataRide) {
         }
       }
       sucs.comments.push(query) 
-      sucs.markModified('comment')
+      sucs.markModified('comments')
       return sucs.save(callback)
     } else {
       console.log('La consulta dio: ', sucs)
