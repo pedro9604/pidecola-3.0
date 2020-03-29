@@ -253,6 +253,7 @@ exports.updateUser = (req, res) => {
     'required.body.major': 'La carrera es requerida',
     'required.secret.email': 'El e-mail es necesario'
   }
+  
   const validate = validateIn(req, updateRules, errorsMessage)
   if (!validate.pass) return res.status(401).send(response(false, validate.errors, 'Los datos no cumplen con el formato requerido'))
   const query = {
@@ -379,10 +380,13 @@ const errorsMessageAddVehicle = {
  * @returns {Object} 
  */
 exports.addVehicle = (req, res) => {
+  if (req.fileValidationError) return res.status(401).send(response(false, '', 'Formato inválido. Formatos permitidos: jpg,jpeg y png'))
   const email = req.secret.email
   const file = req.file
-  if(!file) return res.status(401).send(response(false, '', 'File is requires'))
+  if(!file) return res.status(401).send(response(false, '', 'Foto de vehículo es necesaria'))
   if (!email) return res.status(401).send(response(false, '', 'El Email es necesario'))
+
+  
 
   const validate = validateIn(req.body, addVehicleRules, errorsMessageAddVehicle)
   if (!validate.pass) return res.status(400).send(response(false, validate.errors, 'Los campos requeridos deben ser enviados'))
