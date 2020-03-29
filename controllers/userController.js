@@ -176,8 +176,8 @@ const errorsMessage = {
  */
 function addUser(dataUser) {
   const { email, password, phoneNumber } = dataUser
-if (email.split("@")[1] !== "usb.ve") return err 
-const data = {
+  if (email.split("@")[1] !== "usb.ve") return err 
+  const data = {
     email: email,
     password: password,
     phone_number: phoneNumber,
