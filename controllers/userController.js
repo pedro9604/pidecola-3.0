@@ -264,6 +264,7 @@ exports.updateUser = async (req, res) => {
       major: req.body.major
     }
   }
+  console.log(req.secret.email)
   const usr = await updateUserByEmail(req.secret.email, query).then(callback)
   if (!!usr && usr.isVerify) {
     return res.status(200).send(response(true, usr, 'El Usuario fue actualizado'))
@@ -403,11 +404,11 @@ exports.addVehicle = async (req, res) => {
     else user.vehicles = []
     
     // if(existVehicle) return res.status(403).send(response(false, error, 'Vehiculo ya existe'))
-    if(existVehicle) 403
+    if (existVehicle) return 403
 
     let picture = await files.uploadFile(file.path)
     // if(!picture) return res.status(500).send(response(false, '', 'Ocurrio un error en el proceso, disculpe'))
-    if(!picture) return 500
+    if (!picture) return 500
 
     user.vehicles.push({
       plate: req.body.plate,

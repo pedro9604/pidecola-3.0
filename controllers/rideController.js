@@ -131,7 +131,7 @@ async function verifyDataRide(dataRide) {
 async function newRide(dataRide) {
   const { rider, passenger, seats, startLocation, destination } = dataRide
   const ride = {
-    rider: rider.email,
+    rider: rider,
     passenger: passenger,
     available_seats: seats,
     status: 'En Espera',
@@ -183,7 +183,7 @@ async function endRide(req, res) {
  */
 async function updateRide(data, query) {
   const original = { returnOriginal: false }
-  return rides.findOneAndUpdate(data, query, original).then(callback)
+  return await rides.findOneAndUpdate(data, query, original, callback)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
