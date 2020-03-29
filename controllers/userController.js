@@ -380,10 +380,10 @@ const errorsMessageAddVehicle = {
  * @returns {Object} 
  */
 exports.addVehicle = (req, res) => {
-  if (req.fileValidationError) return res.status(401).send(response(false, '', 'Formato inválido. Formatos permitidos: jpg,jpeg y png'))
+  if (req.fileValidationError) return res.status(400).send(response(false, '', 'Formato inválido. Formatos permitidos: jpg,jpeg y png'))
   const email = req.secret.email
   const file = req.file
-  if(!file) return res.status(401).send(response(false, '', 'Foto de vehículo es necesaria'))
+  if(!file) return res.status(400).send(response(false, '', 'Foto de vehículo es necesaria'))
   if (!email) return res.status(401).send(response(false, '', 'El Email es necesario'))
 
   
