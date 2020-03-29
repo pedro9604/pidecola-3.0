@@ -44,7 +44,7 @@ const validateIn    = require('../lib/utils/validation').validateIn
  * @returns {Object} 
  */
 async function create(req, res) {
-  // rides.deleteMany({}, callback)
+  rides.deleteMany({}, callback)
   const { status, errors, message } = await verifyDataRide(req.body)
   if (!status) return res.status(400).send(response(false, errors, message))
   const rideInf = await newRide(req.body)
@@ -140,7 +140,7 @@ async function newRide(dataRide) {
     destination: destination,
     time: new Date(),
     ride_finished: false,
-    comments: [{}]
+    comments: []
   }
   return rides.create(ride).then(callback)
 }
@@ -359,16 +359,15 @@ async function comment(dataRide) {
   return await rides.findOne(data).then((sucs, err) => {
     if (!err && !!sucs) {
       for (var i = 0; i < sucs.comments.length; i++) {
-        if (sucs.comments[i].user_id === query.user) {
+        if (sucs.comments[i].user_id === query.user_id) {
           return sucs
         }
       }
-      sucs.comments.push(query) 
+      sucs.comments.push(query)
       sucs.markModified('comments')
-      return sucs.save(callback)
+      sucs.save((err, sucs) => { return sucs })
+      return sucs
     } else {
-      console.log('La consulta dio: ', sucs)
-      console.log('Los errores son:', err)
       return err
     }
   })
