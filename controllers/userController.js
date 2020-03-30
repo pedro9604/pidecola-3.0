@@ -27,11 +27,19 @@ const files         = require('../lib/cloudinaryConfig')
 const users         = require('../models/userModel')
 
 // Funciones
-const validateIn = require('../lib/utils/validation').validateIn
-const callback   = require('../lib/utils/utils').callbackReturn
-const response   = require('../lib/utils/response').response
-const sendEmail  = require('../lib/utils/emails').sendEmail
-const template   = require('../lib/utils/codeTemplate').template
+const addVehicleRules   = require('../lib/utils/validation').addVehicleRules
+const addVehicleMessage = require('../lib/utils/validation').addVehicleMessage
+const callback          = require('../lib/utils/utils').callbackReturn
+const deleteRules       = require('../lib/utils/validation').deleteRules
+const deleteMessage     = require('../lib/utils/validation').deleteMessage
+const registerMessage   = require('../lib/utils/validation').registerMessage
+const registerRules     = require('../lib/utils/validation').registerRules
+const response          = require('../lib/utils/response').response
+const sendEmail         = require('../lib/utils/emails').sendEmail
+const template          = require('../lib/utils/codeTemplate').template
+const updateRules       = require('../lib/utils/validation').updateRules
+const updateMessage     = require('../lib/utils/validation').updateMessage
+const validateIn        = require('../lib/utils/validation').validateIn
 
 ///////////////////////////////////////////////////////////////////////////////
 ////////////////////////// Endpoint Crear un usuario //////////////////////////
@@ -49,7 +57,7 @@ const template   = require('../lib/utils/codeTemplate').template
  * @returns {Object} 
  */
 async function create(req, res) {
-  const validate = validateIn(req.body, registerRules, errorsMessage)
+  const validate = validateIn(req.body, registerRules, registerMessage)
 
   if (!validate.pass) return res.status(400).send(response(false, validate.errors, 'Ha ocurrido un error en el proceso'))
 
@@ -80,43 +88,6 @@ async function create(req, res) {
     })
 }
 
-
-/**
- * Reglas que tienen que cumplir las solicitudes enviadas desde Front-End para
- * registrar a un usuario en la base de datos.
- * @name registerRules
- * @type {Object}
- * @property {string} email - Campo email de la solicitud es obligatorio y debe
- * tener formato de e-mail
- * @property {string} password - Campo password de la solicitud es obligatorio
- * @property {string} phoneNumber - Campo phoneNumber de la solicitud es
- * obligatorio
- * @constant
- * @private
- */
-const registerRules = {
-  email: 'required|email',
-  password: 'required|string',
-  phoneNumber: 'required|string'
-}
-
-/**
- * Mensajes de error en caso de no se cumplan las registerRules en una
- * solicitud.
- * @name errorsMessage
- * @type {Object}
- * @property {string} 'required.email' - Caso: Omisión o error del email
- * @property {string} 'required.password' - Caso: Omisión del password
- * @property {string} 'required.phoneNumber' - Caso: Omisión del phoneNumber
- * @constant
- * @private
- */
-const errorsMessage = {
-  'required.email': 'El correo electrónico de la USB es necesario',
-  'required.password': 'La contraseña es necesaria',
-  'required.phoneNumber': 'El teléfono celular es necesario'
-}
-
 /**
  * Función que realiza una consulta en la BD para buscar un usuario dado su
  * email.
@@ -124,7 +95,7 @@ const errorsMessage = {
  * @private
  * @param {String} email
  * @param {Object} querySelect
- * @returns {Promise}
+ * @returns {Query}
  */
 function findByEmail(email, querySelect = { password: 0 }) {
   return users.findOne({ email: email }, querySelect)
@@ -143,8 +114,6 @@ function findByEmail(email, querySelect = { password: 0 }) {
  */
 async function responseCreate(usr, res, already = false) {
   const code = already ? codeGenerate() : usr.temporalCode
-
-  console.log("Usuario: ", usr)
 
   if (already) await updateCode(usr.email, code)
 
@@ -295,7 +264,7 @@ async function getUserInformation(req, res) {
   const validate = validateIn(req.secret, {'email': 'required|email'}, {'required.email': 'El e-mail es necesario'})
   if (!validate.pass) return res.status(401).send(response(false, validate.errors, 'Los datos no cumplen con el formato requerido'))
   const usr = await findByEmail(req.secret.email).then(callback)
-  // users.deleteOne({ email: 'fjmarquez199@gmail.com' }).then(s => { return s })
+  users.deleteOne({ email: 'fjmarquez199@gmail.com' }).then(s => { return s })
   if (!!usr && usr.isVerify) {
     return res.status(200).send(response(true, usr, 'Peticion ejecutada con exito'))
   } else {
@@ -321,21 +290,7 @@ async function getUserInformation(req, res) {
  * @returns {Object} 
  */
 async function updateUser(req, res) {
-  const updateRules = {
-    'body.first_name': 'required|string',
-    'body.last_name': 'required|string',
-    'body.age': 'required|integer',
-    'body.major': 'required|string',
-    'secret.email': 'required|email'
-  }
-  const errorsMessage = {
-    'required.body.first_name': 'El nombre es requerido',
-    'required.body.last_name': 'El apellido es requerido',
-    'required.body.age': 'La edad es requerida',
-    'required.body.major': 'La carrera es requerida',
-    'required.secret.email': 'El e-mail es necesario'
-  }
-  const validate = validateIn(req, updateRules, errorsMessage)
+  const validate = validateIn(req, updateRules, updateMessage)
   if (!validate.pass) return res.status(401).send(response(false, validate.errors, 'Los datos no cumplen con el formato requerido'))
   const query = {
     $set: {
@@ -447,7 +402,7 @@ async function updateProfilePic(req, res) {
 async function addVehicle(req, res) {
   if(!req.file) return res.status(401).send(response(false, '', 'File is requires'))
 
-  const validate = validateIn(req, addVehicleRules, errorsMessageAddVehicle)
+  const validate = validateIn(req, addVehicleRules, addVehicleMessage)
   if (!validate.pass) return res.status(401).send(response(false, validate.errors, 'Los campos requeridos deben ser enviados'))
 
   const usr = await findByEmail(req.secret.email)
@@ -499,55 +454,6 @@ async function addVehicle(req, res) {
   }
 }
 
-/**
- * Reglas que tienen que cumplir las solicitudes enviadas desde Front-End para
- * registrar un vehiculo.
- * @name addVehicleRules
- * @type {Object}
- * @property {string} plate 
- * @property {string} brand 
- * @property {string} model
- * @property {string} year
- * @property {string} color
- * @property {string} vehicle_capacity
- * @constant
- * @private
- */
-const addVehicleRules = {
-  'body.plate': 'required|string',
-  'body.brand': 'required|string',
-  'body.model': 'required|string',
-  'body.year': 'required|integer',
-  'body.color': 'required|string',
-  'body.vehicle_capacity': 'required|integer',
-  'secret.email': 'required|email'
-}
-
-/**
- * Mensajes de error en caso de no se cumplan las addVehiclesRules en una
- * solicitud.
- * @name errorsMessage
- * @type {Object}
- * @property {string} 'required.plate' - Caso: Omisión o error de placa
- * @property {string} 'required.brand' - Caso: Omisión de la marca
- * @property {string} 'required.model' - Caso: Omisión del modelo
- * @property {string} 'required.year' - Caso: Omisión del año
- * @property {string} 'required.color' - Caso: Omisión del color
- * @property {string} 'required.vehicle_capacity' - Caso: Omisión de la
- * capacidad
- * @constant
- * @private
- */
-const errorsMessageAddVehicle = {
-  'required.plate': 'La placa de el vehiculo es necesaria',
-  'required.brand': 'La marca del vehiculo es necesaria',
-  'required.model': 'El modelo del vehiculo es  necesario',
-  'required.year': 'El año del vehiculo es  necesario',
-  'required.color': 'El color del vehiculo es  necesario',
-  'required.vehicle_capacity': 'La capacidad del vehiculo es  necesaria',
-  'required.secret.email': 'El email es necesario'
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 ///////////// Endpoint Eliminar vehículo del perfil de un usuario /////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -562,15 +468,7 @@ const errorsMessageAddVehicle = {
  * @returns {Object} 
  */
 async function deleteVehicle(req, res) {
-  const deleteRules = {
-    'body.plate': 'required|string',
-    'secret.email': 'required|email'
-  }
-  const errorsMessage = {
-    'required.body.plate': 'La placa es necesaria',
-    'required.secret.email': 'El Email es necesario'
-  }
-  const validate = validateIn(req, deleteRules, errorsMessage)
+  const validate = validateIn(req, deleteRules, deleteMessage)
   if (!validate.pass) return res.status(401).send(response(false, validate.errors, 'Los datos no cumplen con el formato requerido'))
 
   const usr = await findByEmail(req.secret.email)
