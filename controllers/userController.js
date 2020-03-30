@@ -440,15 +440,15 @@ async function addVehicle(req, res) {
     return 502
   })
   if (usr === 200) {
-    return res.status(200).send(response(true, usr, 'Vehiculo agregado'))
+    return res.status(200).send(response(true, '', 'Vehiculo agregado'))
   } else if (usr === 403) {
-    return res.status(403).send(response(false, error, 'Vehiculo ya existe'))
+    return res.status(403).send(response(false, '', 'Vehiculo ya existe'))
   } else if (usr == 500) {
     return res.status(500).send(response(false, '', 'Ocurrio un error en el proceso, disculpe'))
   } else if (usr == 501) {
-    return res.status(500).send(response(false, err, 'Vehiculo no fue agregado'))
+    return res.status(500).send(response(false, '', 'Vehiculo no fue agregado'))
   } else {
-    return res.status(500).send(response(false, error, 'Vehiculo no fue agregado'))
+    return res.status(500).send(response(false, '', 'Vehiculo no fue agregado'))
   }
 }
 
@@ -488,11 +488,11 @@ async function deleteVehicle(req, res) {
   if (usr === 200) {
     return res.status(200).send(response(true, usr, 'Vehiculo eliminado'))
   } else if (usr === 403) {
-     return res.status(403).send(response(false, error, 'Vehiculo no existe'))
+     return res.status(403).send(response(false, '', 'Vehiculo no existe'))
   } else if (usr === 500) {
     return res.status(500).send(response(false, err, 'Vehiculo no fue eliminado'))
   } else {
-    return res.status(500).send(response(false, error, 'Vehiculo no fue eliminado'))
+    return res.status(500).send(response(false, '', 'Vehiculo no fue eliminado'))
   }
 }
 
