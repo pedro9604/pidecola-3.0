@@ -70,7 +70,6 @@ async function create(req, res) {
   })
   if (user.code === 200) {
     const create = await responseCreate(user.user)
-    console.log(create)
     if (!create.sent) {
       mssg = 'No se ha podido enviar el código de validación. Intente de nuevo'
       return res.status(500).send(response(false, create.errors, mssg))
@@ -427,20 +426,18 @@ async function addVehicle(req, res) {
     })
 
     user.markModified('vehicles')
-    const x = user.save().then((usr, err) => {
-      console.log(usr, err)
+    const modified = user.save().then((usr, err) => {
       // if(!err) return res.status(200).send(response(true, usr, 'Vehiculo agregado'))
       if(!err) return {code: 200, data: usr}
       // return res.status(500).send(response(false, err, 'Vehiculo no fue agregado'))
       return {code: 501, data: err}
     })
-    return x
+    return modified
   })
   .catch( error => {
     // return res.status(500).send(response(false, error, 'Vehiculo no fue agregado'))
     return {code: 502, data: error}
   })
-  console.log(usr)
   if (usr.code === 200) {
     return res.status(200).send(response(true, usr.data, 'Vehiculo agregado'))
   } else if (usr === 403) {
@@ -478,13 +475,13 @@ async function deleteVehicle(req, res) {
     // if(!existVehicle) return res.status(403).send(response(false, error, 'Vehiculo no existe'))
     if(!existVehicle) return {code: 403, data: user}
 
-    const x = user.updateOne({'$pull': {'vehicles': {plate: req.body.plate}}}).then((usr, err) => {
+    const modified = user.updateOne({'$pull': {'vehicles': {plate: req.body.plate}}}).then((usr, err) => {
       // if(err) return res.status(500).send(response(false, err, 'Vehiculo no fue eliminado'))
       if(err) return {code: 500, data: err}
       // return res.status(200).send(response(true, usr, 'Vehiculo eliminado'))
       return {code: 200, data: usr}
     })
-    return x
+    return modified
   })
   .catch( error => {
     // return res.status(500).send(response(false, error, 'Vehiculo no fue eliminado'))
