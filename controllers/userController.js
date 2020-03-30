@@ -211,23 +211,22 @@ function addUser(dataUser) {
  * @returns {Object} 
  */
 async function codeValidate(req, res) {
-  const { code, email } = req.body
-  if (!(code && email)) {
+  if (!(req.body.code && req.body.email)) {
     var status, err
     var message = 'Los datos introducidos no cumplen con el formato requerido'
-    if (!code && !email) {
+    if (!req.body.code && !req.body.email) {
       err = 'El código es necesario. El email es necesario', status = 400
-    } else if (!code) {
+    } else if (!req.body.code) {
       err = 'El código es necesario', status = 403
     } else {
       err = 'El email es necesario', status = 401
     }
     return res.status(status).send(response(false, err, message))
   }
-  const user = await findByEmail(email).then(user => {
+  const user = await findByEmail(req.body.email).then(user => {
     if (!user) return { code: 404, data: 'Usuario no existe' }
     if (user.isVerify) return { code: 400, data: 'Verificado' }
-    if (user.temporalCode != parseInt(code)) {
+    if (user.temporalCode != parseInt(req.body.code)) {
       return { code: 401, data: 'Código no coincide' }
     }
     user.isVerify = true
@@ -235,8 +234,7 @@ async function codeValidate(req, res) {
     user.save()
     const token = autentication.generateToken(user.email)
     return { code: 200, data: [{ tkauth: token }] }
-  }).catch(error => { console.log(error);return { code: 500, data: 'Error interno' } })
-  console.log(user)
+  }).catch(error => { return { code: 500, data: 'Error interno' } })
   var message, status = user.code === 200 || user.code == 500 ? user.code : 401
   if (user.code === 200) {
     message = 'Usuario verificado'
@@ -294,15 +292,7 @@ async function getUserInformation(req, res) {
 async function updateUser(req, res) {
   const validate = validateIn(req, updateRules, updateMessage)
   if (!validate.pass) return res.status(401).send(response(false, validate.errors, 'Los datos no cumplen con el formato requerido'))
-  const query = {
-    $set: {
-      first_name: req.body.first_name,
-      last_name: req.body.last_name,
-      age: req.body.age,
-      phone_number: req.body.phone_number,
-      major: req.body.major
-    }
-  }
+  const query = { $set: req.body }
   const usr = await updateUserByEmail(req.secret.email, query).then(callback)
   if (!!usr && usr.isVerify) {
     return res.status(200).send(response(true, usr, 'El Usuario fue actualizado'))
@@ -311,9 +301,6 @@ async function updateUser(req, res) {
   } else {
     return res.status(500).send(response(false, null, 'El Usuario no existe'))
   }
-    // .catch(err => {
-      // return res.status(500).send(response(false, err, 'Error, El usuario no fue actualizado'))
-    // })
 }
 
 /**
@@ -343,43 +330,37 @@ function updateUserByEmail(email, query) {
  */
 async function updateProfilePic(req, res) {
   const validate = validateIn(req.secret, emailRules, emailMessage)
-  if (!validate.pass) return res.status(401).send(response(false, validate.errors, 'Los datos no cumplen con el formato requerido'))
-  const file = req.file
-  if(!file) return res.status(401).send(response(false, '', 'File is required'))
-
+  var status = 401, err
+  var message = 'Los datos introducidos no cumplen con el formato requerido'
+  if (!(req.file && validate.pass)) {
+    if (!req.file && !validate.pass) {
+      err = validate.errors.push('La foto de perfil es requerida')
+    } else if (!validate.pass) {
+      err = validate.errors
+    } else {
+      err = 'La foto de perfil es requerida'
+    }
+    return res.status(status).send(response(false, err, message))
+  }
   const usr = await findByEmail(req.secret.email)
   .then( async user => {
-
-    let picture = await files.uploadFile(file.path)
-    // if(!picture) return res.status(500).send(response(false, '', 'Ocurrio un error en el proceso, disculpe'))
-    if (!picture) return 500
-
+    let picture = await files.uploadFile(req.file.path)
+    if (!picture) return { code: 500, data: 'Error desconocido' }
     user.$set({
       profile_pic: picture.secure_url
     })
-
-    user.save( (usr, err) => { return usr
-      // if(!err) return res.status(200).send(response(true, usr, 'Foto de perfil agregada'))
-      if (!err) return 200
-      // return res.status(500).send(response(false, err, 'Foto de perfil no fue agregada'))
-      return 501
+    const modified = user.save().then((usr, err) => {
+      if (!err) return { code: 200, data: usr }
+      return { code: 501, data: err }
     })
-
-    return 200
-    
+    return modified
   })
-  .catch( error => {
-    return 502
-    // return res.status(500).send(response(false, error, 'Foto de perfil no fue agregada'))
-  })
-
-  if (usr == 200) {
-    return res.status(200).send(response(true, usr, 'Foto de perfil agregada'))
-  } else if (usr == 500) {
-    return res.status(500).send(response(false, '', 'Ocurrio un error en el proceso, disculpe'))
-  } else {
-    return res.status(500).send(response(false, 'Error', 'Foto de perfil no fue agregada'))
-  }
+  .catch( error => { return { code: 500, data: 'Error desconocido' } })
+  status = usr.code === 200 ? 200 : 500
+  if (usr.code === 200) message = 'Foto de perfil agregada'
+  else if (usr.code === 500) message = 'Ocurrió un error en el proceso'
+  else message = 'Foto de perfil no fue agregada'
+  return res.status(status).send(response(status === 200, usr.data, message))
 }
 
 ///////////////////////////////////////////////////////////////////////////////
