@@ -30,8 +30,11 @@ const users         = require('../models/userModel')
 const addVehicleRules   = require('../lib/utils/validation').addVehicleRules
 const addVehicleMessage = require('../lib/utils/validation').addVehicleMessage
 const callback          = require('../lib/utils/utils').callbackReturn
+const callbackMail      = require('../lib/utils/utils').callbackMail
 const deleteRules       = require('../lib/utils/validation').deleteRules
 const deleteMessage     = require('../lib/utils/validation').deleteMessage
+const profilePicRules   = require('../lib/utils/validation').profilePicRules
+const profilePicMessage = require('../lib/utils/validation').profilePicMessage
 const registerMessage   = require('../lib/utils/validation').registerMessage
 const registerRules     = require('../lib/utils/validation').registerRules
 const response          = require('../lib/utils/response').response
@@ -46,7 +49,8 @@ const validateIn        = require('../lib/utils/validation').validateIn
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Endpoint para crear un nuevo usuario.
+ * Endpoint para crear un nuevo usuario. El número de veces que son calculados
+ * los BCrypt hash es 12
  * No debería modificarse a no ser que se cambie toda lógica detrás del
  * algoritmo de recomendación.
  * @function
@@ -57,35 +61,82 @@ const validateIn        = require('../lib/utils/validation').validateIn
  * @returns {Object} 
  */
 async function create(req, res) {
-  const validate = validateIn(req.body, registerRules, registerMessage)
-
-  if (!validate.pass) return res.status(400).send(response(false, validate.errors, 'Ha ocurrido un error en el proceso'))
-
-  const alreadyRegister = await findByEmail(req.body.email)
-
-  if(alreadyRegister) {
-    if (alreadyRegister.isVerify) {
-      return res.status(403).send(response(false, '', 'El usuario ya se encuentra registrado'))
+  let { code, status, errors, message } = await verifyCreate(req.body)
+  if (!status) return res.status(code).send(response(false, errors, message))
+  req.body.password = await bcrypt.hash(req.body.password, 12)
+  const user = await addUser(req.body).then((sucs, err) => {
+    if (!err) return { code: 200, user: sucs }
+    return { code: err.code === 11000 ? 11000 : 500, user: null }
+  })
+  if (user.code === 200) {
+    const create = await responseCreate(user.user)
+    console.log(create)
+    if (!create.sent) {
+      mssg = 'No se ha podido enviar el código de validación. Intente de nuevo'
+      return res.status(500).send(response(false, create.errors, mssg))
     } else {
-      if (!alreadyRegister.isVerify) {
-        return responseCreate(alreadyRegister, res, true)
-      }
+      mssg = 'Usuario creado con éxito. El código de validación se ha enviado '
+      mssg += 'a su correo'
+      return res.status(200).send(response(true, create.log, mssg))
     }
+  } else if (user.code === 11000) {
+    let mssg = 'El usuario ya existe'
+    return res.status(500).send(response(false, 'Ya existe usuario', mssg))
+  } else {
+    let mssg = 'El usuario no ha sido creado debido a un error desconocido'
+    return res.status(500).send(response(false, 'Error', mssg))
   }
 
-  bcrypt.hash(req.body.password, BCRYPT_SALT_ROUNDS)
-    .then(hashedPassword => {
-      req.body.password = hashedPassword
-      return addUser(req.body)
-    })
-    .then(usr => {
-      return responseCreate(usr, res)
-    })
-    .catch(err => {
-      let mssg = 'Usuario no ha sido creado'
-      if (!!err && err.code && err.code === 11000) mssg = 'Ya existe usuario'
-      return res.status(500).send(response(false, err, mssg))
-    })
+  // if (alreadyRegister) {
+  //   if (alreadyRegister.isVerify) {
+  //     return res.status(403).send(response(false, '', 'El usuario ya se encuentra registrado'))
+  //   } else {
+  //     if (!alreadyRegister.isVerify) {
+  //       return responseCreate(alreadyRegister, res, true)
+  //     }
+  //   }
+  // }
+    
+}
+
+/**
+ * Función que verifica la validez de los datos de una solicitud para
+ * crear un nuevo usuario.
+ * @author Francisco Márquez <12-11163@usb.ve>
+ * @private
+ * @param {string} dataRegister
+ * @returns {Verification}
+ */
+async function verifyCreate(dataRegister) {
+  const validate = validateIn(dataRegister, registerRules, registerMessage)
+  var code    = 0
+  var err     = ''
+  var message = ''
+  const user  = await findByEmail(dataRegister.email)
+  if (!(validate.pass && !user)) {
+    if (!validate.pass) {
+      code    = 400
+      err     = validate.errors
+      message = 'Los datos introducidos no cumplen con el formato requerido'
+    } else if (user.isVerify) {
+      code    = 403
+      err     = 'Usuario registrado'
+      message = 'Usuario ya se ha registrado exitosamente'
+    } else {
+      code    = 409
+      err     = 'Usuario debe validarse'
+      message = 'El usuario debe ingresar código enviado a su e-mail'
+      let { sent, log, errors } = await responseCreate(user, true)
+      if (!sent) {
+        code    = 500
+        err     = errors
+        message = 'El usuario debía validarse pero ocurrió un error reenviando'
+        message += ' el correo con el código de validación' 
+      }
+    }
+    return { code: code, status: false, errors: err, message: message }
+  }
+  return { code: 200, status: true, errors: '', message: '' }
 }
 
 /**
@@ -108,34 +159,20 @@ function findByEmail(email, querySelect = { password: 0 }) {
  * @async
  * @private
  * @param {Object} usr
- * @param {Object} res
  * @param {boolean} [already]
  * @returns {Object}
  */
-async function responseCreate(usr, res, already = false) {
-  const code = already ? codeGenerate() : usr.temporalCode
-
-  if (already) await updateCode(usr.email, code)
-
-  sendEmail(usr.email, 'Bienvenido a Pide Cola USB, valida tu cuenta', createHTMLRespose(code, usr.email.split('@')[0]))
-    .then(() => {
-      const userInf = { email: usr.email, phoneNumber: usr.phone_number }
-      return res.status(200).send(response(true, userInf, 'Usuario creado'))
-    })
-    .catch(error => {
-      console.log('Error Sending Mail', error)
-      return res.status(500).send(response(false, error, 'Perdón, ocurrió un error'))
-    })
-}
-
-/**
- * Función que genera el código de confirmación del proceso de registro.
- * @function
- * @private
- * @returns {integer}
- */
-function codeGenerate() {
-  return Math.floor(Math.random() * (99999 - 9999)) + 9999
+async function responseCreate(usr, already = false) {
+  const to = usr.email
+  const sb = 'Bienvenido a Pide Cola USB, valida tu cuenta'
+  let code
+  if (already) {
+    code = Math.floor(Math.random() * 90000) + 9999
+    await updateCode(usr.email, code)
+  } else {
+    code = usr.temporalCode
+  }
+  return sendEmail(to, sb, template(code, to.split('@')[0])).then(callbackMail)
 }
 
 /**
@@ -150,38 +187,10 @@ function codeGenerate() {
 async function updateCode(email, code = undefined) {
   const query = { email: email }
   const update = {
-    $set: {
-      temporalCode: code || codeGenerate()
-    }
+    $set: { temporalCode: code || Math.floor(Math.random() * 90000) + 9999 }
   }
-  return users.updateOne(query, update)
-    .then(usr => {
-      return usr
-    })
-    .catch(err => {
-      console.log('Error in update code: ', err)
-    })
+  return users.updateOne(query, update, callback)
 }
-
-/**
- * Función que crea una respuesta HTML.
- * @function
- * @private
- * @param {integer} code
- * @param {string} [userName]
- * @returns {integer}
- */
-function createHTMLRespose(code, userName = '') {
-  const html = template(code, userName)
-  return html
-}
-
-/**
- * Número de veces que son calculados los BCrypt hash.
- * @const
- * @type {integer}
- */
-const BCRYPT_SALT_ROUNDS = 12
 
 /**
  * Función que agrega un usuario a la base de datos.
@@ -196,7 +205,7 @@ function addUser(dataUser) {
     email: email,
     password: password,
     phone_number: phoneNumber,
-    temporalCode: codeGenerate()
+    temporalCode: Math.floor(Math.random() * 90000) + 9999
   }
   return users.create(data)//.then(callback)
 }
@@ -342,7 +351,7 @@ function updateUserByEmail(email, query) {
  * @returns {Object} 
  */
 async function updateProfilePic(req, res) {
-  const validate = validateIn(req.secret, {'email': 'required|email'}, {'required.email': 'El e-mail es necesario'})
+  const validate = validateIn(req.secret, profilePicRules, profilePicMessage)
   if (!validate.pass) return res.status(401).send(response(false, validate.errors, 'Los datos no cumplen con el formato requerido'))
   const file = req.file
   if(!file) return res.status(401).send(response(false, '', 'File is required'))
