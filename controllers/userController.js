@@ -295,7 +295,7 @@ async function getUserInformation(req, res) {
   const validate = validateIn(req.secret, {'email': 'required|email'}, {'required.email': 'El e-mail es necesario'})
   if (!validate.pass) return res.status(401).send(response(false, validate.errors, 'Los datos no cumplen con el formato requerido'))
   const usr = await findByEmail(req.secret.email).then(callback)
-  users.deleteOne({ email: 'fjmarquez199@gmail.com' }).then(s => { return s })
+  // users.deleteOne({ email: 'fjmarquez199@gmail.com' }).then(s => { return s })
   if (!!usr && usr.isVerify) {
     return res.status(200).send(response(true, usr, 'Peticion ejecutada con exito'))
   } else {
@@ -459,7 +459,7 @@ async function addVehicle(req, res) {
     // if(existVehicle) return res.status(403).send(response(false, error, 'Vehiculo ya existe'))
     if (existVehicle) return 403
 
-    let picture = await files.uploadFile(file.path)
+    let picture = await files.uploadFile(req.file.path)
     // if(!picture) return res.status(500).send(response(false, '', 'Ocurrio un error en el proceso, disculpe'))
     if (!picture) return 500
 
