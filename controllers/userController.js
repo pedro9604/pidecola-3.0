@@ -48,12 +48,12 @@ const template   = require('../lib/utils/codeTemplate').template
  * @param {Object} res - Un HTTP Response
  * @returns {Object} 
  */
-exports.create = async (req, res) => {
+async function create(req, res) {
   const validate = validateIn(req.body, registerRules, errorsMessage)
 
   if (!validate.pass) return res.status(400).send(response(false, validate.errors, 'Ha ocurrido un error en el proceso'))
 
-  const alreadyRegister = await this.findByEmail(req.body.email)
+  const alreadyRegister = await findByEmail(req.body.email)
 
   if(alreadyRegister) {
     if (alreadyRegister.isVerify) {
@@ -79,6 +79,7 @@ exports.create = async (req, res) => {
       return res.status(500).send(response(false, err, mssg))
     })
 }
+
 
 /**
  * Reglas que tienen que cumplir las solicitudes enviadas desde Front-End para
@@ -125,7 +126,7 @@ const errorsMessage = {
  * @param {Object} querySelect
  * @returns {Promise}
  */
-exports.findByEmail = (email, querySelect = { password: 0 }) => {
+function findByEmail(email, querySelect = { password: 0 }) {
   return users.findOne({ email: email }, querySelect)
 }
 
@@ -140,8 +141,11 @@ exports.findByEmail = (email, querySelect = { password: 0 }) => {
  * @param {boolean} [already]
  * @returns {Object}
  */
-const responseCreate = async (usr, res, already = false) => {
+async function responseCreate(usr, res, already = false) {
   const code = already ? codeGenerate() : usr.temporalCode
+
+  console.log("Usuario: ", usr)
+
   if (already) await updateCode(usr.email, code)
 
   sendEmail(usr.email, 'Bienvenido a Pide Cola USB, valida tu cuenta', createHTMLRespose(code, usr.email.split('@')[0]))
@@ -161,7 +165,7 @@ const responseCreate = async (usr, res, already = false) => {
  * @private
  * @returns {integer}
  */
-const codeGenerate = () => {
+function codeGenerate() {
   return Math.floor(Math.random() * (99999 - 9999)) + 9999
 }
 
@@ -174,7 +178,7 @@ const codeGenerate = () => {
  * @param {integer} [code]
  * @returns {Object|undefined}
  */
-const updateCode = async (email, code = undefined) => {
+async function updateCode(email, code = undefined) {
   const query = { email: email }
   const update = {
     $set: {
@@ -198,7 +202,7 @@ const updateCode = async (email, code = undefined) => {
  * @param {string} [userName]
  * @returns {integer}
  */
-const createHTMLRespose = (code, userName = '') => {
+function createHTMLRespose(code, userName = '') {
   const html = template(code, userName)
   return html
 }
@@ -243,12 +247,12 @@ function addUser(dataUser) {
  * @param {Object} res - Un HTTP Response
  * @returns {Object} 
  */
-exports.codeValidate = async (req, res) => {
+async function codeValidate(req, res) {
   const { code, email } = req.body
   if (!code) return res.status(403).send(response(false, '', 'El código es necesario'))
   if (!email) return res.status(401).send(response(false, '', 'El email es necesario'))
 
-  const user = await this.findByEmail(email).then(user => {
+  const user = await findByEmail(email).then(user => {
     if (!user) return 404
     if(user.isVerify) return 400
     if (user.temporalCode !== parseInt(code)) return 401
@@ -287,11 +291,11 @@ exports.codeValidate = async (req, res) => {
  * @param {Object} res - Un HTTP Response
  * @returns {Object} 
  */
-exports.getUserInformation = async (req, res) => {
+async function getUserInformation(req, res) {
   const validate = validateIn(req.secret, {'email': 'required|email'}, {'required.email': 'El e-mail es necesario'})
   if (!validate.pass) return res.status(401).send(response(false, validate.errors, 'Los datos no cumplen con el formato requerido'))
-  const usr = await this.findByEmail(req.secret.email).then(callback)
-  // users.deleteOne({ email: 'fjmarquez199@gmail.com' }).then(s => { return s })
+  const usr = await findByEmail(req.secret.email).then(callback)
+  users.deleteOne({ email: 'fjmarquez199@gmail.com' }).then(s => { return s })
   if (!!usr && usr.isVerify) {
     return res.status(200).send(response(true, usr, 'Peticion ejecutada con exito'))
   } else {
@@ -316,7 +320,7 @@ exports.getUserInformation = async (req, res) => {
  * @param {Object} res - Un HTTP Response
  * @returns {Object} 
  */
-exports.updateUser = async (req, res) => {
+async function updateUser(req, res) {
   const updateRules = {
     'body.first_name': 'required|string',
     'body.last_name': 'required|string',
@@ -363,7 +367,7 @@ exports.updateUser = async (req, res) => {
  * @param {Object} query
  * @returns {Object}
  */
-const updateUserByEmail = (email, query) => {
+function updateUserByEmail(email, query) {
   return users.findOneAndUpdate({ email: email }, query, { returnOriginal: false, useFindAndModify: false, projection: {password: 0} })
 }
 
@@ -382,13 +386,13 @@ const updateUserByEmail = (email, query) => {
  * @param {Object} res - Un HTTP Response
  * @returns {Object} 
  */
-exports.updateProfilePic = async (req, res) => {
+async function updateProfilePic(req, res) {
   const validate = validateIn(req.secret, {'email': 'required|email'}, {'required.email': 'El e-mail es necesario'})
   if (!validate.pass) return res.status(401).send(response(false, validate.errors, 'Los datos no cumplen con el formato requerido'))
   const file = req.file
   if(!file) return res.status(401).send(response(false, '', 'File is required'))
 
-  const usr = await this.findByEmail(req.secret.email)
+  const usr = await findByEmail(req.secret.email)
   .then( async user => {
 
     let picture = await files.uploadFile(file.path)
@@ -440,13 +444,13 @@ exports.updateProfilePic = async (req, res) => {
  * @param {Object} res - Un HTTP Response
  * @returns {Object} 
  */
-exports.addVehicle = async (req, res) => {
+async function addVehicle(req, res) {
   if(!req.file) return res.status(401).send(response(false, '', 'File is requires'))
 
   const validate = validateIn(req, addVehicleRules, errorsMessageAddVehicle)
   if (!validate.pass) return res.status(401).send(response(false, validate.errors, 'Los campos requeridos deben ser enviados'))
 
-  const usr = await this.findByEmail(req.secret.email)
+  const usr = await findByEmail(req.secret.email)
   .then( async user => {
     let existVehicle
     if(user.vehicles && user.vehicles.length)existVehicle = user.vehicles.find( vehicle => vehicle.plate === req.body.plate)
@@ -557,7 +561,7 @@ const errorsMessageAddVehicle = {
  * @param {Object} res - Un HTTP Response
  * @returns {Object} 
  */
-exports.deleteVehicle = async (req, res) => {
+async function deleteVehicle(req, res) {
   const deleteRules = {
     'body.plate': 'required|string',
     'secret.email': 'required|email'
@@ -569,7 +573,7 @@ exports.deleteVehicle = async (req, res) => {
   const validate = validateIn(req, deleteRules, errorsMessage)
   if (!validate.pass) return res.status(401).send(response(false, validate.errors, 'Los datos no cumplen con el formato requerido'))
 
-  const usr = await this.findByEmail(req.secret.email)
+  const usr = await findByEmail(req.secret.email)
   .then( async user => {
 
     let existVehicle = user.vehicles.map(vehicle => vehicle.plate === req.body.plate)
@@ -595,3 +599,16 @@ exports.deleteVehicle = async (req, res) => {
     return res.status(500).send(response(false, error, 'Vehiculo no fue eliminado'))
   }
 }
+
+///////////////////////////////////////////////////////////////////////////////
+//////////////////////////// Exportar Endpoints ///////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+module.exports.create             = create
+module.exports.findByEmail        = findByEmail // Esto no es un endpoint
+module.exports.codeValidate       = codeValidate
+module.exports.getUserInformation = getUserInformation
+module.exports.updateUser         = updateUser
+module.exports.updateProfilePic   = updateProfilePic
+module.exports.addVehicle         = addVehicle
+module.exports.deleteVehicle      = deleteVehicle
