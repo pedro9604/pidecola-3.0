@@ -410,11 +410,11 @@ async function addVehicle(req, res) {
     else user.vehicles = []
     
     // if(existVehicle) return res.status(403).send(response(false, error, 'Vehiculo ya existe'))
-    if (existVehicle) return 403
+    if (existVehicle) return {code: 403, data: usr}
 
     let picture = await files.uploadFile(req.file.path)
     // if(!picture) return res.status(500).send(response(false, '', 'Ocurrio un error en el proceso, disculpe'))
-    if (!picture) return 500
+    if (!picture) return {code: 500, data: usr}
 
     user.vehicles.push({
       plate: req.body.plate,
@@ -427,28 +427,30 @@ async function addVehicle(req, res) {
     })
 
     user.markModified('vehicles')
-    user.save( (usr, err) => {
+    const x = user.save().then((usr, err) => {
+      console.log(usr, err)
       // if(!err) return res.status(200).send(response(true, usr, 'Vehiculo agregado'))
-      if(!err) return 200
+      if(!err) return {code: 200, data: usr}
       // return res.status(500).send(response(false, err, 'Vehiculo no fue agregado'))
-      return 501
+      return {code: 501, data: err}
     })
-    
+    return x
   })
   .catch( error => {
     // return res.status(500).send(response(false, error, 'Vehiculo no fue agregado'))
-    return 502
+    return {code: 502, data: error}
   })
-  if (usr === 200) {
-    return res.status(200).send(response(true, '', 'Vehiculo agregado'))
+  console.log(usr)
+  if (usr.code === 200) {
+    return res.status(200).send(response(true, usr.data, 'Vehiculo agregado'))
   } else if (usr === 403) {
-    return res.status(403).send(response(false, '', 'Vehiculo ya existe'))
+    return res.status(403).send(response(false, usr.data, 'Vehiculo ya existe'))
   } else if (usr == 500) {
-    return res.status(500).send(response(false, '', 'Ocurrio un error en el proceso, disculpe'))
+    return res.status(500).send(response(false, usr.data, 'Ocurrio un error en el proceso, disculpe'))
   } else if (usr == 501) {
-    return res.status(500).send(response(false, '', 'Vehiculo no fue agregado'))
+    return res.status(500).send(response(false, usr.data, 'Vehiculo no fue agregado'))
   } else {
-    return res.status(500).send(response(false, '', 'Vehiculo no fue agregado'))
+    return res.status(500).send(response(false, usr.data, 'Vehiculo no fue agregado'))
   }
 }
 
@@ -473,26 +475,30 @@ async function deleteVehicle(req, res) {
   .then( async user => {
 
     let existVehicle = user.vehicles.map(vehicle => vehicle.plate === req.body.plate)
-    if(!existVehicle) return res.status(403).send(response(false, error, 'Vehiculo no existe'))
+    // if(!existVehicle) return res.status(403).send(response(false, error, 'Vehiculo no existe'))
+    if(!existVehicle) return {code: 403, data: user}
 
-    user.updateOne({'$pull': {'vehicles': {plate: req.body.plate}}}, (err, usr) => {
-      if(err) return res.status(500).send(response(false, err, 'Vehiculo no fue eliminado'))
-      return res.status(200).send(response(true, usr, 'Vehiculo eliminado'))
+    const x = user.updateOne({'$pull': {'vehicles': {plate: req.body.plate}}}).then((usr, err) => {
+      // if(err) return res.status(500).send(response(false, err, 'Vehiculo no fue eliminado'))
+      if(err) return {code: 500, data: err}
+      // return res.status(200).send(response(true, usr, 'Vehiculo eliminado'))
+      return {code: 200, data: usr}
     })
-    
+    return x
   })
   .catch( error => {
-    return res.status(500).send(response(false, error, 'Vehiculo no fue eliminado'))
+    // return res.status(500).send(response(false, error, 'Vehiculo no fue eliminado'))
+    return {code: 500, data: error}
   })
 
-  if (usr === 200) {
-    return res.status(200).send(response(true, usr, 'Vehiculo eliminado'))
+  if (usr.code === 200) {
+    return res.status(200).send(response(true, usr.data, 'Vehiculo eliminado'))
   } else if (usr === 403) {
-     return res.status(403).send(response(false, '', 'Vehiculo no existe'))
+     return res.status(403).send(response(false, usr.data, 'Vehiculo no existe'))
   } else if (usr === 500) {
-    return res.status(500).send(response(false, err, 'Vehiculo no fue eliminado'))
+    return res.status(500).send(response(false, usr.data, 'Vehiculo no fue eliminado'))
   } else {
-    return res.status(500).send(response(false, '', 'Vehiculo no fue eliminado'))
+    return res.status(500).send(response(false, usr.data, 'Vehiculo no fue eliminado'))
   }
 }
 
