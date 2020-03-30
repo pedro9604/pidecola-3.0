@@ -53,7 +53,6 @@ const validateIn        = require('../lib/utils/validation').validateIn
  * los BCrypt hash es 12
  * No debería modificarse a no ser que se cambie toda lógica detrás del
  * algoritmo de recomendación.
- * @function
  * @async
  * @public
  * @param {Object} req - Un HTTP Request
@@ -136,14 +135,13 @@ async function verifyCreate(dataRegister) {
  * @param {Object} querySelect
  * @returns {Query}
  */
-function findByEmail(email, querySelect = { password: 0 }) {
+async function findByEmail(email, querySelect = { password: 0 }) {
   return users.findOne({ email: email }, querySelect)
 }
 
 /**
  * Función que envia el correo de confirmacion para completar el proceso de
  * registro.
- * @function
  * @async
  * @private
  * @param {Object} usr
@@ -166,7 +164,6 @@ async function responseCreate(usr, already = false) {
 /**
  * Función que modifica el código de confirmación del proceso de registro.
  * @function
- * @async
  * @private
  * @param {string} email
  * @param {integer} [code]
@@ -215,30 +212,44 @@ function addUser(dataUser) {
  */
 async function codeValidate(req, res) {
   const { code, email } = req.body
-  if (!code) return res.status(403).send(response(false, '', 'El código es necesario'))
-  if (!email) return res.status(401).send(response(false, '', 'El email es necesario'))
-
+  if (!(code && email)) {
+    var status, err
+    var message = 'Los datos introducidos no cumplen con el formato requerido'
+    if (!code && !email) {
+      err = 'El código es necesario. El email es necesario', status = 400
+    } else if (!code) {
+      err = 'El código es necesario', status = 403
+    } else {
+      err = 'El email es necesario', status = 401
+    }
+    return res.status(status).send(response(false, err, message))
+  }
   const user = await findByEmail(email).then(user => {
-    if (!user) return 404
-    if(user.isVerify) return 400
-    if (user.temporalCode !== parseInt(code)) return 401
+    if (!user) return { code: 404, data: 'Usuario no existe' }
+    if (user.isVerify) return { code: 400, data: 'Verificado' }
+    if (user.temporalCode != parseInt(code)) {
+      return { code: 401, data: 'Código no coincide' }
+    }
     user.isVerify = true
     user.markModified('isVerify')
     user.save()
-    return 200
-  }).catch(error => { return 500 })
-
-  if (user === 200) {
-    return res.status(200).send(response(true, [{ tkauth: autentication.generateToken(user.email) }], 'Usuario verificado'))
-  } else if (user === 404) {
-    return res.status(401).send(response(false, 'Usuario no existe', 'El usuario debe registrarse primero'))
-  } else if (user === 400) {
-    return res.status(401).send(response(false, 'Verificado', 'El usuario ya se encuentra verificado'))
-  } else if (user === 401) {
-    return res.status(401).send(response(false, 'Código no coincide', 'El código es incorrecto'))
+    const token = autentication.generateToken(user.email)
+    return { code: 200, data: [{ tkauth: token }] }
+  }).catch(error => { console.log(error);return { code: 500, data: 'Error interno' } })
+  console.log(user)
+  var message, status = user.code === 200 || user.code == 500 ? user.code : 401
+  if (user.code === 200) {
+    message = 'Usuario verificado'
+  } else if (user.code === 404) {
+    message = 'El usuario debe registrarse primero'
+  } else if (user.code === 400) {
+    message = 'El usuario ya se encuentra verificado'
+  } else if (user.code === 401) {
+    message = 'El código es incorrecto'
   } else {
-    return res.status(500).send(response(false, 'Error interno', 'Ha ocurrido un error desconocido, por favor intente nuevamente'))
+    message = 'Ha ocurrido un error desconocido, por favor intente nuevamente'
   }
+  return res.status(status).send(response(status == 200, user.data, message))
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -246,12 +257,8 @@ async function codeValidate(req, res) {
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Endpoint para conexión con Front-end.
- * No debería modificarse a no ser que se cambie toda lógica detrás del
- * algoritmo de recomendación.
- * Endpoint que realiza una consulta sobre la colección Usuario
- * para mostrar todos los datos asociados a un usuario dado su email.
- * @function
+ * Endpoint que realiza una consulta sobre la colección Usuario para mostrar
+ * todos los datos asociados a un usuario dado su email.
  * @public
  * @param {Object} req - Un HTTP Request
  * @param {Object} res - Un HTTP Response
@@ -259,18 +266,17 @@ async function codeValidate(req, res) {
  */
 async function getUserInformation(req, res) {
   const validate = validateIn(req.secret, emailRules, emailMessage)
-  if (!validate.pass) return res.status(401).send(response(false, validate.errors, 'Los datos no cumplen con el formato requerido'))
+  if (!validate.pass) {
+    let message = 'Los datos no cumplen con el formato requerido'
+    return res.status(401).send(response(false, validate.errors, message))
+  }
   const usr = await findByEmail(req.secret.email).then(callback)
   users.deleteOne({ email: 'fjmarquez199@gmail.com' }).then(s => { return s })
   if (!!usr && usr.isVerify) {
-    return res.status(200).send(response(true, usr, 'Peticion ejecutada con exito'))
+    return res.status(200).send(response(true, usr, 'Perfil encontrado'))
   } else {
-    return res.status(500).send(response(false, null, 'Error, El usuario no existe'))
+    return res.status(500).send(response(false, null, 'Usuario no existe'))
   }
-    // .catch(err => {
-    //   return res.status(500).send(response(false, err, 'Error, El usuario no fue encontrado o hubo un problema'))
-    // })
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -280,7 +286,6 @@ async function getUserInformation(req, res) {
 /**
  * Endpoint para modificar datos de usuario (nombre, apellido, edad, tlf y carrera)
  * en la BD.
- * @function
  * @public
  * @param {Object} req - Un HTTP Request
  * @param {Object} res - Un HTTP Response
@@ -313,7 +318,6 @@ async function updateUser(req, res) {
 
 /**
  * Función que actualiza un documento de Usuario dado el email asociado.
- * @function
  * @private
  * @param {String} email
  * @param {Object} query
@@ -331,7 +335,6 @@ function updateUserByEmail(email, query) {
  * Endpoint para agregar foto de perfil en el perfil de usuario. Se utiliza
  * Cloudinary y Multer para el manejo y almacenamiento de imágenes. En la BD
  * se almacena el URL de Cloudinary donde se encuentra la imagen  
- * @function
  * @async
  * @public
  * @param {Object} req - Un HTTP Request
@@ -390,7 +393,6 @@ async function updateProfilePic(req, res) {
  * Endpoint para agregar vehiculo en la base de datos. Se actualiza el 
  * respectivo documento de usuario agregando un elemento en el arreglo 
  * vehiculo. 
- * @function
  * @public
  * @param {Object} req - Un HTTP Request
  * @param {Object} res - Un HTTP Response
@@ -458,8 +460,7 @@ async function addVehicle(req, res) {
 /**
  * Endpoint para eliminar un vehiculo asociado a un 
  * documento de usuario dado la placa del vehiculo
- * @function
- * @public
+.code * @public
  * @param {Object} req - Un HTTP Request
  * @param {Object} res - Un HTTP Response
  * @returns {Object} 
