@@ -229,7 +229,7 @@ async function codeValidate(req, res) {
   }).catch(error => { return 500 })
 
   if (user === 200) {
-    return res.status(200).send(response(true, [{ tkauth: autentication.generateToken(user.email) }], 'Usuario verificado'))
+    return res.status(200).send(response(true, [{ tkauth: autentication.generateToken(email) }], 'Usuario verificado'))
   } else if (user === 404) {
     return res.status(401).send(response(false, 'Usuario no existe', 'El usuario debe registrarse primero'))
   } else if (user === 400) {
