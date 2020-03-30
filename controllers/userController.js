@@ -33,8 +33,8 @@ const callback          = require('../lib/utils/utils').callbackReturn
 const callbackMail      = require('../lib/utils/utils').callbackMail
 const deleteRules       = require('../lib/utils/validation').deleteRules
 const deleteMessage     = require('../lib/utils/validation').deleteMessage
-const profilePicRules   = require('../lib/utils/validation').profilePicRules
-const profilePicMessage = require('../lib/utils/validation').profilePicMessage
+const emailRules        = require('../lib/utils/validation').emailRules
+const emailMessage      = require('../lib/utils/validation').emailMessage
 const registerMessage   = require('../lib/utils/validation').registerMessage
 const registerRules     = require('../lib/utils/validation').registerRules
 const response          = require('../lib/utils/response').response
@@ -86,17 +86,6 @@ async function create(req, res) {
     let mssg = 'El usuario no ha sido creado debido a un error desconocido'
     return res.status(500).send(response(false, 'Error', mssg))
   }
-
-  // if (alreadyRegister) {
-  //   if (alreadyRegister.isVerify) {
-  //     return res.status(403).send(response(false, '', 'El usuario ya se encuentra registrado'))
-  //   } else {
-  //     if (!alreadyRegister.isVerify) {
-  //       return responseCreate(alreadyRegister, res, true)
-  //     }
-  //   }
-  // }
-    
 }
 
 /**
@@ -207,7 +196,7 @@ function addUser(dataUser) {
     phone_number: phoneNumber,
     temporalCode: Math.floor(Math.random() * 90000) + 9999
   }
-  return users.create(data)//.then(callback)
+  return users.create(data)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -270,7 +259,7 @@ async function codeValidate(req, res) {
  * @returns {Object} 
  */
 async function getUserInformation(req, res) {
-  const validate = validateIn(req.secret, {'email': 'required|email'}, {'required.email': 'El e-mail es necesario'})
+  const validate = validateIn(req.secret, emailRules, emailMessage)
   if (!validate.pass) return res.status(401).send(response(false, validate.errors, 'Los datos no cumplen con el formato requerido'))
   const usr = await findByEmail(req.secret.email).then(callback)
   users.deleteOne({ email: 'fjmarquez199@gmail.com' }).then(s => { return s })
@@ -351,7 +340,7 @@ function updateUserByEmail(email, query) {
  * @returns {Object} 
  */
 async function updateProfilePic(req, res) {
-  const validate = validateIn(req.secret, profilePicRules, profilePicMessage)
+  const validate = validateIn(req.secret, emailRules, emailMessage)
   if (!validate.pass) return res.status(401).send(response(false, validate.errors, 'Los datos no cumplen con el formato requerido'))
   const file = req.file
   if(!file) return res.status(401).send(response(false, '', 'File is required'))
