@@ -566,7 +566,7 @@ async function respondOffer(response) {
 //////////////////////////// Exportar Endpoints ///////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-module.exports.requestsList     = requestsList
+module.exports.requestsList     = requestsList  // Esto no es un endpoint
 module.exports.cast             = fromNameToInt // Esto no es un endpoint
 module.exports.create           = create
 module.exports.cancel           = cancel
