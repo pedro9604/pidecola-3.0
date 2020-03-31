@@ -12,7 +12,7 @@ const requests = require('./requestsController.js')
 const response = require('../lib/utils/response').response
 
 /**
- * @typedef Graph 
+ * @typedef Graph
  * @type {Object[]}
  * @property {Object} stops - Dos paradas
  * @property {string} stops.from - Parada inicial
