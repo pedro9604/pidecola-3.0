@@ -396,14 +396,13 @@ async function addVehicle(req, res) {
   }
   const usr = await findByEmail(req.secret.email)
   .then( async user => {
-    if (!user.vehicles) {
-      let plates = user.vehicles.find(vehicle => { return vehicle.plate })
-      if (req.body.plate in plates) return { code: 403, data: usr }
-    } else {
-      user.vehicles = []
+    if (user.vehicles) {
+      if (!!user.vehicles.find(vehicle => vehicle.plate === req.body.plate)) {
+        return { code: 403, data: user }
+      }
     }
     let picture = await files.uploadFile(req.file.path)
-    if (!picture) return { code: 500, data: usr }
+    if (!picture) return { code: 500, data: user }
     req.body.vehicle_pic = picture.secure_url
     user.vehicles.push(req.body)
     user.markModified('vehicles')
@@ -442,11 +441,12 @@ async function deleteVehicle(req, res) {
   }
   const usr = await findByEmail(req.secret.email)
   .then( async user => {
-    if (!user.vehicles) {
-      let plates = user.vehicles.find(vehicle => { return vehicle.plate })
-      if (req.body.plate in plates) return { code: 403, data: usr }
+    if (user.vehicles) {
+      if (!user.vehicles.find(vehicle => vehicle.plate === req.body.plate)) {
+        return { code: 403, data: user }
+      }
     } else {
-      user.vehicles = []
+      return { code: 403, data: user }
     }
     const query = { $pull: { vehicles: { plate: req.body.plate } } }
     const modified = user.updateOne(query).then((usr, err) => {
