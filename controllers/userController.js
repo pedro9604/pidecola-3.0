@@ -399,8 +399,9 @@ async function addVehicle(req, res) {
     if (!user.vehicles) {
       let plates = user.vehicles.find(vehicle => { return vehicle.plate })
       if (req.body.plate in plates) return { code: 403, data: usr }
+    } else {
+      user.vehicles = []
     }
-    user.vehicles = []
     let picture = await files.uploadFile(req.file.path)
     if (!picture) return { code: 500, data: usr }
     req.body.vehicle_pic = picture.secure_url
@@ -444,8 +445,9 @@ async function deleteVehicle(req, res) {
     if (!user.vehicles) {
       let plates = user.vehicles.find(vehicle => { return vehicle.plate })
       if (req.body.plate in plates) return { code: 403, data: usr }
+    } else {
+      user.vehicles = []
     }
-    user.vehicles = []
     const query = { $pull: { vehicles: { plate: req.body.plate } } }
     const modified = user.updateOne(query).then((usr, err) => {
       if (err) return { code: 500, data: err }
