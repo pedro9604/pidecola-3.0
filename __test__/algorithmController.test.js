@@ -7,10 +7,10 @@ describe('prioridad', () => {
     var usr, dest
     for (var i = 0; i < 5; i++) {
       if (i === 0) usr = 'baruta'; dest = 'Baruta'
-      else if (i === 1) usr = 'coche'; dest = 'Coche'
-      else if (i === 2) usr = 'chacaito'; dest = 'Chacaito'
-      else if (i === 3) usr = 'la-paz'; dest = 'La Paz'
-      else usr = 'bellas-artes'; dest = 'Bellas Artes'
+      if (i === 1) usr = 'coche'; dest = 'Coche'
+      if (i === 2) usr = 'chacaito'; dest = 'Chacaito'
+      if (i === 3) usr = 'la-paz'; dest = 'La Paz'
+      if (i === 4) usr = 'bellas-artes'; dest = 'Bellas Artes'
       for (var j = 1; j < 4; j++) {
         requests.requestsList[i].requests.push({
           user: usr + j + '@usb.ve',
@@ -125,12 +125,13 @@ describe('prioridad', () => {
 
 describe('stress', () => {
   beforeEach(() => {
+    var usr, dest
     for (var i = 0; i < 5; i++) {
       if (i === 0) usr = 'baruta'; dest = 'Baruta'
-      else if (i === 1) usr = 'coche'; dest = 'Coche'
-      else if (i === 2) usr = 'chacaito'; dest = 'Chacaito'
-      else if (i === 3) usr = 'la-paz'; dest = 'La Paz'
-      else usr = 'bellas-artes'; dest = 'Bellas Artes'
+      if (i === 1) usr = 'coche'; dest = 'Coche'
+      if (i === 2) usr = 'chacaito'; dest = 'Chacaito'
+      if (i === 3) usr = 'la-paz'; dest = 'La Paz'
+      if (i === 4) usr = 'bellas-artes'; dest = 'Bellas Artes'
       for (var j = 1; j < 32769; j++) {
         requests.requestsList[i].requests.push({
           user: usr + j + '@usb.ve',

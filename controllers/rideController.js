@@ -364,7 +364,7 @@ async function comment (dataRide) {
       }
       sucs.comments.push(query)
       sucs.markModified('comments')
-      sucs.save((err, sucs) => { return sucs })
+      sucs.save(sucs => { return sucs }).catch(error => console.log(error))
       return sucs
     } else {
       return err

@@ -114,7 +114,7 @@ async function verifyCreate (dataRegister) {
       code = 409
       err = 'Usuario debe validarse'
       message = 'El usuario debe ingresar código enviado a su e-mail'
-      const { sent, log, errors } = await responseCreate(user, true)
+      const { sent, errors } = await responseCreate(user, true)
       if (!sent) {
         code = 500
         err = errors
@@ -216,9 +216,15 @@ async function codeValidate (req, res) {
   if (!(req.body.code && req.body.email)) {
     err = 'El código es necesario. El email es necesario'
     message = 'Los datos introducidos no cumplen con el formato requerido'
-    if (!req.body.code && !req.body.email) { status = 400 }
-    else if (!req.body.code) { err = 'El código es necesario'; status = 403 }
-    else { err = 'El email es necesario'; status = 401 }
+    if (!req.body.code && !req.body.email) {
+      status = 400
+    } else if (!req.body.code) {
+      err = 'El código es necesario'
+      status = 403
+    } else {
+      err = 'El email es necesario'
+      status = 401
+    }
     return res.status(status).send(response(false, err, message))
   }
   const user = await findByEmail(req.body.email).then(user => {
@@ -232,7 +238,7 @@ async function codeValidate (req, res) {
     user.save()
     const token = autentication.generateToken(user.email)
     return { code: 200, data: [{ tkauth: token }] }
-  }).catch(error => { return { code: 500, data: 'Error interno' } })
+  }).catch(error => { return { code: 500, data: error } })
   status = user.code === 200 || user.code === 500 ? user.code : 401
   if (user.code === 200) {
     message = 'Usuario verificado'
@@ -288,18 +294,23 @@ async function getUserInformation (req, res) {
  */
 async function updateUser (req, res) {
   const validate = validateIn(req, updateRules, updateMessage)
-  var message = 'Debes estar verificar tu cuenta antes', status, data = null
+  var message = 'Debes verificar tu cuenta antes', status = 0, data = null
   if (!validate.pass) {
     message = 'Los datos no cumplen con el formato requerido'
     return res.status(401).send(response(false, validate.errors, message))
   }
   const query = { $set: req.body }
   const usr = await updateUserByEmail(req.secret.email, query).then(callback)
-  status = usr.isVerify ? 200 : 500
-  if (!!usr && usr.isVerify) data = usr; message = 'El Usuario fue actualizado'
-  else if (!usr.isVerify) data = 'Usuario no ha sido verificado'
-  else message = 'El Usuario no existe'
-  return res.status(status).send(response(usr.isVerify, data, message))
+  status = usr && usr.isVerify ? 200 : 500
+  if (usr && usr.isVerify) {
+    data = usr
+    message = 'El Usuario fue actualizado'
+  } else if (!usr.isVerify) {
+    data = 'Usuario no ha sido verificado'
+  } else {
+    message = 'El Usuario no existe'
+  }
+  return res.status(status).send(response(usr && usr.isVerify, data, message))
 }
 
 /**
@@ -329,7 +340,7 @@ function updateUserByEmail (email, query) {
  */
 async function updateProfilePic (req, res) {
   const validate = validateIn(req.secret, emailRules, emailMessage)
-  var status = 401, err
+  var status = 401, err = ''
   var message = 'Los datos introducidos no cumplen con el formato requerido'
   if (!(req.file && validate.pass)) {
     if (!req.file && !validate.pass) {
@@ -352,7 +363,7 @@ async function updateProfilePic (req, res) {
       })
       return modified
     })
-    .catch(error => { return { code: 500, data: 'Error desconocido' } })
+    .catch(error => { return { code: 500, data: error } })
   status = usr.code === 200 ? 200 : 500
   if (usr.code === 200) message = 'Foto de perfil agregada'
   else if (usr.code === 500) message = 'Ocurrió un error en el proceso'
@@ -378,8 +389,8 @@ async function updateProfilePic (req, res) {
  */
 async function addVehicle (req, res) {
   const validate = validateIn(req, addVehicleRules, addVehicleMessage)
-  var status = 401, err
-  var message = 'Los datos introducidos no cumplen con el formato requerido'
+  var status = 401, err = ''
+  let message = 'Los datos introducidos no cumplen con el formato requerido'
   if (!(req.file && validate.pass)) {
     if (!req.file && !validate.pass) {
       err = validate.errors.push('La foto del vehículo es requerida')
@@ -431,6 +442,7 @@ async function addVehicle (req, res) {
  */
 async function deleteVehicle (req, res) {
   const validate = validateIn(req, deleteRules, deleteMessage)
+  var status, message
   if (!validate.pass) {
     message = 'Los datos no cumplen con el formato requerido'
     return res.status(401).send(response(false, validate.errors, message))
@@ -452,7 +464,7 @@ async function deleteVehicle (req, res) {
       return modified
     })
     .catch(error => { return { code: 500, data: error } })
-  var status = usr.code === 200 || usr.code === 403 ? usr.code : 500, message
+  status = usr.code === 200 || usr.code === 403 ? usr.code : 500
   if (usr.code === 200) message = 'Vehículo eliminado'
   else if (usr.code === 403) message = 'Vehículo no existe'
   else message = 'Vehículo no existe'

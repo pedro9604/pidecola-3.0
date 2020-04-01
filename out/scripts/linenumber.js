@@ -1,7 +1,6 @@
 /* global document */
 (() => {
   const source = document.getElementsByClassName('prettyprint source linenums')
-  let i = 0
   let lineNumber = 0
   let lineId
   let lines
@@ -13,7 +12,7 @@
     lines = source[0].getElementsByTagName('li')
     totalLines = lines.length
 
-    for ( i < totalLines; i++) {
+    for (var i = 0; i < totalLines; i++) {
       lineNumber++
       lineId = `line${lineNumber}`
       lines[i].id = lineId
