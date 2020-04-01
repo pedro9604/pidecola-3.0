@@ -22,11 +22,11 @@ const users = require('../controllers/userController.js')
 const rides = require('../models/rideModel.js')
 
 // Funciones
-const callback      = require('../lib/utils/utils').callbackReturn
+const callback = require('../lib/utils/utils').callbackReturn
 const errorsMessage = require('../lib/utils/validation').rideMessage
-const response      = require('../lib/utils/response').response
-const rideRules     = require('../lib/utils/validation').rideRules
-const validateIn    = require('../lib/utils/validation').validateIn
+const response = require('../lib/utils/response').response
+const rideRules = require('../lib/utils/validation').rideRules
+const validateIn = require('../lib/utils/validation').validateIn
 
 ///////////////////////////////////////////////////////////////////////////////
 /////////////////////////// Endpoint Crear una cola ///////////////////////////
@@ -41,14 +41,14 @@ const validateIn    = require('../lib/utils/validation').validateIn
  * @async
  * @param {Object} req - Un HTTP Request
  * @param {Object} res - Un HTTP Response
- * @returns {Object} 
+ * @returns {Object}
  */
-async function create(req, res) {
+async function create (req, res) {
   rides.deleteMany({}, callback)
   const { status, errors, message } = await verifyDataRide(req.body)
   if (!status) return res.status(400).send(response(false, errors, message))
   const rideInf = await newRide(req.body)
-  if (!!rideInf) {
+  if (rideInf) {
     return res.status(200).send(response(true, rideInf, 'Cola creada'))
   } else {
     return res.status(500).send(response(true, rideInf, 'Cola no fue creada'))
@@ -73,12 +73,12 @@ async function create(req, res) {
  * @param {string} status
  * @returns {Verification}
  */
-async function verifyDataRide(dataRide) {
+async function verifyDataRide (dataRide) {
   const validate = validateIn(dataRide, rideRules, errorsMessage)
   const arrayPas = Array.isArray(dataRide.passenger)
-  var emptyPas   = true
-  var pass       = true
-  var validPass  = true
+  var emptyPas = true
+  var pass = true
+  var validPass = true
   const valSeats = parseInt(dataRide.seats) >= dataRide.passenger.length
   const rider = await users.findByEmail(dataRide.rider).then(callback) != null
   if (dataRide.passenger.length > 0) {
@@ -129,7 +129,7 @@ async function verifyDataRide(dataRide) {
  * @param {Object} dataRide - Datos de la cola a modificar
  * @returns {Object} Datos de la cola insertada en la base de datos
  */
-async function newRide(dataRide) {
+async function newRide (dataRide) {
   const { rider, passenger, seats, startLocation, destination } = dataRide
   const ride = {
     rider: rider,
@@ -158,14 +158,14 @@ async function newRide(dataRide) {
  * @async
  * @param {Object} req - Un HTTP Request
  * @param {Object} res - Un HTTP Response
- * @returns {Object} 
+ * @returns {Object}
  */
-async function endRide(req, res) {
+async function endRide (req, res) {
   const { status, errors, message } = await verifyDataRide(req.body)
   if (!status) return res.status(400).send(response(false, errors, message))
   const query = { $set: { ride_finished: true, status: 'Finalizado' } }
   const rideInf = await updateRide(req.body, query)
-  if (!!rideInf) {
+  if (rideInf) {
     return res.status(200).send(response(true, rideInf, 'Cola finalizada'))
   } else {
     return res.status(500).send(response(false, '', 'Cola no existe'))
@@ -179,10 +179,10 @@ async function endRide(req, res) {
  * @private
  * @async
  * @param {Object} rideInf  - Datos de la cola a modificar
- * @param {Object} query - Campos a modificar con valores nuevos 
+ * @param {Object} query - Campos a modificar con valores nuevos
  * @returns {Object} Datos de la cola modificada en la base de datos
  */
-async function updateRide(rideInf, query) {
+async function updateRide (rideInf, query) {
   const original = { returnOriginal: false }
   const data = {
     rider: rideInf.rider,
@@ -191,7 +191,7 @@ async function updateRide(rideInf, query) {
     start_location: rideInf.startLocation,
     destination: rideInf.destination
   }
-  return await rides.findOneAndUpdate(data, query, original, callback)
+  return rides.findOneAndUpdate(data, query, original).then(callback)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -207,13 +207,13 @@ async function updateRide(rideInf, query) {
  * @async
  * @param {Object} req - Un HTTP Request
  * @param {Object} res - Un HTTP Response
- * @returns {Object} 
+ * @returns {Object}
  */
-async function changeStatus(req, res) {
+async function changeStatus (req, res) {
   const { status, errors, message } = verifyStatusRide(req.body)
   if (!status) return res.status(400).send(response(false, errors, message))
-  const rideInf = await updateRide(req.body, {status: req.body.status})
-  if (!!rideInf) {
+  const rideInf = await updateRide(req.body, { status: req.body.status })
+  if (rideInf) {
     return res.status(200).send(response(true, rideInf, 'Estado cambiado'))
   } else {
     const err = 'Cola no existe'
@@ -229,10 +229,10 @@ async function changeStatus(req, res) {
  * @param {string} status
  * @returns {Verification}
  */
-function verifyStatusRide(statusRide) {
+function verifyStatusRide (statusRide) {
   const { status, errors, message } = verifyDataRide(statusRide)
   if (!status) return { status: status, errors: errors, message: message }
-  const obj  = { status: statusRide }
+  const obj = { status: statusRide }
   const rule = { status: 'required|string' }
   const mssg = { 'required.status': 'El estado de la solicitud es requerido' }
   const validate = validateIn(obj, rule, mssg)
@@ -272,13 +272,13 @@ function verifyStatusRide(statusRide) {
  * @async
  * @param {Object} req - Un HTTP Request
  * @param {Object} res - Un HTTP Response
- * @returns {Object} 
+ * @returns {Object}
  */
-async function commentARide(req, res) {
+async function commentARide (req, res) {
   const { status, errors, message } = await verifyComments(req.body)
   if (!status) return res.status(400).send(response(false, errors, message))
   const rideInf = await comment(req.body)
-  if (!!rideInf) {
+  if (rideInf) {
     return res.status(200).send(response(true, rideInf, 'Comentario agregado'))
   } else {
     const err = 'Cola no existe'
@@ -296,7 +296,7 @@ async function commentARide(req, res) {
  * @param {string} dataRide
  * @returns {Verification}
  */
-async function verifyComments(dataRide) {
+async function verifyComments (dataRide) {
   const rules = {
     rider: 'required|email',
     user: 'required|email',
@@ -310,11 +310,10 @@ async function verifyComments(dataRide) {
     'required.user': 'El correo del pasajero es necesario',
     'required.startLocation': 'El lugar de partida es necesario',
     'required.destination': 'El lugar de destino es necesario',
-    'required.like': 'El like es necesario',
-    'string': 'El comentario es necesario'
+    'required.like': 'El like es necesario'
   }
   const validate = validateIn(dataRide, rules, mssg)
-  const like = dataRide.like == 'Sí' || dataRide.like == 'No'
+  const like = dataRide.like === 'Sí' || dataRide.like === 'No'
   const rider = await users.findByEmail(dataRide.rider).then((sucs, err) => {
     return !err && !!sucs
   })
@@ -344,11 +343,11 @@ async function verifyComments(dataRide) {
  * @param {string} dataRide
  * @returns {Object}
  */
-async function comment(dataRide) {
-  const user  = dataRide.user
-  const like  = dataRide.like == 'Sí'
+async function comment (dataRide) {
+  const user = dataRide.user
+  const like = dataRide.like === 'Sí'
   const comen = !dataRide.comment ? undefined : dataRide.comment
-  const data  = {
+  const data = {
     rider: dataRide.rider,
     start_location: dataRide.startLocation,
     destination: dataRide.destination,
@@ -356,8 +355,8 @@ async function comment(dataRide) {
     ride_finished: true
   }
   const query = { user_id: user, like: like, dislike: !like, comment: comen }
-  return await rides.findOne(data).then((sucs, err) => {
-    if (!err && !!sucs) {
+  return rides.findOne(data).then((sucs, err) => {
+    if (!err && sucs) {
       for (var i = 0; i < sucs.comments.length; i++) {
         if (sucs.comments[i].user_id === query.user_id) {
           return sucs
@@ -377,7 +376,7 @@ async function comment(dataRide) {
 //////////////////////////// Exportar Endpoints ///////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-module.exports.create       = create
-module.exports.endRide      = endRide
+module.exports.create = create
+module.exports.endRide = endRide
 module.exports.changeStatus = changeStatus
 module.exports.commentARide = commentARide

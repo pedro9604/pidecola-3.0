@@ -1,7 +1,7 @@
-const callback   = require('../lib/utils/utils').callbackReturn
-const httpMocks  = require('node-mocks-http')
-const user       = require('../controllers/userController.js')
-const userDB     = require('../models/userModel.js')
+const callback = require('../lib/utils/utils').callbackReturn
+const httpMocks = require('node-mocks-http')
+const user = require('../controllers/userController.js')
+const userDB = require('../models/userModel.js')
 
 describe('create', () => {
   test('A new user is created', () => {
@@ -10,9 +10,7 @@ describe('create', () => {
       password: 'password',
       phoneNumber: 'phoneNumber'
     }
-    var request = httpMocks.createRequest({
-      body: data
-    })
+    var request = httpMocks.createRequest({ body: data })
     var response = httpMocks.createResponse()
     user.create(request, response).then(sucs => {
       expect(sucs.statusCode).toBe(200)
@@ -31,9 +29,7 @@ describe('create', () => {
       password: 'password',
       phoneNumber: 'phoneNumber'
     }
-    var request = httpMocks.createRequest({
-      body: data
-    })
+    var request = httpMocks.createRequest({ body: data })
     var response = httpMocks.createResponse()
     user.create(request, response).then(sucs => {
       expect(sucs.statusCode).toBe(403)
@@ -46,9 +42,7 @@ describe('create', () => {
       password: 'password',
       phoneNumber: 'phoneNumber'
     }
-    var request = httpMocks.createRequest({
-      body: data
-    })
+    var request = httpMocks.createRequest({ body: data })
     var response = httpMocks.createResponse()
     user.create(request, response).then(sucs => {
       expect(sucs.statusCode).toBe(400)
@@ -61,9 +55,7 @@ describe('create', () => {
       password: '',
       phoneNumber: 'phoneNumber'
     }
-    var request = httpMocks.createRequest({
-      body: data
-    })
+    var request = httpMocks.createRequest({ body: data })
     var response = httpMocks.createResponse()
     user.create(request, response).then(sucs => {
       expect(sucs.statusCode).toBe(400)
@@ -76,9 +68,7 @@ describe('create', () => {
       password: 'password',
       phoneNumber: ''
     }
-    var request = httpMocks.createRequest({
-      body: data
-    })
+    var request = httpMocks.createRequest({ body: data })
     var response = httpMocks.createResponse()
     user.create(request, response).then(sucs => {
       expect(sucs.statusCode).toBe(400)
@@ -116,7 +106,7 @@ describe('codeValidate', () => {
   })
 
   test('A request without code', () => {
-    const request  = httpMocks.createRequest({ body: { email: '00-00000' } })
+    const request = httpMocks.createRequest({ body: { email: '00-00000' } })
     const response = httpMocks.createResponse()
     user.codeValidate(request, response).then(sucs => {
       expect(sucs.statusCode).toBe(403)
@@ -124,7 +114,7 @@ describe('codeValidate', () => {
   })
 
   test('A request without email', () => {
-    const request  = httpMocks.createRequest({ body: { code: '0' } })
+    const request = httpMocks.createRequest({ body: { code: '0' } })
     const response = httpMocks.createResponse()
     user.codeValidate(request, response).then(sucs => {
       expect(sucs.statusCode).toBe(401)
@@ -132,7 +122,7 @@ describe('codeValidate', () => {
   })
 
   test('User is not pending for validating', () => {
-    const request  = httpMocks.createRequest({
+    const request = httpMocks.createRequest({
       body: { code: '0', email: '00-00001@usb.ve' }
     })
     const response = httpMocks.createResponse()
@@ -142,7 +132,7 @@ describe('codeValidate', () => {
   })
 
   test('User had been already validated', () => {
-    const request  = httpMocks.createRequest({
+    const request = httpMocks.createRequest({
       body: { code: '0', email: '11-11111@usb.ve' }
     })
     const response = httpMocks.createResponse()
@@ -152,7 +142,7 @@ describe('codeValidate', () => {
   })
 
   test('User is not pending for validating', () => {
-    const request  = httpMocks.createRequest({
+    const request = httpMocks.createRequest({
       body: { code: '987654321', email: '00-00000@usb.ve' }
     })
     const response = httpMocks.createResponse()
@@ -206,7 +196,7 @@ describe('getUserInformation', () => {
   })
 
   test('User can get his profile info', () => {
-    const request  = httpMocks.createRequest({
+    const request = httpMocks.createRequest({
       secret: { email: '00-00000@usb.ve' }
     })
     const response = httpMocks.createResponse()
@@ -216,7 +206,7 @@ describe('getUserInformation', () => {
   })
 
   test('Request without e-mail', () => {
-    const request  = httpMocks.createRequest({ secret: { email: '' } })
+    const request = httpMocks.createRequest({ secret: { email: '' } })
     const response = httpMocks.createResponse()
     user.getUserInformation(request, response).then(sucs => {
       expect(sucs.statusCode).toBe(401)
@@ -224,7 +214,7 @@ describe('getUserInformation', () => {
   })
 
   test('Email does not have e-mail format', () => {
-    const request  = httpMocks.createRequest({ secret: { email: '00-00000' } })
+    const request = httpMocks.createRequest({ secret: { email: '00-00000' } })
     const response = httpMocks.createResponse()
     user.getUserInformation(request, response).then(sucs => {
       expect(sucs.statusCode).toBe(401)
@@ -232,7 +222,7 @@ describe('getUserInformation', () => {
   })
 
   test('User not registered cannot get any profile info', () => {
-    const request  = httpMocks.createRequest({
+    const request = httpMocks.createRequest({
       secret: { email: '00-00001@usb.ve' }
     })
     const response = httpMocks.createResponse()
@@ -242,7 +232,7 @@ describe('getUserInformation', () => {
   })
 
   test('User not verified cannot get any profile info', () => {
-    const request  = httpMocks.createRequest({
+    const request = httpMocks.createRequest({
       secret: { email: '11-11111@usb.ve' }
     })
     const response = httpMocks.createResponse()
@@ -668,7 +658,7 @@ describe('updateUser', () => {
 
 describe('updateProfilePic', () => {
   const cloudinary = require('cloudinary')
-  const config     = require('../Config.js')
+  const config = require('../Config.js')
   cloudinary.config({
     cloud_name: config.CLOUD_NAME,
     api_key: config.API_KEY,
@@ -676,8 +666,8 @@ describe('updateProfilePic', () => {
   })
   var fs = require('fs')
   var stream = cloudinary.uploader.upload_stream(callback)
-  const filePath = `./__test__/testFiles/testUserPic.png`
-  //from: https://commons.wikimedia.org/wiki/File:User.svg
+  const filePath = './__test__/testFiles/testUserPic.png'
+  // from: https://commons.wikimedia.org/wiki/File:User.svg
   const code = { encoding: 'binary' }
   var fileReader = fs.createReadStream(filePath, code).pipe(stream)
 
@@ -728,7 +718,7 @@ describe('updateProfilePic', () => {
   })
 
   test('User provides a not-image file', () => {
-    const filePath = `./__test__/testFiles/noImageFile.txt`
+    const filePath = './__test__/testFiles/noImageFile.txt'
     fileReader = fs.createReadStream(filePath, code).pipe(stream)
     const request = httpMocks.createRequest({
       file: fileReader,
@@ -787,7 +777,7 @@ describe('updateProfilePic', () => {
 
 describe('addVehicle', () => {
   const cloudinary = require('cloudinary')
-  const config     = require('../Config.js')
+  const config = require('../Config.js')
   cloudinary.config({
     cloud_name: config.CLOUD_NAME,
     api_key: config.API_KEY,
@@ -795,8 +785,8 @@ describe('addVehicle', () => {
   })
   var fs = require('fs')
   var stream = cloudinary.uploader.upload_stream(callback)
-  const filePath = `./__test__/testFiles/testCarPic.png`
-  //from: https://pngimg.com/download/22574
+  const filePath = './__test__/testFiles/testCarPic.png'
+  // from: https://pngimg.com/download/22574
   const code = { encoding: 'binary' }
   var fileReader = fs.createReadStream(filePath, code).pipe(stream)
 
@@ -1142,7 +1132,6 @@ describe('addVehicle', () => {
   })
 })
 
-// Falta 1 caso
 describe('deleteVehicle', () => {
   beforeEach(() => {
     userDB.create({
@@ -1159,7 +1148,7 @@ describe('deleteVehicle', () => {
         color: 'black',
         vehicle_capacity: 1,
         vehicle_pic: 'FotoCarro'
-      }],
+      }]
     }).then(callback)
     userDB.create({
       email: '11-11111@usb.ve',
@@ -1167,7 +1156,7 @@ describe('deleteVehicle', () => {
       phone_number: 'phoneNumber1',
       first_name: 'Usuario',
       last_name: '1',
-      vehicles: [],
+      vehicles: []
     }).then(callback)
   })
 

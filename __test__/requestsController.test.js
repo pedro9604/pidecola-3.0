@@ -1,7 +1,7 @@
-const callback  = require('../lib/utils/utils').callbackReturn
+const callback = require('../lib/utils/utils').callbackReturn
 const httpMocks = require('node-mocks-http')
-const requests  = require('../controllers/requestsController')
-const userDB    = require('../models/userModel')
+const requests = require('../controllers/requestsController')
+const userDB = require('../models/userModel')
 
 describe('requestsList', () => {
   test('requestsList is available', () => {

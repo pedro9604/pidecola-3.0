@@ -22,27 +22,27 @@
 
 // Módulos
 const autentication = require('../autentication')
-const bcrypt        = require('bcryptjs')
-const files         = require('../lib/cloudinaryConfig')
-const users         = require('../models/userModel')
+const bcrypt = require('bcryptjs')
+const files = require('../lib/cloudinaryConfig')
+const users = require('../models/userModel')
 
 // Funciones
-const addVehicleRules   = require('../lib/utils/validation').addVehicleRules
+const addVehicleRules = require('../lib/utils/validation').addVehicleRules
 const addVehicleMessage = require('../lib/utils/validation').addVehicleMessage
-const callback          = require('../lib/utils/utils').callbackReturn
-const callbackMail      = require('../lib/utils/utils').callbackMail
-const deleteRules       = require('../lib/utils/validation').deleteRules
-const deleteMessage     = require('../lib/utils/validation').deleteMessage
-const emailRules        = require('../lib/utils/validation').emailRules
-const emailMessage      = require('../lib/utils/validation').emailMessage
-const registerMessage   = require('../lib/utils/validation').registerMessage
-const registerRules     = require('../lib/utils/validation').registerRules
-const response          = require('../lib/utils/response').response
-const sendEmail         = require('../lib/utils/emails').sendEmail
-const template          = require('../lib/utils/codeTemplate').template
-const updateRules       = require('../lib/utils/validation').updateRules
-const updateMessage     = require('../lib/utils/validation').updateMessage
-const validateIn        = require('../lib/utils/validation').validateIn
+const callback = require('../lib/utils/utils').callbackReturn
+const callbackMail = require('../lib/utils/utils').callbackMail
+const deleteRules = require('../lib/utils/validation').deleteRules
+const deleteMessage = require('../lib/utils/validation').deleteMessage
+const emailRules = require('../lib/utils/validation').emailRules
+const emailMessage = require('../lib/utils/validation').emailMessage
+const registerMessage = require('../lib/utils/validation').registerMessage
+const registerRules = require('../lib/utils/validation').registerRules
+const response = require('../lib/utils/response').response
+const sendEmail = require('../lib/utils/emails').sendEmail
+const template = require('../lib/utils/codeTemplate').template
+const updateRules = require('../lib/utils/validation').updateRules
+const updateMessage = require('../lib/utils/validation').updateMessage
+const validateIn = require('../lib/utils/validation').validateIn
 
 ///////////////////////////////////////////////////////////////////////////////
 ////////////////////////// Endpoint Crear un usuario //////////////////////////
@@ -57,16 +57,17 @@ const validateIn        = require('../lib/utils/validation').validateIn
  * @public
  * @param {Object} req - Un HTTP Request
  * @param {Object} res - Un HTTP Response
- * @returns {Object} 
+ * @returns {Object}
  */
-async function create(req, res) {
-  let { code, status, errors, message } = await verifyCreate(req.body)
+async function create (req, res) {
+  const { code, status, errors, message } = await verifyCreate(req.body)
   if (!status) return res.status(code).send(response(false, errors, message))
   req.body.password = await bcrypt.hash(req.body.password, 12)
   const user = await addUser(req.body).then((sucs, err) => {
-    if (!err) return { code: 200, user: sucs }
+    if (!err && sucs) return { code: 200, user: sucs }
     return { code: err.code === 11000 ? 11000 : 500, user: null }
   })
+  let mssg
   if (user.code === 200) {
     const create = await responseCreate(user.user)
     if (!create.sent) {
@@ -78,10 +79,10 @@ async function create(req, res) {
       return res.status(200).send(response(true, create.log, mssg))
     }
   } else if (user.code === 11000) {
-    let mssg = 'El usuario ya existe'
+    mssg = 'El usuario ya existe'
     return res.status(500).send(response(false, 'Ya existe usuario', mssg))
   } else {
-    let mssg = 'El usuario no ha sido creado debido a un error desconocido'
+    mssg = 'El usuario no ha sido creado debido a un error desconocido'
     return res.status(500).send(response(false, 'Error', mssg))
   }
 }
@@ -94,31 +95,31 @@ async function create(req, res) {
  * @param {string} dataRegister
  * @returns {Verification}
  */
-async function verifyCreate(dataRegister) {
+async function verifyCreate (dataRegister) {
   const validate = validateIn(dataRegister, registerRules, registerMessage)
-  var code    = 0
-  var err     = ''
+  var code = 0
+  var err = ''
   var message = ''
-  const user  = await findByEmail(dataRegister.email)
+  const user = await findByEmail(dataRegister.email)
   if (!(validate.pass && !user)) {
     if (!validate.pass) {
-      code    = 400
-      err     = validate.errors
+      code = 400
+      err = validate.errors
       message = 'Los datos introducidos no cumplen con el formato requerido'
     } else if (user.isVerify) {
-      code    = 403
-      err     = 'Usuario registrado'
+      code = 403
+      err = 'Usuario registrado'
       message = 'Usuario ya se ha registrado exitosamente'
     } else {
-      code    = 409
-      err     = 'Usuario debe validarse'
+      code = 409
+      err = 'Usuario debe validarse'
       message = 'El usuario debe ingresar código enviado a su e-mail'
-      let { sent, log, errors } = await responseCreate(user, true)
+      const { sent, log, errors } = await responseCreate(user, true)
       if (!sent) {
-        code    = 500
-        err     = errors
+        code = 500
+        err = errors
         message = 'El usuario debía validarse pero ocurrió un error reenviando'
-        message += ' el correo con el código de validación' 
+        message += ' el correo con el código de validación'
       }
     }
     return { code: code, status: false, errors: err, message: message }
@@ -135,7 +136,7 @@ async function verifyCreate(dataRegister) {
  * @param {Object} querySelect
  * @returns {Query}
  */
-async function findByEmail(email, querySelect = { password: 0 }) {
+async function findByEmail (email, querySelect = { password: 0 }) {
   return users.findOne({ email: email }, querySelect)
 }
 
@@ -148,7 +149,7 @@ async function findByEmail(email, querySelect = { password: 0 }) {
  * @param {boolean} [already]
  * @returns {Object}
  */
-async function responseCreate(usr, already = false) {
+async function responseCreate (usr, already = false) {
   const to = usr.email
   const sb = 'Bienvenido a Pide Cola USB, valida tu cuenta'
   let code
@@ -169,7 +170,7 @@ async function responseCreate(usr, already = false) {
  * @param {integer} [code]
  * @returns {Object|undefined}
  */
-async function updateCode(email, code = undefined) {
+async function updateCode (email, code = undefined) {
   const query = { email: email }
   const update = {
     $set: { temporalCode: code || Math.floor(Math.random() * 90000) + 9999 }
@@ -183,9 +184,9 @@ async function updateCode(email, code = undefined) {
  * @param {Object} dataUser
  * @returns {Query} información del usuario agregada a la base de datos
  */
-function addUser(dataUser) {
+function addUser (dataUser) {
   const { email, password, phoneNumber } = dataUser
-  if (email.split("@")[1] !== "usb.ve") return err 
+  if (email.split('@')[1] !== 'usb.ve') return null
   const data = {
     email: email,
     password: password,
@@ -208,25 +209,22 @@ function addUser(dataUser) {
  * @public
  * @param {Object} req - Un HTTP Request
  * @param {Object} res - Un HTTP Response
- * @returns {Object} 
+ * @returns {Object}
  */
-async function codeValidate(req, res) {
+async function codeValidate (req, res) {
+  var status, err, message
   if (!(req.body.code && req.body.email)) {
-    var status, err
-    var message = 'Los datos introducidos no cumplen con el formato requerido'
-    if (!req.body.code && !req.body.email) {
-      err = 'El código es necesario. El email es necesario', status = 400
-    } else if (!req.body.code) {
-      err = 'El código es necesario', status = 403
-    } else {
-      err = 'El email es necesario', status = 401
-    }
+    err = 'El código es necesario. El email es necesario'
+    message = 'Los datos introducidos no cumplen con el formato requerido'
+    if (!req.body.code && !req.body.email) { status = 400 }
+    else if (!req.body.code) { err = 'El código es necesario'; status = 403 }
+    else { err = 'El email es necesario'; status = 401 }
     return res.status(status).send(response(false, err, message))
   }
   const user = await findByEmail(req.body.email).then(user => {
     if (!user) return { code: 404, data: 'Usuario no existe' }
     if (user.isVerify) return { code: 400, data: 'Verificado' }
-    if (user.temporalCode != parseInt(req.body.code)) {
+    if (user.temporalCode !== parseInt(req.body.code)) {
       return { code: 401, data: 'Código no coincide' }
     }
     user.isVerify = true
@@ -235,7 +233,7 @@ async function codeValidate(req, res) {
     const token = autentication.generateToken(user.email)
     return { code: 200, data: [{ tkauth: token }] }
   }).catch(error => { return { code: 500, data: 'Error interno' } })
-  var message, status = user.code === 200 || user.code == 500 ? user.code : 401
+  status = user.code === 200 || user.code === 500 ? user.code : 401
   if (user.code === 200) {
     message = 'Usuario verificado'
   } else if (user.code === 404) {
@@ -247,7 +245,7 @@ async function codeValidate(req, res) {
   } else {
     message = 'Ha ocurrido un error desconocido, por favor intente nuevamente'
   }
-  return res.status(status).send(response(status == 200, user.data, message))
+  return res.status(status).send(response(status === 200, user.data, message))
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -260,12 +258,12 @@ async function codeValidate(req, res) {
  * @public
  * @param {Object} req - Un HTTP Request
  * @param {Object} res - Un HTTP Response
- * @returns {Object} 
+ * @returns {Object}
  */
-async function getUserInformation(req, res) {
+async function getUserInformation (req, res) {
   const validate = validateIn(req.secret, emailRules, emailMessage)
   if (!validate.pass) {
-    let message = 'Los datos no cumplen con el formato requerido'
+    const message = 'Los datos no cumplen con el formato requerido'
     return res.status(401).send(response(false, validate.errors, message))
   }
   const usr = await findByEmail(req.secret.email).then(callback)
@@ -286,9 +284,9 @@ async function getUserInformation(req, res) {
  * @public
  * @param {Object} req - Un HTTP Request
  * @param {Object} res - Un HTTP Response
- * @returns {Object} 
+ * @returns {Object}
  */
-async function updateUser(req, res) {
+async function updateUser (req, res) {
   const validate = validateIn(req, updateRules, updateMessage)
   var message = 'Debes estar verificar tu cuenta antes', status, data = null
   if (!validate.pass) {
@@ -298,7 +296,7 @@ async function updateUser(req, res) {
   const query = { $set: req.body }
   const usr = await updateUserByEmail(req.secret.email, query).then(callback)
   status = usr.isVerify ? 200 : 500
-  if (!!usr && usr.isVerify) data = usr, message = 'El Usuario fue actualizado'
+  if (!!usr && usr.isVerify) data = usr; message = 'El Usuario fue actualizado'
   else if (!usr.isVerify) data = 'Usuario no ha sido verificado'
   else message = 'El Usuario no existe'
   return res.status(status).send(response(usr.isVerify, data, message))
@@ -311,8 +309,8 @@ async function updateUser(req, res) {
  * @param {Object} query
  * @returns {Object}
  */
-function updateUserByEmail(email, query) {
-  return users.findOneAndUpdate({ email: email }, query, { returnOriginal: false, useFindAndModify: false, projection: {password: 0} })
+function updateUserByEmail (email, query) {
+  return users.findOneAndUpdate({ email: email }, query, { returnOriginal: false, useFindAndModify: false, projection: { password: 0 } })
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -322,14 +320,14 @@ function updateUserByEmail(email, query) {
 /**
  * Endpoint para agregar foto de perfil en el perfil de usuario. Se utiliza
  * Cloudinary y Multer para el manejo y almacenamiento de imágenes. En la BD
- * se almacena el URL de Cloudinary donde se encuentra la imagen  
+ * se almacena el URL de Cloudinary donde se encuentra la imagen
  * @async
  * @public
  * @param {Object} req - Un HTTP Request
  * @param {Object} res - Un HTTP Response
- * @returns {Object} 
+ * @returns {Object}
  */
-async function updateProfilePic(req, res) {
+async function updateProfilePic (req, res) {
   const validate = validateIn(req.secret, emailRules, emailMessage)
   var status = 401, err
   var message = 'Los datos introducidos no cumplen con el formato requerido'
@@ -344,19 +342,17 @@ async function updateProfilePic(req, res) {
     return res.status(status).send(response(false, err, message))
   }
   const usr = await findByEmail(req.secret.email)
-  .then( async user => {
-    let picture = await files.uploadFile(req.file.path)
-    if (!picture) return { code: 500, data: 'Error desconocido' }
-    user.$set({
-      profile_pic: picture.secure_url
+    .then(async user => {
+      const picture = await files.uploadFile(req.file.path)
+      if (!picture) return { code: 500, data: 'Error desconocido' }
+      user.$set({ profile_pic: picture.secure_url })
+      const modified = user.save().then((usr, err) => {
+        if (!err) return { code: 200, data: usr }
+        return { code: 501, data: err }
+      })
+      return modified
     })
-    const modified = user.save().then((usr, err) => {
-      if (!err) return { code: 200, data: usr }
-      return { code: 501, data: err }
-    })
-    return modified
-  })
-  .catch( error => { return { code: 500, data: 'Error desconocido' } })
+    .catch(error => { return { code: 500, data: 'Error desconocido' } })
   status = usr.code === 200 ? 200 : 500
   if (usr.code === 200) message = 'Foto de perfil agregada'
   else if (usr.code === 500) message = 'Ocurrió un error en el proceso'
@@ -372,15 +368,15 @@ async function updateProfilePic(req, res) {
  * Endpoint para agregar un vehículo al perfil de un usuario.
  * No debería modificarse a no ser que se cambie toda lógica detrás del
  * algoritmo de recomendación.
- * Endpoint para agregar vehiculo en la base de datos. Se actualiza el 
- * respectivo documento de usuario agregando un elemento en el arreglo 
- * vehiculo. 
+ * Endpoint para agregar vehiculo en la base de datos. Se actualiza el
+ * respectivo documento de usuario agregando un elemento en el arreglo
+ * vehiculo.
  * @public
  * @param {Object} req - Un HTTP Request
  * @param {Object} res - Un HTTP Response
- * @returns {Object} 
+ * @returns {Object}
  */
-async function addVehicle(req, res) {
+async function addVehicle (req, res) {
   const validate = validateIn(req, addVehicleRules, addVehicleMessage)
   var status = 401, err
   var message = 'Los datos introducidos no cumplen con el formato requerido'
@@ -395,24 +391,24 @@ async function addVehicle(req, res) {
     return res.status(status).send(response(false, err, message))
   }
   const usr = await findByEmail(req.secret.email)
-  .then( async user => {
-    if (user.vehicles) {
-      if (!!user.vehicles.find(vehicle => vehicle.plate === req.body.plate)) {
-        return { code: 403, data: user }
+    .then(async user => {
+      if (user.vehicles) {
+        if (user.vehicles.find(car => car.plate === req.body.plate)) {
+          return { code: 403, data: user }
+        }
       }
-    }
-    let picture = await files.uploadFile(req.file.path)
-    if (!picture) return { code: 500, data: user }
-    req.body.vehicle_pic = picture.secure_url
-    user.vehicles.push(req.body)
-    user.markModified('vehicles')
-    const modified = user.save().then((usr, err) => {
-      if (!err) return { code: 200, data: usr }
-      return { code: 501, data: err }
+      const picture = await files.uploadFile(req.file.path)
+      if (!picture) return { code: 500, data: user }
+      req.body.vehicle_pic = picture.secure_url
+      user.vehicles.push(req.body)
+      user.markModified('vehicles')
+      const modified = user.save().then((usr, err) => {
+        if (!err) return { code: 200, data: usr }
+        return { code: 501, data: err }
+      })
+      return modified
     })
-    return modified
-  })
-  .catch( error => { return {code: 502, data: error } })
+    .catch(error => { return { code: 502, data: error } })
   status = usr.code === 200 || usr.code === 403 ? usr.code : 500
   if (usr.code === 200) message = 'Vehículo agregado'
   else if (usr.code === 403) message = 'Vehículo ya existe'
@@ -426,36 +422,36 @@ async function addVehicle(req, res) {
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Endpoint para eliminar un vehiculo asociado a un 
- * documento de usuario dado la placa del vehiculo
-.code * @public
+ * Endpoint para eliminar un vehículo asociado a un documento de usuario dado
+ * la placa del vehículo
+ * @public
  * @param {Object} req - Un HTTP Request
  * @param {Object} res - Un HTTP Response
- * @returns {Object} 
+ * @returns {Object}
  */
-async function deleteVehicle(req, res) {
+async function deleteVehicle (req, res) {
   const validate = validateIn(req, deleteRules, deleteMessage)
   if (!validate.pass) {
     message = 'Los datos no cumplen con el formato requerido'
     return res.status(401).send(response(false, validate.errors, message))
   }
   const usr = await findByEmail(req.secret.email)
-  .then( async user => {
-    if (user.vehicles) {
-      if (!user.vehicles.find(vehicle => vehicle.plate === req.body.plate)) {
+    .then(async user => {
+      if (user.vehicles) {
+        if (!user.vehicles.find(car => car.plate === req.body.plate)) {
+          return { code: 403, data: user }
+        }
+      } else {
         return { code: 403, data: user }
       }
-    } else {
-      return { code: 403, data: user }
-    }
-    const query = { $pull: { vehicles: { plate: req.body.plate } } }
-    const modified = user.updateOne(query).then((usr, err) => {
-      if (err) return { code: 500, data: err }
-      return { code: 200, data: usr }
+      const query = { $pull: { vehicles: { plate: req.body.plate } } }
+      const modified = user.updateOne(query).then((usr, err) => {
+        if (err) return { code: 500, data: err }
+        return { code: 200, data: usr }
+      })
+      return modified
     })
-    return modified
-  })
-  .catch( error => { return { code: 500, data: error } })
+    .catch(error => { return { code: 500, data: error } })
   var status = usr.code === 200 || usr.code === 403 ? usr.code : 500, message
   if (usr.code === 200) message = 'Vehículo eliminado'
   else if (usr.code === 403) message = 'Vehículo no existe'
@@ -467,11 +463,11 @@ async function deleteVehicle(req, res) {
 //////////////////////////// Exportar Endpoints ///////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-module.exports.create             = create
-module.exports.findByEmail        = findByEmail // Esto no es un endpoint
-module.exports.codeValidate       = codeValidate
+module.exports.create = create
+module.exports.findByEmail = findByEmail // Esto no es un endpoint
+module.exports.codeValidate = codeValidate
 module.exports.getUserInformation = getUserInformation
-module.exports.updateUser         = updateUser
-module.exports.updateProfilePic   = updateProfilePic
-module.exports.addVehicle         = addVehicle
-module.exports.deleteVehicle      = deleteVehicle
+module.exports.updateUser = updateUser
+module.exports.updateProfilePic = updateProfilePic
+module.exports.addVehicle = addVehicle
+module.exports.deleteVehicle = deleteVehicle
