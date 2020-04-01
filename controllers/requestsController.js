@@ -129,7 +129,6 @@ async function create (req, res) {
   const { status, errors, message } = verifyRequest(req.body)
   if (!status) return res.status(400).send(response(false, errors, message))
   const user = await users.findByEmail(req.body.user).then(callback)
-  console.log('Usuario ', user)
   const request = {
     email: req.body.user,
     user: {
@@ -397,7 +396,7 @@ function changeStatus (email, place) {
  * @returns {Object}
  */
 async function offerRide (req, res) {
-  const { status, errors, message } = verifyOffer(req.body)
+  const { status, errors, message } = await verifyOffer(req.body)
   if (!status) return res.status(400).send(response(false, errors, message))
   const offer = await sendOffer(req.body)
   if (offer.sent) {
@@ -419,7 +418,7 @@ async function offerRide (req, res) {
  * @param {string} dataOffer.passenger - El correo del solicitante
  * @returns {Verification}
  */
-function verifyOffer (dataOffer) {
+async function verifyOffer (dataOffer) {
   const offerRules = {
     rider: 'required|email',
     passenger: 'required|email'
@@ -431,9 +430,19 @@ function verifyOffer (dataOffer) {
   let errors
   let message
   const validate = validateIn(dataOffer, offerRules, offerMessage)
-  if (!validate.pass) {
-    errors = validate.errors
-    message = 'Los datos introducidos no cumplen con el formato requerido'
+  const user = alreadyRequested(dataOffer.passenger).elem.status
+  const rider = users.findByEmail(dataOffer.rider).then(callback).vehicles
+  if (!(validate.pass && user && rider.length > 0)) {
+    if (!validate.pass) {
+      errors = validate.errors
+      message = 'Los datos introducidos no cumplen con el formato requerido'
+    } else if (!user) {
+      errors = 'Usuario no disponible para ofrecer cola'
+      message = 'El usuario seleccionado ya tiene una oferta previa'
+    } else {
+      errors = 'Conductor no tiene vehículos'
+      message = 'Para dar la cola tienes que registrar al menos un vehículo'
+    }
     return { status: false, errors: errors, message: message }
   }
   return { status: true, errors: '', message: '' }
