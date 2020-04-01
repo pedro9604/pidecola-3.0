@@ -157,38 +157,64 @@ async function create (req, res) {
  * @param {string} request
  * @returns {Verification}
  */
-function verifyRequest (request) {
+function verifyRequest (request, cancel = false) {
   const validate = validateIn(request, requestsRules, errorsMessage)
   const fromUSB = request.startLocation === 'USB'
   const toUSB = request.destination === 'USB'
   const start = fromNameToInt(request.startLocation) > -2
   const dest = fromNameToInt(request.destination) > -2
   const exists = alreadyRequested(request.user).in
-  if (!(validate.pass && !exists && (fromUSB !== toUSB) && start && dest)) {
-    var errors = ''
-    var message = ''
-    if (!validate.pass) {
-      errors = validate.errors
-      message = 'Los datos introducidos no cumplen con el formato requerido'
-    } else if (exists) {
-      errors = 'Solicitud existente'
-      message = 'No puedes solicitar más de una cola'
-    } else if (fromUSB) {
-      errors = 'Cola es desde la USB'
-      message = 'No puede haber una cola desde la USB hasta la USB'
-    } else if (!toUSB) {
-      errors = 'Cola no involucra a la USB'
-      message = 'No puede haber una cola que no salga de, o llegue a, la USB'
-    } else if (!start) {
-      errors = 'Cola no empieza en una parada autorizada'
-      message = 'Ninguna cola puede involucrar una parada no autorizada'
+  var errors = '', message = ''
+  if (!cancel) {
+    if (!(validate.pass && !exists && (fromUSB !== toUSB) && start && dest)) {
+      if (!validate.pass) {
+        errors = validate.errors
+        message = 'Los datos introducidos no cumplen con el formato requerido'
+      } else if (exists) {
+        errors = 'Solicitud existente'
+        message = 'No puedes solicitar más de una cola'
+      } else if (fromUSB) {
+        errors = 'Cola es desde la USB'
+        message = 'No puede haber una cola desde la USB hasta la USB'
+      } else if (!toUSB) {
+        errors = 'Cola no involucra a la USB'
+        message = 'No puede haber una cola que no salga de, o llegue a, la USB'
+      } else if (!start) {
+        errors = 'Cola no empieza en una parada autorizada'
+        message = 'Ninguna cola puede involucrar una parada no autorizada'
+      } else {
+        errors = 'Cola no termina en una parada autorizada'
+        message = 'Ninguna cola puede involucrar una parada no autorizada'
+      }
     } else {
-      errors = 'Cola no termina en una parada autorizada'
-      message = 'Ninguna cola puede involucrar una parada no autorizada'
+      return { status: true, errors: '', message: '' }
     }
-    return { status: false, errors: errors, message: message }
+  } else {
+    if (!(validate.pass && exists && (fromUSB !== toUSB) && start && dest)) {
+      if (!validate.pass) {
+        errors = validate.errors
+        message = 'Los datos introducidos no cumplen con el formato requerido'
+      } else if (!exists) {
+        errors = 'Solicitud inexistente'
+        message = 'No tienes una cola que cancelar'
+      } else if (fromUSB) {
+        errors = 'Cola es desde la USB'
+        message = 'No puede haber una cola desde la USB hasta la USB'
+      } else if (!toUSB) {
+        errors = 'Cola no involucra a la USB'
+        message = 'No puede haber una cola que no salga de, o llegue a, la USB'
+      } else if (!start) {
+        errors = 'Cola no empieza en una parada autorizada'
+        message = 'Ninguna cola puede involucrar una parada no autorizada'
+      } else {
+        errors = 'Cola no termina en una parada autorizada'
+        message = 'Ninguna cola puede involucrar una parada no autorizada'
+      }
+    } else {
+      return { status: true, errors: '', message: '' }
+    }
   }
-  return { status: true, errors: '', message: '' }
+  return { status: false, errors: errors, message: message }
 }
 
 /**
@@ -260,10 +286,9 @@ function add (newRequest) {
  * @returns {Object}
  */
 function cancel (req, res) {
-  const { status, errors, message } = verifyRequest(req.body)
+  const { status, errors, message } = verifyRequest(req.body, true)
   if (!status) return res.status(400).send(response(false, errors, message))
   var del = remove(req.body)
-
   if (del) {
     return res.status(200).send(response(true, '', 'Solicitud exitosa'))
   } else {
@@ -289,7 +314,7 @@ function remove (deleteRequest) {
     index = fromNameToInt(deleteRequest.startLocation)
   }
   for (let i = 0; i < requestsList[index].requests.length; i++) {
-    if (requestsList[index].requests[i].user === deleteRequest.user) {
+    if (requestsList[index].requests[i].email === deleteRequest.user) {
       requestsList[index].requests.splice(i, 1)
       return true
     }
