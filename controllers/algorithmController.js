@@ -12,7 +12,7 @@ const requests = require('./requestsController.js')
 const response = require('../lib/utils/response').response
 
 /**
- * @typedef Graph 
+ * @typedef Graph
  * @type {Object[]}
  * @property {Object} stops - Dos paradas
  * @property {string} stops.from - Parada inicial
@@ -79,7 +79,7 @@ const stops = [
  * @param {Object} set  - Un conjunto de dos paradas
  * @returns {boolean}
  */
-function member(elem, set) { 
+function member (elem, set) {
   return set.from === elem || set.to === elem
 }
 
@@ -91,7 +91,7 @@ function member(elem, set) {
  * @param {Object} set  - Un conjunto de dos paradas
  * @returns {boolean}
  */
-function notMember(elem, set) {
+function notMember (elem, set) {
   return !member(elem, set)
 }
 
@@ -105,7 +105,7 @@ function notMember(elem, set) {
  * @param {function} predicate - Un función que devuelve un booleano
  * @returns {Array}
  */
-function filter(set, predicate) {
+function filter (set, predicate) {
   const filtered = []
   for (let i = 0; i < set.length; i++) {
     if (predicate(set[i])) {
@@ -125,7 +125,7 @@ function filter(set, predicate) {
  * @param {string} b - Una parada
  * @returns {string|Object}
  */
-function difference(a, b) {
+function difference (a, b) {
   if (a.from === b) {
     return a.to
   } else if (a.to === b) {
@@ -146,7 +146,7 @@ function difference(a, b) {
  * @param {string} stop - Una parada
  * @returns {Stop[]}
  */
-function prioridad(stop) {
+function prioridad (stop) {
   const output = [requests.requestsList[requests.cast(stop)]]
   const f = filter(stops, e => {
     return member(stop, e.stops) && notMember('USB', e.stops)
@@ -177,9 +177,9 @@ function prioridad(stop) {
  * @public
  * @param {Object} req - Un HTTP Request
  * @param {Object} res - Un HTTP Response
- * @returns {Object} 
+ * @returns {Object}
  */
-function recommend(req, res) {
+function recommend (req, res) {
   try {
     const info = prioridad(req.body.destination)
     return res.status(200).send(response(true, info, ''))

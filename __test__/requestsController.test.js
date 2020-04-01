@@ -1,7 +1,7 @@
-const callback  = require('../lib/utils/utils').callbackReturn
+const callback = require('../lib/utils/utils').callbackReturn
 const httpMocks = require('node-mocks-http')
-const requests  = require('../controllers/requestsController')
-const userDB    = require('../models/userModel')
+const requests = require('../controllers/requestsController')
+const userDB = require('../models/userModel')
 
 describe('requestsList', () => {
   test('requestsList is available', () => {
@@ -389,6 +389,38 @@ describe('offerRide', () => {
         status: true
       })
     }
+    userDB.create({
+      email: '22-22222@usb.ve',
+      password: 'password2',
+      phone_number: 'phoneNumber2',
+      first_name: 'Usuario',
+      last_name: '2',
+      age: 2,
+      gender: 'O',
+      major: 'Ing. de Computación',
+      profile_pic: 'Foto2',
+      status: 'Disponible',
+      community: 'Estudiante',
+      vehicles: [],
+      isVerify: true,
+      temporalCode: 2
+    }).then(callback)
+    requests.requestsList[0].requests.push({
+      email: '22-22222@usb.ve',
+      user: {
+        usbid: '22-22222',
+        phone: 'phoneNumber2',
+        fName: 'Usuario',
+        lName: '2',
+        major: 'Ing. de Computación',
+        prPic: 'Foto2'
+      },
+      startLocation: 'Baruta',
+      destination: 'USB',
+      comment: 'Nothing',
+      im_going: 'Who cares?',
+      status: false
+    })
   })
 
   afterEach(() => {
@@ -409,8 +441,9 @@ describe('offerRide', () => {
       body: data
     })
     const response = httpMocks.createResponse()
-    requests.offerRide(request, response)
-    expect(response.statusCode).toBe(200)
+    requests.offerRide(request, response).then(sucs => {
+      expect(response.statusCode).toBe(200)
+    })
   })
 
   test('rider is not an email', () => {
@@ -422,8 +455,9 @@ describe('offerRide', () => {
       body: data
     })
     const response = httpMocks.createResponse()
-    requests.offerRide(request, response)
-    expect(response.statusCode).toBe(400)
+    requests.offerRide(request, response).then(sucs => {
+      expect(response.statusCode).toBe(400)
+    })
   })
 
   test('passenger is not an email', () => {
@@ -435,8 +469,37 @@ describe('offerRide', () => {
       body: data
     })
     const response = httpMocks.createResponse()
-    requests.offerRide(request, response)
-    expect(response.statusCode).toBe(400)
+    requests.offerRide(request, response).then(sucs => {
+      expect(response.statusCode).toBe(400)
+    })
+  })
+
+  test('User2 (without vehicles) offers a ride to User0', () => {
+    const data = {
+      rider: '22-22222@usb.ve',
+      passenger: '11-11111@usb.ve'
+    }
+    const request = httpMocks.createRequest({
+      body: data
+    })
+    const response = httpMocks.createResponse()
+    requests.offerRide(request, response).then(sucs => {
+      expect(response.statusCode).toBe(400)
+    })
+  })
+
+  test('Passenger is not available for offering a ride', () => {
+    const data = {
+      rider: '00-00000@usb.ve',
+      passenger: '22-22222@usb.ve'
+    }
+    const request = httpMocks.createRequest({
+      body: data
+    })
+    const response = httpMocks.createResponse()
+    requests.offerRide(request, response).then(sucs => {
+      expect(response.statusCode).toBe(400)
+    })
   })
 })
 

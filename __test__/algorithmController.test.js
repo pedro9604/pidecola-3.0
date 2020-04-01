@@ -4,8 +4,13 @@ const httpMocks = require('node-mocks-http')
 
 describe('prioridad', () => {
   beforeEach(() => {
+    var usr, dest
     for (var i = 0; i < 5; i++) {
-      if (i == 0) { var usr = 'baruta'; var dest = 'Baruta' } else if (i == 1) { var usr = 'coche'; var dest = 'Coche' } else if (i == 2) { var usr = 'chacaito'; var dest = 'Chacaito' } else if (i == 3) { var usr = 'la-paz'; var dest = 'La Paz' } else { var usr = 'bellas-artes'; var dest = 'Bellas Artes' }
+      if (i === 0) usr = 'baruta'; dest = 'Baruta'
+      if (i === 1) usr = 'coche'; dest = 'Coche'
+      if (i === 2) usr = 'chacaito'; dest = 'Chacaito'
+      if (i === 3) usr = 'la-paz'; dest = 'La Paz'
+      if (i === 4) usr = 'bellas-artes'; dest = 'Bellas Artes'
       for (var j = 1; j < 4; j++) {
         requests.requestsList[i].requests.push({
           user: usr + j + '@usb.ve',
@@ -13,9 +18,9 @@ describe('prioridad', () => {
           destination: 'USB'
         })
       }
-      for (var j = 4; j < 7; j++) {
+      for (var k = 4; k < 7; k++) {
         requests.requestsList[i].requests.push({
-          user: usr + j + '@usb.ve',
+          user: usr + k + '@usb.ve',
           startLocation: 'USB',
           destination: dest
         })
@@ -120,8 +125,13 @@ describe('prioridad', () => {
 
 describe('stress', () => {
   beforeEach(() => {
+    var usr, dest
     for (var i = 0; i < 5; i++) {
-      if (i == 0) { var usr = 'baruta'; var dest = 'Baruta' } else if (i == 1) { var usr = 'coche'; var dest = 'Coche' } else if (i == 2) { var usr = 'chacaito'; var dest = 'Chacaito' } else if (i == 3) { var usr = 'la-paz'; var dest = 'La Paz' } else { var usr = 'bellas-artes'; var dest = 'Bellas Artes' }
+      if (i === 0) usr = 'baruta'; dest = 'Baruta'
+      if (i === 1) usr = 'coche'; dest = 'Coche'
+      if (i === 2) usr = 'chacaito'; dest = 'Chacaito'
+      if (i === 3) usr = 'la-paz'; dest = 'La Paz'
+      if (i === 4) usr = 'bellas-artes'; dest = 'Bellas Artes'
       for (var j = 1; j < 32769; j++) {
         requests.requestsList[i].requests.push({
           user: usr + j + '@usb.ve',
@@ -129,9 +139,9 @@ describe('stress', () => {
           destination: 'USB'
         })
       }
-      for (var j = 32769; j < 65536; j++) {
+      for (var k = 32769; k < 65536; k++) {
         requests.requestsList[i].requests.push({
-          user: usr + j + '@usb.ve',
+          user: usr + k + '@usb.ve',
           startLocation: 'USB',
           destination: dest
         })
