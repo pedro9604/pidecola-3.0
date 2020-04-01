@@ -25,15 +25,15 @@
 const users = require('./userController.js')
 
 // Funciones
-const callback         = require('../lib/utils/utils').callbackReturn
-const callbackMail     = require('../lib/utils/utils').callbackMail
-const errorsMessage    = require('../lib/utils/validation').requestsMessage
-const offerTemplate    = require('../lib/utils/codeTemplate').offerTemplate
-const requestsRules    = require('../lib/utils/validation').requestsRules
+const callback = require('../lib/utils/utils').callbackReturn
+const callbackMail = require('../lib/utils/utils').callbackMail
+const errorsMessage = require('../lib/utils/validation').requestsMessage
+const offerTemplate = require('../lib/utils/codeTemplate').offerTemplate
+const requestsRules = require('../lib/utils/validation').requestsRules
 const responseTemplate = require('../lib/utils/codeTemplate').responseTemplate
-const response         = require('../lib/utils/response').response
-const sendEmail        = require('../lib/utils/emails').sendEmail
-const validateIn       = require('../lib/utils/validation').validateIn
+const response = require('../lib/utils/response').response
+const sendEmail = require('../lib/utils/emails').sendEmail
+const validateIn = require('../lib/utils/validation').validateIn
 
 ///////////////////////////////////////////////////////////////////////////////
 //////////////////////// Variable global: requestsList ////////////////////////
@@ -92,7 +92,7 @@ const requestsList = [
  * @param {string} name
  * @returns {number} Índice válido, -1 si name === 'USB', -2 si no
  */
-function fromNameToInt(name) {
+function fromNameToInt (name) {
   if (name === 'Baruta') return 0
   else if (name === 'Coche') return 1
   else if (name === 'Chacaito') return 2
@@ -123,13 +123,12 @@ function fromNameToInt(name) {
  * @async
  * @param {Object} req - Un HTTP Request
  * @param {Object} res - Un HTTP Response
- * @returns {Object} 
+ * @returns {Object}
  */
-async function create(req, res) {
+async function create (req, res) {
   const { status, errors, message } = verifyRequest(req.body)
   if (!status) return res.status(400).send(response(false, errors, message))
   const user = await users.findByEmail(req.body.user).then(callback)
-  console.log('Usuario ', user)
   const request = {
     email: req.body.user,
     user: {
@@ -158,14 +157,14 @@ async function create(req, res) {
  * @param {string} request
  * @returns {Verification}
  */
-function verifyRequest(request) {
+function verifyRequest (request) {
   const validate = validateIn(request, requestsRules, errorsMessage)
-  const fromUSB  = request.startLocation === 'USB'
-  const toUSB    = request.destination === 'USB'
-  const start    = fromNameToInt(request.startLocation) > -2
-  const dest     = fromNameToInt(request.destination) > -2
-  const exists   = alreadyRequested(request.user).in
-  if (!(validate.pass && !exists && (fromUSB != toUSB) && start && dest)) {
+  const fromUSB = request.startLocation === 'USB'
+  const toUSB = request.destination === 'USB'
+  const start = fromNameToInt(request.startLocation) > -2
+  const dest = fromNameToInt(request.destination) > -2
+  const exists = alreadyRequested(request.user).in
+  if (!(validate.pass && !exists && (fromUSB !== toUSB) && start && dest)) {
     var errors = ''
     var message = ''
     if (!validate.pass) {
@@ -201,7 +200,7 @@ function verifyRequest(request) {
  * @param {string} email - Un email
  * @returns {Elem}
  */
-function alreadyRequested(email) {
+function alreadyRequested (email) {
   for (var i = 0; i < requestsList.length; i++) {
     if (inList(email, requestsList[i].requests).in) {
       return inList(email, requestsList[i].requests)
@@ -220,7 +219,7 @@ function alreadyRequested(email) {
  * @param {Object[]} list - Una lista de solicitudes
  * @returns {Elem}
  */
-function inList(email, list) {
+function inList (email, list) {
   for (var i = 0; i < list.length; i++) {
     if (list[i].email === email) return { in: true, elem: list[i] }
   }
@@ -234,9 +233,8 @@ function inList(email, list) {
  * @param {Object} newRequest
  * @returns {Object} Solicitud insertada o solicitud recibida si hay error
  */
-function add(newRequest) {
+function add (newRequest) {
   const fromUSB = newRequest.startLocation === 'USB'
-  const toUSB   = newRequest.destination === 'USB'
   let index
   if (fromUSB) {
     index = fromNameToInt(newRequest.destination)
@@ -261,7 +259,7 @@ function add(newRequest) {
  * @param {Object} res - Un HTTP Response
  * @returns {Object}
  */
-function cancel(req, res) {
+function cancel (req, res) {
   const { status, errors, message } = verifyRequest(req.body)
   if (!status) return res.status(400).send(response(false, errors, message))
   var del = remove(req.body)
@@ -282,7 +280,7 @@ function cancel(req, res) {
  * @param {Object} deleteRequest
  * @returns {boolean} true si y solo si fue correctamente eliminada
  */
-function remove(deleteRequest) {
+function remove (deleteRequest) {
   let index
   const fromUSB = deleteRequest.startLocation === 'USB'
   if (fromUSB) {
@@ -312,7 +310,7 @@ function remove(deleteRequest) {
  * @param {Object} res - Un HTTP Response
  * @returns {Object}
  */
-function updateStatus(req, res) {
+function updateStatus (req, res) {
   const { status, errors, message } = verifyStatus(req.body)
   if (!status) {
     return res.status(400).send(response(false, errors, message))
@@ -328,20 +326,23 @@ function updateStatus(req, res) {
  * algoritmo de recomendación.
  * @author Francisco Márquez <12-11163@usb.ve>
  * @private
- * @param {Object} request 
+ * @param {Object} request
  * @param {string} request.user  - Un correo de usuario.
  * @param {string} request.place - Una parada del sistema PideCola
  * @returns {Verification}
  */
-function verifyStatus(request) {
-  const changeStatusRules = {user: 'required|email', place: 'required|string'}
+function verifyStatus (request) {
+  const changeStatusRules = {
+    user: 'required|email',
+    place: 'required|string'
+  }
   const errorMessage = {
     'required.user': 'El email del usuario es necesario',
     'required.place': 'El lugar, diferente de la USB, necesario'
   }
   const validate = validateIn(request, changeStatusRules, errorMessage)
   const index = fromNameToInt(request.place)
-  if (!(validate.pass && request.place != 'USB' && index > -1)) {
+  if (!(validate.pass && request.place !== 'USB' && index > -1)) {
     var errors = ''
     var message = ''
     if (!validate.pass) {
@@ -369,7 +370,7 @@ function verifyStatus(request) {
  * @param {string} email - Un email
  * @param {string} place - Una parada
  */
-function changeStatus(email, place) {
+function changeStatus (email, place) {
   const s = fromNameToInt(place)
   for (var i = 0; i < requestsList[s].requests.length; i++) {
     if (requestsList[s].requests[i].email === email) {
@@ -394,8 +395,8 @@ function changeStatus(email, place) {
  * @param {Object} res - Un HTTP Response
  * @returns {Object}
  */
-async function offerRide(req, res) {
-  const { status, errors, message } = verifyOffer(req.body)
+async function offerRide (req, res) {
+  const { status, errors, message } = await verifyOffer(req.body)
   if (!status) return res.status(400).send(response(false, errors, message))
   const offer = await sendOffer(req.body)
   if (offer.sent) {
@@ -412,13 +413,16 @@ async function offerRide(req, res) {
  * algoritmo de recomendación.
  * @author Francisco Márquez <12-11163@usb.ve>
  * @private
- * @param {Object} dataOffer 
+ * @param {Object} dataOffer
  * @param {string} dataOffer.rider     - El correo del ofertante
  * @param {string} dataOffer.passenger - El correo del solicitante
  * @returns {Verification}
  */
-function verifyOffer(dataOffer) {
-  const offerRules = { rider: 'required|email', passenger: 'required|email' }
+async function verifyOffer (dataOffer) {
+  const offerRules = {
+    rider: 'required|email',
+    passenger: 'required|email'
+  }
   const offerMessage = {
     'required.rider': 'El conductor es necesario',
     'required.passenger': 'El pasajero es necesario'
@@ -426,9 +430,19 @@ function verifyOffer(dataOffer) {
   let errors
   let message
   const validate = validateIn(dataOffer, offerRules, offerMessage)
-  if (!validate.pass) {
-    errors = validate.errors
-    message = 'Los datos introducidos no cumplen con el formato requerido'
+  const user = alreadyRequested(dataOffer.passenger).elem.status
+  const rider = users.findByEmail(dataOffer.rider).then(callback).vehicles
+  if (!(validate.pass && user && rider.length > 0)) {
+    if (!validate.pass) {
+      errors = validate.errors
+      message = 'Los datos introducidos no cumplen con el formato requerido'
+    } else if (!user) {
+      errors = 'Usuario no disponible para ofrecer cola'
+      message = 'El usuario seleccionado ya tiene una oferta previa'
+    } else {
+      errors = 'Conductor no tiene vehículos'
+      message = 'Para dar la cola tienes que registrar al menos un vehículo'
+    }
     return { status: false, errors: errors, message: message }
   }
   return { status: true, errors: '', message: '' }
@@ -456,7 +470,7 @@ function verifyOffer(dataOffer) {
  * @param {string} offer.passenger - El correo del solicitante
  * @returns {SentStatus}
  */
-async function sendOffer(offer) {
+async function sendOffer (offer) {
   const subj = 'Nueva oferta de cola'
   const name = await users.findByEmail(offer.passenger).then(callback)
   const html = offerTemplate(name.first_name)
@@ -478,7 +492,7 @@ async function sendOffer(offer) {
  * @param {Object} res - Un HTTP Response
  * @returns {Object}
  */
-async function respondOfferRide(req, res) {
+async function respondOfferRide (req, res) {
   const { status, errors, message } = verifyRespondOffer(req.body)
   if (!status) return res.status(400).send(response(false, errors, message))
   const answer = await respondOffer(req.body)
@@ -495,13 +509,13 @@ async function respondOfferRide(req, res) {
  * algoritmo de recomendación.
  * @author Francisco Márquez <12-11163@usb.ve>
  * @private
- * @param {Object} dataResponse 
+ * @param {Object} dataResponse
  * @param {string} dataResponse.rider     - El correo del ofertante
  * @param {string} dataResponse.passenger - El correo del solicitante
  * @param {string} dataResponse.accept    - String = 'Sí' || 'No'
  * @returns {Verification}
  */
-function verifyRespondOffer(dataResponse) {
+function verifyRespondOffer (dataResponse) {
   const responseRules = {
     rider: 'required|email',
     passenger: 'required|email',
@@ -542,13 +556,13 @@ function verifyRespondOffer(dataResponse) {
  * @param {string} response.passenger - El correo del solicitante
  * @returns {SentStatus}
  */
-async function respondOffer(response) {
+async function respondOffer (response) {
   if (response.accept === 'Sí') {
     if (remove(alreadyRequested(response.passenger).elem)) {
       const subj = 'Han respondido a tu oferta de cola'
       const name = await users.findByEmail(response.rider).then(callback)
       const html = responseTemplate(name.first_name)
-      return sendEmail(offer.rider, subj, html).then(callbackMail)
+      return sendEmail(response.rider, subj, html).then(callbackMail)
     } else {
       const log = 'Parece que la solicitud de cola no existe'
       const errors = 'La solicitud de cola no fue encontrada'
@@ -558,7 +572,7 @@ async function respondOffer(response) {
     const subj = 'Han respondido a tu oferta de cola'
     const name = await users.findByEmail(response.rider).then(callback)
     const html = responseTemplate(name.first_name)
-    return sendEmail(offer.rider, subj, html).then(callbackMail)
+    return sendEmail(response.rider, subj, html).then(callbackMail)
   }
 }
 
@@ -566,10 +580,10 @@ async function respondOffer(response) {
 //////////////////////////// Exportar Endpoints ///////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-module.exports.requestsList     = requestsList
-module.exports.cast             = fromNameToInt // Esto no es un endpoint
-module.exports.create           = create
-module.exports.cancel           = cancel
-module.exports.updateStatus     = updateStatus
-module.exports.offerRide        = offerRide
+module.exports.requestsList = requestsList // Esto no es un endpoint
+module.exports.cast = fromNameToInt // Esto no es un endpoint
+module.exports.create = create
+module.exports.cancel = cancel
+module.exports.updateStatus = updateStatus
+module.exports.offerRide = offerRide
 module.exports.respondOfferRide = respondOfferRide

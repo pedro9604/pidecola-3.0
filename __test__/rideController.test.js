@@ -1,8 +1,8 @@
-const callback  = require('../lib/utils/utils').callbackReturn
+const callback = require('../lib/utils/utils').callbackReturn
 const httpMocks = require('node-mocks-http')
-const ride      = require('../controllers/rideController.js')
-const rideDB    = require('../models/rideModel.js')
-const userDB    = require('../models/userModel.js')
+const ride = require('../controllers/rideController.js')
+const rideDB = require('../models/rideModel.js')
+const userDB = require('../models/userModel.js')
 
 describe('create', () => {
   beforeEach(() => {
@@ -253,7 +253,7 @@ describe('endRide', () => {
       status: 'En Camino',
       start_location: 'Coche',
       destination: 'USB',
-      time: new Date(2020,4,8,7,30,0,0),
+      time: new Date(2020, 4, 8, 7, 30, 0, 0),
       ride_finished: false,
       comments: []
     }).then(callback)
@@ -511,7 +511,7 @@ describe('changeStatus', () => {
       status: 'En Espera',
       start_location: 'Coche',
       destination: 'USB',
-      time: new Date(2020,4,8,7,30,0,0),
+      time: new Date(2020, 4, 8, 7, 30, 0, 0),
       ride_finished: false,
       comments: []
     }).then(callback)
@@ -522,7 +522,7 @@ describe('changeStatus', () => {
       status: 'En Camino',
       start_location: 'USB',
       destination: 'Baruta',
-      time: new Date(2020,4,9,12,30,0,0),
+      time: new Date(2020, 4, 9, 12, 30, 0, 0),
       ride_finished: false,
       comments: []
     }).then(callback)
@@ -825,7 +825,7 @@ describe('commentARide', () => {
       status: 'Finalizado',
       start_location: 'Coche',
       destination: 'USB',
-      time: new Date(2020,4,8,7,30,0,0),
+      time: new Date(2020, 4, 8, 7, 30, 0, 0),
       ride_finished: true,
       comments: []
     }).then(callback)
@@ -884,7 +884,7 @@ describe('commentARide', () => {
       user: '00-00000@usb.ve',
       startLocation: 'Coche',
       destination: 'USB',
-      like: 'Sí',
+      like: 'Sí'
     }
     var request = httpMocks.createRequest({
       body: data
@@ -901,7 +901,7 @@ describe('commentARide', () => {
       user: '00-00000@usb.ve',
       startLocation: 'Coche',
       destination: 'USB',
-      like: 'No',
+      like: 'No'
     }
     var request = httpMocks.createRequest({
       body: data
@@ -973,7 +973,7 @@ describe('commentARide', () => {
       startLocation: 'USB',
       destination: 'Baruta',
       like: 'Sí',
-      comment : '1'
+      comment: '1'
     }
     var request = httpMocks.createRequest({
       body: data
@@ -991,7 +991,7 @@ describe('commentARide', () => {
       startLocation: 1,
       destination: 'USB',
       like: 'Sí',
-      comment : '1'
+      comment: '1'
     }
     var request = httpMocks.createRequest({
       body: data
@@ -1009,7 +1009,7 @@ describe('commentARide', () => {
       startLocation: 'Maracay',
       destination: 'USB',
       like: 'Sí',
-      comment : '1'
+      comment: '1'
     }
     var request = httpMocks.createRequest({
       body: data
@@ -1027,7 +1027,7 @@ describe('commentARide', () => {
       startLocation: 'USB',
       destination: 1,
       like: 'Sí',
-      comment : '1'
+      comment: '1'
     }
     var request = httpMocks.createRequest({
       body: data
@@ -1045,7 +1045,7 @@ describe('commentARide', () => {
       startLocation: 'USB',
       destination: 'Maracay',
       like: 'Sí',
-      comment : '1'
+      comment: '1'
     }
     var request = httpMocks.createRequest({
       body: data
@@ -1063,7 +1063,7 @@ describe('commentARide', () => {
       startLocation: 'Chacaito',
       destination: 'Baruta',
       like: 'Sí',
-      comment : '1'
+      comment: '1'
     }
     var request = httpMocks.createRequest({
       body: data
