@@ -353,11 +353,11 @@ async function comment (dataRide) {
     status: 'Finalizado',
     ride_finished: true
   }
-  const query = { user_id: user, like: like, dislike: !like, comment: comen }
+  const query = { user_email: user, like: like, dislike: !like, comment: comen }
   return rides.findOne(data).then((sucs, err) => {
     if (!err && sucs) {
       for (var i = 0; i < sucs.comments.length; i++) {
-        if (sucs.comments[i].user_id === query.user_id) {
+        if (sucs.comments[i].user_email === query.user_email) {
           return sucs
         }
       }
