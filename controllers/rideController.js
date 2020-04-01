@@ -44,7 +44,6 @@ const validateIn = require('../lib/utils/validation').validateIn
  * @returns {Object}
  */
 async function create (req, res) {
-  rides.deleteMany({}, callback)
   const { status, errors, message } = await verifyDataRide(req.body)
   if (!status) return res.status(400).send(response(false, errors, message))
   const rideInf = await newRide(req.body)

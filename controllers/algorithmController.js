@@ -180,6 +180,85 @@ function prioridad (stop) {
  * @returns {Object}
  */
 function recommend (req, res) {
+  const rides = require('../models/rideModel')
+
+  const fran = '12-11163@usb.ve', javi = '12-11067@usb.ve'
+  const pedro = '13-10790@usb.ve', andre = '12-10660@usb.ve'
+  const dummy1 = '13-11209@usb.ve', dummy2 = '13-10000@usb.ve'
+  rides.deleteMany({}).then(sucs => sucs)
+  rides.create({
+    rider: fran,
+    passenger: [javi, pedro],
+    available_seats: 2,
+    status: 'Finalizado',
+    start_location: 'Baruta',
+    destination: 'USB',
+    time: new Date(2020, 4, 8, 7, 30, 0, 0),
+    ride_finished: true,
+    comments: [
+      { user_id: fran, like: true, dislike: false, comment: 'LIKE' },
+      { user_id: javi, like: true, dislike: false, comment: 'LIKE' },
+      { user_id: pedro, like: true, dislike: false, comment: 'LIKE' }
+    ]
+  }).then(sucs => sucs)
+
+  rides.create({
+    rider: andre,
+    passenger: [dummy1, dummy2],
+    available_seats: 2,
+    status: 'Finalizado',
+    start_location: 'Baruta',
+    destination: 'USB',
+    time: new Date(2020, 4, 8, 7, 45, 0, 0),
+    ride_finished: true,
+    comments: [
+      { user_id: andre, like: false, dislike: true, comment: 'DISLIKE' },
+      { user_id: dummy1, like: false, dislike: true, comment: 'DISLIKE' },
+      { user_id: dummy2, like: false, dislike: true, comment: 'DISLIKE' }
+    ]
+  }).then(sucs => sucs)
+
+  rides.create({
+    rider: javi,
+    passenger: [fran, pedro],
+    available_seats: 2,
+    status: 'Finalizado',
+    start_location: 'Baruta',
+    destination: 'USB',
+    time: new Date(2021, 4, 8, 7, 30, 0, 0),
+    ride_finished: true,
+    comments: [
+      { user_id: javi, like: false, dislike: true, comment: 'DISLIKE' },
+      { user_id: pedro, like: true, dislike: false, comment: 'LIKE' }
+    ]
+  }).then(sucs => sucs)
+
+  rides.create({
+    rider: andre,
+    passenger: [dummy1, dummy2],
+    available_seats: 2,
+    status: 'Finalizado',
+    start_location: 'Baruta',
+    destination: 'USB',
+    time: new Date(2021, 4, 8, 7, 45, 0, 0),
+    ride_finished: true,
+    comments: [
+      { user_id: dummy1, like: true, dislike: false, comment: 'LIKE' },
+      { user_id: dummy2, like: false, dislike: true, comment: 'DISLIKE' }
+    ]
+  }).then(sucs => sucs)
+
+  rides.create({
+    rider: dummy1,
+    passenger: [dummy2],
+    available_seats: 1,
+    status: 'Finalizado',
+    start_location: 'Baruta',
+    destination: 'USB',
+    time: new Date(2021, 4, 8, 8, 45, 0, 0),
+    ride_finished: true,
+    comments: []
+  }).then(sucs => sucs)
   try {
     const info = prioridad(req.body.destination)
     return res.status(200).send(response(true, info, ''))

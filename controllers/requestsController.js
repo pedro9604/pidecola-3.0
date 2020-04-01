@@ -456,8 +456,8 @@ async function verifyOffer (dataOffer) {
   let message
   const validate = validateIn(dataOffer, offerRules, offerMessage)
   const user = alreadyRequested(dataOffer.passenger).elem.status
-  const rider = users.findByEmail(dataOffer.rider).then(callback).vehicles
-  if (!(validate.pass && user && rider.length > 0)) {
+  const rider = await users.findByEmail(dataOffer.rider).then(callback)
+  if (!(validate.pass && user && rider.vehicles.length > 0)) {
     if (!validate.pass) {
       errors = validate.errors
       message = 'Los datos introducidos no cumplen con el formato requerido'
