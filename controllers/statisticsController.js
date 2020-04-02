@@ -1,47 +1,94 @@
+const callbackCount = require('../lib/utils/utils').callbackCount
+const emailRules = require('../lib/utils/validation').emailRules
+const emailMessage = require('../lib/utils/validation').emailMessage
 const rides = require('../models/rideModel.js')
 const response = require('../lib/utils/response').response
+const validateIn = require('../lib/utils/validation').validateIn
 
-exports.getRidesGiven = (req, res) => {
-    const email = req.secret.email
-    if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))
-    rides.countDocuments({ rider: email }, function(err, result){
-        if (err) return res.status(400).send(response(false, err, 'Error en la consulta'))
-        else {
-            return res.status(200).send(response(true, result, 'Numero de Colas Dadas'))
-        }
-    })
+// Endpoint que cuenta los documentos donde el conductor (rider) tiene el correo del usuario
+// Utiliza la funcion countDocuments de Mongoose
+// Caso borde: El carnet no esta asociado a ningun conductor -> La consulta devuelve 0
+async function getRidesGiven (req, res) {
+  const validate = validateIn(req.secret, emailRules, emailMessage)
+  if (!validate.pass) {
+    const message = 'Los datos no cumplen con el formato requerido'
+    return res.status(401).send(response(false, validate.errors, message))
+  }
+  
+  const { status, data, message } = await rides.countDocuments({ 
+    rider: req.secret.email 
+  }).then(callbackCount)
+
+  return res.status(status).send(response(status === 200, data, message))
 }
 
-exports.getRidesReceived = (req, res) => {
-    const email = req.secret.email
-    if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))
-    rides.countDocuments({ passenger: email }, function(err, result){
-        if (err) return res.status(400).send(response(false, err, 'Error en la consulta'))
-        else {
-            return res.status(200).send(response(true, result, 'Numero de Colas Recibidas'))
-        }
-    })
+// Endpoint que cuenta los documentos donde aparece el correo del usuario en la lista de pasajeros. 
+// Utiliza la funcion countDocuments de Mongoose
+// Caso borde: El carnet no pertenece a ninguna lista de pasajeros -> La consulta devuelve 0
+async function getRidesReceived (req, res) {
+  const validate = validateIn(req.secret, emailRules, emailMessage)
+  if (!validate.pass) {
+    const message = 'Los datos no cumplen con el formato requerido'
+    return res.status(401).send(response(false, validate.errors, message))
+  }
+  
+  const { status, data, message } = await rides.countDocuments({
+    passenger: req.secret.email 
+  }).then(callbackCount)
+
+  return res.status(status).send(response(status === 200, data, message))
 }
 
-exports.getLikesCount = (req, res) => {
-    const email = req.secret.email
-    if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))
-    rides.countDocuments({ rider: email, "comments.like": true }, function(err, result){
-        if (err) return res.status(400).send(response(false, err, 'Error en la consulta'))
-        else {
-            return res.status(200).send(response(true, result, 'Numero de Likes Recibidos'))
-        }
-    })
+// Endpoint que cuenta los documentos donde el usuario ha sido conductor de la cola y suma el numero total de likes
+// Utiliza la funcion aggregate de Mongoose donde $match recibe el filtro de la consulta
+// $unwind Convierte el arreglo seleccionado (comments) en documentos unicos para ser contados
+// $group Agrupa los documentos por id (o revisa todos si se coloca null)
+// $sum acummulador
+// Caso borde: El usuario no aparece como conductor -> La consulta devuelve 0
+// Caso borde: El conductor no ha recibido likes -> La consulta devuelve 0
+async function getLikesCount (req, res) {
+  const validate = validateIn(req.secret, emailRules, emailMessage)
+  if (!validate.pass) {
+    const message = 'Los datos no cumplen con el formato requerido'
+    return res.status(401).send(response(false, validate.errors, message))
+  }
+  
+  const { status, data, message } = await rides.aggregate([
+    { $match: { rider: req.secret.email } },
+    { $unwind: '$comments' },
+    { $match: {'comments.like': true } },
+    { $group: { _id: null, likes_count: { $sum: 1 } } }
+  ]).then(callbackCount)
+
+
+  return res.status(status).send(response(status === 200, data, message))
 }
 
-exports.getDislikesCount = (req, res) => {
-    const email = req.secret.email
-    if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))
-    rides.countDocuments({ rider: email, "comments.dislike": true }, function(err, result){
-        if (err) return res.status(400).send(response(false, err, 'Error en la consulta'))
-        else {
-            return res.status(200).send(response(true, result, 'Numero de Dislikes Recibidos'))
-        }
-    })
+// Endpoint que cuenta los documentos donde el usuario ha sido conductor de la cola y suma el numero total de dislikes
+// Utiliza la funcion aggregate de Mongoose donde $match recibe el filtro de la consulta
+// $unwind Convierte el arreglo seleccionado (comments) en documentos unicos para ser contados
+// $group Agrupa los documentos por id (o revisa todos si se coloca null)
+// $sum acummulador
+// Caso borde: El usuario no aparece como conductor -> La consulta devuelve 0
+// Caso borde: El conductor no ha recibido dislikes -> La consulta devuelve 0
+async function getDislikesCount (req, res) {
+  const validate = validateIn(req.secret, emailRules, emailMessage)
+  if (!validate.pass) {
+    const message = 'Los datos no cumplen con el formato requerido'
+    return res.status(401).send(response(false, validate.errors, message))
+  }
+  
+  const { status, data, message } = await rides.aggregate([
+    { $match: { rider: req.secret.email } },
+    { $unwind: '$comments' },
+    { $match: {'comments.dislike': true } },
+    { $group: { _id: null, dislikes_count: { $sum: 1 } } }
+  ]).then(callbackCount)
+
+  return res.status(status).send(response(status === 200, data, message))
 }
 
+module.exports.getRidesGiven = getRidesGiven
+module.exports.getRidesReceived = getRidesReceived
+module.exports.getLikesCount = getLikesCount
+module.exports.getDislikesCount = getDislikesCount
