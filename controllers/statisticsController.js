@@ -1,4 +1,5 @@
 const callbackCount = require('../lib/utils/utils').callbackCount
+const callbackAggregation = require('../lib/utils/utils').callbackAggregation
 const emailRules = require('../lib/utils/validation').emailRules
 const emailMessage = require('../lib/utils/validation').emailMessage
 const rides = require('../models/rideModel.js')
@@ -57,8 +58,9 @@ async function getLikesCount (req, res) {
     { $match: { rider: req.secret.email } },
     { $unwind: '$comments' },
     { $match: {'comments.like': true } },
-    { $group: { _id: null, likes_count: { $sum: 1 } } }
-  ]).then(callbackCount)
+    { $group: { _id: null, count: { $sum: 1 } } },
+    { $project: {_id: 0} }
+  ]).then(callbackAggregation)
 
 
   return res.status(status).send(response(status === 200, data, message))
@@ -82,8 +84,9 @@ async function getDislikesCount (req, res) {
     { $match: { rider: req.secret.email } },
     { $unwind: '$comments' },
     { $match: {'comments.dislike': true } },
-    { $group: { _id: null, dislikes_count: { $sum: 1 } } }
-  ]).then(callbackCount)
+    { $group: { _id: null, count: { $sum: 1 } } },
+    { $project: {_id: 0} }
+  ]).then(callbackAggregation)
 
   return res.status(status).send(response(status === 200, data, message))
 }
