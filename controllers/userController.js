@@ -347,6 +347,8 @@ async function updateProfilePic (req, res) {
       err = validate.errors.push('La foto de perfil es requerida')
     } else if (!validate.pass) {
       err = validate.errors
+    } else if (req.fileValidationError) {
+      err = 'Formatos de imagenes permitidos: jpg, jpeg y png'
     } else {
       err = 'La foto de perfil es requerida'
     }
@@ -396,6 +398,8 @@ async function addVehicle (req, res) {
       err = validate.errors.push('La foto del vehículo es requerida')
     } else if (!validate.pass) {
       err = validate.errors
+    } else if (req.fileValidationError) {
+      err = 'Formatos de imagenes permitidos: jpg, jpeg y png'
     } else {
       err = 'La foto del vehículo es requerida'
     }
