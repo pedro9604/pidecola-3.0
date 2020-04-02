@@ -15,7 +15,7 @@ const RideSchema = new Schema(
     ride_finished: { type: Boolean },
     comments:
       [{
-        user_id: { type: String, ref: 'User' },
+        user_email: { type: String, ref: 'User' },
         like: { type: Boolean },
         dislike: { type: Boolean },
         comment: { type: 'String' }
