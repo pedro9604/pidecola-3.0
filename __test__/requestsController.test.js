@@ -177,14 +177,14 @@ describe('create', () => {
 describe('cancel', () => {
   beforeEach(() => {
     requests.requestsList[4].requests.push({
-      user: '00-00000@usb.ve',
+      email: '00-00000@usb.ve',
       startLocation: 'USB',
       destination: 'Bellas Artes',
       comment: 'Nothing',
       im_going: 'Who cares?'
     })
     requests.requestsList[0].requests.push({
-      user: '11-11111@usb.ve',
+      email: '11-11111@usb.ve',
       startLocation: 'Baruta',
       destination: 'USB',
       comment: 'Nothing',
@@ -192,9 +192,7 @@ describe('cancel', () => {
     })
   })
 
-  afterEach(() => {
-    requests.requestsList.forEach(e => e.requests = [])
-  })
+  afterEach(() => { requests.requestsList.forEach(e => e.requests = []) })
 
   test('A request is removed from the resquestsList', () => {
     const size =
@@ -224,7 +222,7 @@ describe('cancel', () => {
     expect((size - newSize) * response.statusCode).toBe(200)
   })
 
-  test('If request does not exist return code 200', () => {
+  test('If request does not exist return code 400', () => {
     const data = {
       user: '00-00001@usb.ve',
       startLocation: 'Baruta',
@@ -237,7 +235,7 @@ describe('cancel', () => {
     })
     var response = httpMocks.createResponse()
     requests.cancel(request, response)
-    expect(response.statusCode).toBe(200)
+    expect(response.statusCode).toBe(400)
   })
 
   test('A request without email', () => {
