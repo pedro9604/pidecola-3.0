@@ -34,6 +34,7 @@ const responseTemplate = require('../lib/utils/codeTemplate').responseTemplate
 const response = require('../lib/utils/response').response
 const sendEmail = require('../lib/utils/emails').sendEmail
 const validateIn = require('../lib/utils/validation').validateIn
+const handleSockets = require('../lib/utils/handleSockets')
 
 ///////////////////////////////////////////////////////////////////////////////
 //////////////////////// Variable global: requestsList ////////////////////////
@@ -268,6 +269,7 @@ function add (newRequest) {
     index = fromNameToInt(newRequest.startLocation)
   }
   requestsList[index].requests.push(newRequest)
+  handleSockets.sendPassengers(requestsList[index].name)
   return newRequest
 }
 

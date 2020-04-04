@@ -189,4 +189,9 @@ function recommend (req, res) {
   }
 }
 
+function getPriority (destination) {
+  return prioridad(destination)
+}
+
 module.exports.recommend = recommend
+module.exports.getPriority = getPriority

@@ -44,6 +44,13 @@ app.use('/statistics', statistics)
 
 const server = http.createServer(app);
 
+const socketio = require('socket.io');
+const ioListen = socketio.listen(server);
+const handleSockets = require('./lib/utils/handleSockets.js').handleSocket
+ioListen.sockets.on('connection', socket => {
+  console.log(`Socket conneceted`)
+  handleSockets(socket, ioListen)
+})
 server.listen(port, () => {
   console.log(chalk.blue(`
    _______  ___  ______  ______ 
