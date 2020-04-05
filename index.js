@@ -48,9 +48,12 @@ const socketio = require('socket.io');
 const ioListen = socketio.listen(server);
 const handleSockets = require('./lib/utils/handleSockets.js').handleSocket
 ioListen.sockets.on('connection', socket => {
-  console.log(`Socket conneceted`)
+  console.log(`Socket conneceted`);
   handleSockets(socket, ioListen)
+  ioListen.sockets.emit('passengers', 'ddddd')
+  ioListen.sockets.emit('rideOffer', 'Ride offer event from back end')
 })
+
 server.listen(port, () => {
   console.log(chalk.blue(`
    _______  ___  ______  ______ 
