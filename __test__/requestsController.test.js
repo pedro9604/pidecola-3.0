@@ -1,5 +1,7 @@
-const requests = require('../controllers/requestsController.js')
+const callback = require('../lib/utils/utils').callbackReturn
 const httpMocks = require('node-mocks-http')
+const requests = require('../controllers/requestsController')
+const userDB = require('../models/userModel')
 
 describe('requestsList', () => {
   test('requestsList is available', () => {
@@ -18,7 +20,7 @@ describe('requestsList', () => {
     expect(requests.requestsList[2].name).toBe('Chacaito')
   })
 
-  test('requestsList only contains stop at "La Paz"', () => {
+  test('requestsList only contains stop at "LaPaz"', () => {
     expect(requests.requestsList[3].name).toBe('La Paz')
   })
 
@@ -49,18 +51,48 @@ describe('requestsList', () => {
 
 describe('create', () => {
   beforeEach(() => {
-    requests.requestsList.forEach(e => e.requests = [])
+    for (var i = 0; i < 2; i++) {
+      userDB.create({
+        email: i + (i + '-' + i + i + i + i + i + '@usb.ve'),
+        password: 'password' + i,
+        phone_number: 'phoneNumber' + i,
+        first_name: 'Usuario',
+        last_name: '' + i,
+        age: i,
+        gender: 'O',
+        major: 'Ing. de Computación',
+        profile_pic: 'Foto' + i,
+        status: 'Disponible',
+        community: 'Estudiante',
+        vehicles: [{
+          plate: 'placa' + i,
+          brand: 'marca' + i,
+          model: 'modelo' + i,
+          year: i,
+          color: 'black',
+          vehicle_capacity: 1,
+          vehicle_pic: 'FotoCarro' + i
+        }],
+        isVerify: true,
+        temporalCode: i
+      }).then(callback)
+    }
   })
 
   afterEach(() => {
-    requests.requestsList.forEach(e => e.requests = [])
+    for (var i = 0; i < 2; i++) {
+      userDB.deleteOne({
+        email: i + (i + '-' + i + i + i + i + i + '@usb.ve')
+      }).then(callback)
+    }
+    requests.requestsList[0].requests = []
   })
 
   test('A new request is added to the resquestsList', () => {
     const data = {
-      user: '13-10931@usb.ve',
+      user: '00-00000@usb.ve',
       startLocation: 'Baruta',
-      destination: "USB",
+      destination: 'USB',
       comment: 'Nothing',
       im_going: 'Who cares?'
     }
@@ -74,7 +106,7 @@ describe('create', () => {
 
   test('A request without "USB"', () => {
     const data = {
-      user: '13-10931@usb.ve',
+      user: '00-00000@usb.ve',
       startLocation: 'Bellas Artes',
       destination: 'Baruta',
       comment: 'Nothing',
@@ -90,7 +122,7 @@ describe('create', () => {
 
   test('A request without email', () => {
     const data = {
-      user: 'XXXXXXusb.ve',
+      user: '00-00000',
       startLocation: 'USB',
       destination: 'Baruta',
       comment: 'Nothing',
@@ -106,7 +138,7 @@ describe('create', () => {
 
   test('A request out of our stops (Maracay)', () => {
     const data = {
-      user: 'XXXXXX@usb.ve',
+      user: '00-00000@usb.ve',
       startLocation: 'USB',
       destination: 'Maracay',
       comment: 'Nothing',
@@ -122,7 +154,7 @@ describe('create', () => {
 
   test('You cannot request for a ride twice', () => {
     const data = {
-      user: 'XXXXXX@usb.ve',
+      user: '00-00000@usb.ve',
       startLocation: 'USB',
       destination: 'Maracay',
       comment: 'Nothing',
@@ -142,17 +174,17 @@ describe('create', () => {
   })
 })
 
-describe('delete', () => {
+describe('cancel', () => {
   beforeEach(() => {
     requests.requestsList[4].requests.push({
-      user: '12-11163@usb.ve',
+      email: '00-00000@usb.ve',
       startLocation: 'USB',
       destination: 'Bellas Artes',
       comment: 'Nothing',
       im_going: 'Who cares?'
     })
     requests.requestsList[0].requests.push({
-      user: '12-11164@usb.ve',
+      email: '11-11111@usb.ve',
       startLocation: 'Baruta',
       destination: 'USB',
       comment: 'Nothing',
@@ -160,9 +192,7 @@ describe('delete', () => {
     })
   })
 
-  afterEach(() => {
-    requests.requestsList.forEach(e => e.requests = [])
-  })
+  afterEach(() => { requests.requestsList.forEach(e => e.requests = []) })
 
   test('A request is removed from the resquestsList', () => {
     const size =
@@ -172,7 +202,7 @@ describe('delete', () => {
       requests.requestsList[3].requests.length +
       requests.requestsList[4].requests.length
     const data = {
-      user: '12-11163@usb.ve',
+      user: '00-00000@usb.ve',
       startLocation: 'USB',
       destination: 'Bellas Artes',
       comment: 'Nothing',
@@ -182,7 +212,7 @@ describe('delete', () => {
       body: data
     })
     var response = httpMocks.createResponse()
-    requests.delete(request, response)
+    requests.cancel(request, response)
     const newSize =
       requests.requestsList[0].requests.length +
       requests.requestsList[1].requests.length +
@@ -192,9 +222,9 @@ describe('delete', () => {
     expect((size - newSize) * response.statusCode).toBe(200)
   })
 
-  test('If request does not exist return code 500', () => {
+  test('If request does not exist return code 400', () => {
     const data = {
-      user: '12-11162@usb.ve',
+      user: '00-00001@usb.ve',
       startLocation: 'Baruta',
       destination: 'USB',
       comment: 'Nothing',
@@ -204,13 +234,13 @@ describe('delete', () => {
       body: data
     })
     var response = httpMocks.createResponse()
-    requests.delete(request, response)
-    expect(response.statusCode).toBe(500)
+    requests.cancel(request, response)
+    expect(response.statusCode).toBe(400)
   })
 
   test('A request without email', () => {
     const data = {
-      user: 'XXXXXXusb.ve',
+      user: '00-00000',
       startLocation: 'USB',
       destination: 'Baruta',
       comment: 'Nothing',
@@ -220,13 +250,13 @@ describe('delete', () => {
       body: data
     })
     var response = httpMocks.createResponse()
-    requests.delete(request, response)
+    requests.cancel(request, response)
     expect(response.statusCode).toBe(400)
   })
 
   test('A request without "USB"', () => {
     const data = {
-      user: 'XXXXXX@usb.ve',
+      user: '00-00000@usb.ve',
       startLocation: 'Baruta',
       destination: 'Bellas Artes',
       comment: 'Nothing',
@@ -236,83 +266,363 @@ describe('delete', () => {
       body: data
     })
     var response = httpMocks.createResponse()
-    requests.delete(request, response)
-    expect(response.statusCode).toBe(500)
+    requests.cancel(request, response)
+    expect(response.statusCode).toBe(400)
   })
 })
 
-describe('changeStatus', () => {
+describe('updateStatus', () => {
   beforeEach(() => {
     const data = {
-      user: '13-10931@usb.ve',
+      email: '00-00000@usb.ve',
       startLocation: 'USB',
       destination: 'Bellas Artes',
       comment: 'Nothing',
-      im_going: 'Who cares?'
+      im_going: 'Who cares?',
+      status: true
     }
-    var request = httpMocks.createRequest({
-      body: data
-    })
-    var response = httpMocks.createResponse()
-    requests.create(request, response)
-    expect(response.statusCode).toBe(200)
+    requests.requestsList[4].requests.push(data)
   })
 
   afterEach(() => {
     requests.requestsList.forEach(e => e.requests = [])
   })
 
-  /*test('Change status from an existing request', () => {
-    data = {
-      user: "13-10931@usb.ve",
-      place: "Bellas Artes"
+  test('Change status from an existing request', () => {
+    const data = {
+      user: '00-00000@usb.ve',
+      place: 'Bellas Artes'
     }
     var request = httpMocks.createRequest({
       body: data
     })
     var response = httpMocks.createResponse()
-    requests.changeStatus(request, response)
+    requests.updateStatus(request, response)
     const status = requests.requestsList[4].requests[0].status
     expect(status).toBe(false)
   })
 
-  test('No Change status from an not-existing request', () => {
+  test('No Change status from an nonexisting request', () => {
     data = {
-      user: "13-10931@usb.ve",
-      place: "Bellas Artes"
+      user: '00-00001@usb.ve',
+      place: 'Bellas Artes'
     }
     var request = httpMocks.createRequest({
       body: data
     })
     var response = httpMocks.createResponse()
-    requests.changeStatus(request, response)
+    requests.updateStatus(request, response)
     const status = requests.requestsList[4].requests[0].status
     expect(status).toBe(true)
-  })*/
+  })
 
   test('Raise error when place it is USB', () => {
     data = {
-      user: "12-11163@usb.ve",
-      place: "USB"
+      user: '00-00000@usb.ve',
+      place: 'USB'
     }
     var request = httpMocks.createRequest({
       body: data
     })
     var response = httpMocks.createResponse()
-    requests.changeStatus(request, response)
+    requests.updateStatus(request, response)
     expect(response.statusCode).toBe(400)
   })
 
   test('Raise error when place it is not a valid stop (Maracay)', () => {
     data = {
-      user: "12-11163@usb.ve",
-      place: "Maracay"
+      user: '00-00000@usb.ve',
+      place: 'Maracay'
     }
     var request = httpMocks.createRequest({
       body: data
     })
     var response = httpMocks.createResponse()
-    requests.changeStatus(request, response)
+    requests.updateStatus(request, response)
+    expect(response.statusCode).toBe(400)
+  })
+})
+
+describe('offerRide', () => {
+  beforeEach(() => {
+    for (var i = 0; i < 2; i++) {
+      userDB.create({
+        email: i + (i + '-' + i + i + i + i + i + '@usb.ve'),
+        password: 'password' + i,
+        phone_number: 'phoneNumber' + i,
+        first_name: 'Usuario',
+        last_name: '' + i,
+        age: i,
+        gender: 'O',
+        major: 'Ing. de Computación',
+        profile_pic: 'Foto' + i,
+        status: 'Disponible',
+        community: 'Estudiante',
+        vehicles: [{
+          plate: 'placa' + i,
+          brand: 'marca' + i,
+          model: 'modelo' + i,
+          year: i,
+          color: 'black',
+          vehicle_capacity: 1,
+          vehicle_pic: 'FotoCarro' + i
+        }],
+        isVerify: true,
+        temporalCode: i
+      }).then(callback)
+      requests.requestsList[0].requests.push({
+        email: i + (i + '-' + i + i + i + i + i + '@usb.ve'),
+        user: {
+          usbid: i + (i + '-' + i + i + i + i + i),
+          phone: 'phoneNumber' + i,
+          fName: 'Usuario',
+          lName: '' + i,
+          major: 'Ing. de Computación',
+          prPic: 'Foto' + i
+        },
+        startLocation: 'Baruta',
+        destination: 'USB',
+        comment: 'Nothing',
+        im_going: 'Who cares?',
+        status: true
+      })
+    }
+    userDB.create({
+      email: '22-22222@usb.ve',
+      password: 'password2',
+      phone_number: 'phoneNumber2',
+      first_name: 'Usuario',
+      last_name: '2',
+      age: 2,
+      gender: 'O',
+      major: 'Ing. de Computación',
+      profile_pic: 'Foto2',
+      status: 'Disponible',
+      community: 'Estudiante',
+      vehicles: [],
+      isVerify: true,
+      temporalCode: 2
+    }).then(callback)
+    requests.requestsList[0].requests.push({
+      email: '22-22222@usb.ve',
+      user: {
+        usbid: '22-22222',
+        phone: 'phoneNumber2',
+        fName: 'Usuario',
+        lName: '2',
+        major: 'Ing. de Computación',
+        prPic: 'Foto2'
+      },
+      startLocation: 'Baruta',
+      destination: 'USB',
+      comment: 'Nothing',
+      im_going: 'Who cares?',
+      status: false
+    })
+  })
+
+  afterEach(() => {
+    for (var i = 0; i < 2; i++) {
+      userDB.deleteOne({
+        email: i + (i + '-' + i + i + i + i + i + '@usb.ve')
+      }).then(callback)
+    }
+    requests.requestsList[0].requests = []
+  })
+
+  test('User0 offers a ride to User1', () => {
+    const data = {
+      rider: '00-00000@usb.ve',
+      passenger: '11-11111@usb.ve'
+    }
+    const request = httpMocks.createRequest({
+      body: data
+    })
+    const response = httpMocks.createResponse()
+    requests.offerRide(request, response).then(sucs => {
+      expect(response.statusCode).toBe(200)
+    })
+  })
+
+  test('rider is not an email', () => {
+    const data = {
+      rider: '00-00000',
+      passenger: '11-11111@usb.ve'
+    }
+    const request = httpMocks.createRequest({
+      body: data
+    })
+    const response = httpMocks.createResponse()
+    requests.offerRide(request, response).then(sucs => {
+      expect(response.statusCode).toBe(400)
+    })
+  })
+
+  test('passenger is not an email', () => {
+    const data = {
+      rider: '00-00000@usb.ve',
+      passenger: '11-11111'
+    }
+    const request = httpMocks.createRequest({
+      body: data
+    })
+    const response = httpMocks.createResponse()
+    requests.offerRide(request, response).then(sucs => {
+      expect(response.statusCode).toBe(400)
+    })
+  })
+
+  test('User2 (without vehicles) offers a ride to User0', () => {
+    const data = {
+      rider: '22-22222@usb.ve',
+      passenger: '11-11111@usb.ve'
+    }
+    const request = httpMocks.createRequest({
+      body: data
+    })
+    const response = httpMocks.createResponse()
+    requests.offerRide(request, response).then(sucs => {
+      expect(response.statusCode).toBe(400)
+    })
+  })
+
+  test('Passenger is not available for offering a ride', () => {
+    const data = {
+      rider: '00-00000@usb.ve',
+      passenger: '22-22222@usb.ve'
+    }
+    const request = httpMocks.createRequest({
+      body: data
+    })
+    const response = httpMocks.createResponse()
+    requests.offerRide(request, response).then(sucs => {
+      expect(response.statusCode).toBe(400)
+    })
+  })
+})
+
+describe('respondOfferRide', () => {
+  beforeEach(() => {
+    for (var i = 0; i < 2; i++) {
+      userDB.create({
+        email: i + (i + '-' + i + i + i + i + i + '@usb.ve'),
+        password: 'password' + i,
+        phone_number: 'phoneNumber' + i,
+        first_name: 'Usuario',
+        last_name: '' + i,
+        age: i,
+        gender: 'O',
+        major: 'Ing. de Computación',
+        profile_pic: 'Foto' + i,
+        status: 'Disponible',
+        community: 'Estudiante',
+        vehicles: [{
+          plate: 'placa' + i,
+          brand: 'marca' + i,
+          model: 'modelo' + i,
+          year: i,
+          color: 'black',
+          vehicle_capacity: 1,
+          vehicle_pic: 'FotoCarro' + i
+        }],
+        isVerify: true,
+        temporalCode: i
+      }).then(callback)
+      requests.requestsList[0].requests.push({
+        email: i + (i + '-' + i + i + i + i + i + '@usb.ve'),
+        user: {
+          usbid: i + (i + '-' + i + i + i + i + i),
+          phone: 'phoneNumber' + i,
+          fName: 'Usuario',
+          lName: '' + i,
+          major: 'Ing. de Computación',
+          prPic: 'Foto' + i
+        },
+        startLocation: 'Baruta',
+        destination: 'USB',
+        comment: 'Nothing',
+        im_going: 'Who cares?',
+        status: false
+      })
+    }
+  })
+
+  afterEach(() => {
+    for (var i = 0; i < 2; i++) {
+      userDB.deleteOne({
+        email: i + (i + '-' + i + i + i + i + i + '@usb.ve')
+      }).then(callback)
+    }
+    requests.requestsList[0].requests = []
+  })
+
+  test('User1 accepts ride offer from User0', () => {
+    const data = {
+      rider: '00-00000@usb.ve',
+      passenger: '11-11111@usb.ve',
+      accept: 'Sí'
+    }
+    const request = httpMocks.createRequest({
+      body: data
+    })
+    const response = httpMocks.createResponse()
+    requests.respondOfferRide(request, response)
+    expect(response.statusCode).toBe(200)
+  })
+
+  test('User1 rejects ride offer from User0', () => {
+    const data = {
+      rider: '00-00000@usb.ve',
+      passenger: '11-11111@usb.ve',
+      accept: 'No'
+    }
+    const request = httpMocks.createRequest({
+      body: data
+    })
+    const response = httpMocks.createResponse()
+    requests.respondOfferRide(request, response)
+    expect(response.statusCode).toBe(200)
+  })
+
+  test('rider is not an email', () => {
+    const data = {
+      rider: '00-00000',
+      passenger: '11-11111@usb.ve',
+      accept: 'Sí'
+    }
+    const request = httpMocks.createRequest({
+      body: data
+    })
+    const response = httpMocks.createResponse()
+    requests.respondOfferRide(request, response)
+    expect(response.statusCode).toBe(400)
+  })
+
+  test('passenger is not an email', () => {
+    const data = {
+      rider: '00-00000@usb.ve',
+      passenger: '11-11111',
+      accept: 'Sí'
+    }
+    const request = httpMocks.createRequest({
+      body: data
+    })
+    const response = httpMocks.createResponse()
+    requests.respondOfferRide(request, response)
+    expect(response.statusCode).toBe(400)
+  })
+
+  test('accept is neither "Sí" nor "No"', () => {
+    const data = {
+      rider: '00-00000@usb.ve',
+      passenger: '11-11111',
+      accept: 'Yes'
+    }
+    const request = httpMocks.createRequest({
+      body: data
+    })
+    const response = httpMocks.createResponse()
+    requests.respondOfferRide(request, response)
     expect(response.statusCode).toBe(400)
   })
 })

@@ -43,6 +43,9 @@ app.use('/requests', requests)
 const algorithm = require('./routes/algorithmRoutes.js')
 app.use('/recommend', algorithm)
 
+const statistics = require('./routes/statisticsRoutes.js')
+app.use('/statistics', statistics)
+
 const server = http.createServer(app);
 
 server.listen(port, () => {
