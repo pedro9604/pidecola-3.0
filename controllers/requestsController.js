@@ -85,6 +85,19 @@ const requestsList = [
   { name: 'Bellas Artes', requests: [] }
 ]
 
+// setInterval(()=> console.log(requestsList), 5000)
+
+const connectREDIS = require('../lib/connections').connectREDIS
+const client = connectREDIS()
+requestsList.forEach( (elem, index) => {
+  client.smembers( elem.name, (err, list) => {
+    if(err) return console.log(err)
+    list.forEach( request => {
+      requestsList[index].requests.push(JSON.parse(request))
+    })
+  })
+})
+
 /**
  * Función que dado el nombre de una parada devuelve lo que sería su índice
  * dentro de requestsList. Debe ir en este módulo para facilitar su edición.
@@ -269,6 +282,7 @@ function add (newRequest) {
     index = fromNameToInt(newRequest.startLocation)
   }
   requestsList[index].requests.push(newRequest)
+  client.sadd(requestsList[index].name, JSON.stringify(newRequest))
   handleSockets.sendPassengers(requestsList[index].name)
   return newRequest
 }
