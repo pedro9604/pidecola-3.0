@@ -47,10 +47,8 @@ const server = http.createServer(app);
 const socketio = require('socket.io');
 const ioListen = socketio.listen(server);
 const handleSockets = require('./lib/utils/handleSockets.js').handleSocket
-ioListen.sockets.on('connection', socket => {
-  console.log(`Socket conneceted`)
-  handleSockets(socket, ioListen)
-})
+ioListen.sockets.on('connection', socket => handleSockets(socket, ioListen))
+
 server.listen(port, () => {
   console.log(chalk.blue(`
    _______  ___  ______  ______ 
@@ -73,3 +71,5 @@ server.listen(port, () => {
 |_______||_______||_____||__| |__||_______||___||______|`))
   console.log(chalk.blue(`\nRunning in port ${port}`))
 })
+
+  
