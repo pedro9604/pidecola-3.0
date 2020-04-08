@@ -663,7 +663,7 @@ function verifyGet (request) {
     errors = validate.errors
     message = 'Los datos introducidos no cumplen con el formato requerido'
   }
-  return { status: errors === '', errors: '', message: '' }
+  return { status: errors === '', errors: errors, message: message }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
