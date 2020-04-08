@@ -38,7 +38,7 @@ exports.signIn = (req, res) => {
       if (!resp) return res.status(401).send(response(false, null, 'Usuario no encontrado.'))
       else if (!resp[0]) return res.status(401).send(response(false, null, 'Contraseña Incorrecta.'))
       const user = resp[1]._doc
-      if(!user.isVerify) return res.status(401).send(response(false, null, 'Usuario no verificado.'))
+      if (!user.isVerify) return res.status(401).send(response(false, null, 'Usuario no verificado.'))
       delete user.password
       res.status(200).send(response(true, [{ tkauth: this.generateToken(user.email), ...user }], 'Success.'))
     })
@@ -49,7 +49,7 @@ exports.signIn = (req, res) => {
 
 exports.verifyAutentication = (req, res, next) => {
   const token = viewAuthorization(req.headers.authorization)
-  if (token === 'code validation' || req.body.register) {
+  if (token === 'code validation' || req.path === '/users') {
     return next()
   }
   if (!token) return res.status(401).send(response(false, null, 'Unauthorized.'))

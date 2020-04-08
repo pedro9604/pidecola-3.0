@@ -39,7 +39,15 @@ app.use('/requests', requests)
 const algorithm = require('./routes/algorithmRoutes.js')
 app.use('/recommend', algorithm)
 
+const statistics = require('./routes/statisticsRoutes.js')
+app.use('/statistics', statistics)
+
 const server = http.createServer(app);
+
+const socketio = require('socket.io');
+const ioListen = socketio.listen(server);
+const handleSockets = require('./lib/utils/handleSockets.js').handleSocket
+ioListen.sockets.on('connection', socket => handleSockets(socket, ioListen))
 
 server.listen(port, () => {
   console.log(chalk.blue(`
@@ -63,3 +71,5 @@ server.listen(port, () => {
 |_______||_______||_____||__| |__||_______||___||______|`))
   console.log(chalk.blue(`\nRunning in port ${port}`))
 })
+
+  

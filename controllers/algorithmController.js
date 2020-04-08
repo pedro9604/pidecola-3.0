@@ -2,22 +2,24 @@
  * Este módulo contiene el grafo no dirigido e implícito de las paradas del
  * PideCola y las funciones que hacen posible recomendarle a usuarios
  * conductores los posibles usuarios a los que se les puede dar una cola.
- * @module controllers/algorithmController
- * @author Francisco Márquez <12-11163@gmail.com>
+ * @module algorithmController
+ * @author Francisco Márquez <12-11163@usb.ve>
  * @require módulo: controllers/algorithmController
  * @require lib/utils/response.response
  */
+
 const requests = require('./requestsController.js')
 const response = require('../lib/utils/response').response
 
 /**
- * @typedef Graph 
+ * @typedef Graph
  * @type {Object[]}
  * @property {Object} stops - Dos paradas
  * @property {string} stops.from - Parada inicial
  * @property {string} stops.to - Parada final
  * @property {number} distance - Separación en km entre las paradas
  * @private
+ * @author Francisco Márquez <12-11163@usb.ve>
  */
 
 /**
@@ -43,6 +45,7 @@ const response = require('../lib/utils/response').response
  * RECOMENDACIONES FINALES: Construir la lista ordenada por distancia conlleva
  * a una mejora importante para la aplicación al no tener que ordenar las
  * paradas cada vez que el algoritmo es ejecutado.
+ * @author Francisco Márquez <12-11163@usb.ve>
  * @name stops
  * @type {Graph}
  * @constant
@@ -70,12 +73,13 @@ const stops = [
  * Indica si la parada elem está en el conjunto set.
  * No debería modificarse a no ser que se cambie toda lógica detrás del
  * algoritmo de recomendación.
+ * @author Francisco Márquez <12-11163@usb.ve>
  * @private
  * @param {string} elem - Una parada
  * @param {Object} set  - Un conjunto de dos paradas
  * @returns {boolean}
  */
-function member(elem, set) { 
+function member (elem, set) {
   return set.from === elem || set.to === elem
 }
 
@@ -83,10 +87,11 @@ function member(elem, set) {
  * Indica si la parada elem no está en el conjunto set.
  * No debería modificarse a no ser que se cambie toda lógica detrás del
  * algoritmo de recomendación.
+ * @author Francisco Márquez <12-11163@usb.ve>
  * @param {Object} set  - Un conjunto de dos paradas
  * @returns {boolean}
  */
-function notMember(elem, set) {
+function notMember (elem, set) {
   return !member(elem, set)
 }
 
@@ -94,12 +99,13 @@ function notMember(elem, set) {
  * Retorna todos los elementos en set que cumplen con predicate.
  * No debería modificarse a no ser que se cambie toda lógica detrás del
  * algoritmo de recomendación.
+ * @author Francisco Márquez <12-11163@usb.ve>
  * @private
  * @param {Array}    set       - Un arreglo
  * @param {function} predicate - Un función que devuelve un booleano
  * @returns {Array}
  */
-function filter(set, predicate) {
+function filter (set, predicate) {
   const filtered = []
   for (let i = 0; i < set.length; i++) {
     if (predicate(set[i])) {
@@ -113,12 +119,13 @@ function filter(set, predicate) {
  * Retorna las paradas en a que no son b
  * No debería modificarse a no ser que se cambie toda lógica detrás del
  * algoritmo de recomendación.
+ * @author Francisco Márquez <12-11163@usb.ve>
  * @private
  * @param {Object} a - Un conjunto de dos paradas
  * @param {string} b - Una parada
  * @returns {string|Object}
  */
-function difference(a, b) {
+function difference (a, b) {
   if (a.from === b) {
     return a.to
   } else if (a.to === b) {
@@ -134,11 +141,12 @@ function difference(a, b) {
  * crecientemente en distancia respecto de la parada recibida
  * No debería modificarse a no ser que se cambie toda lógica detrás del
  * algoritmo de recomendación.
+ * @author Francisco Márquez <12-11163@usb.ve>
  * @private
  * @param {string} stop - Una parada
  * @returns {Stop[]}
  */
-function prioridad(stop) {
+function prioridad (stop) {
   const output = [requests.requestsList[requests.cast(stop)]]
   const f = filter(stops, e => {
     return member(stop, e.stops) && notMember('USB', e.stops)
@@ -162,21 +170,28 @@ function prioridad(stop) {
 }
 
 /**
- * Endpoint para conexión con Front-end.
+ * Endpoint para recomendar solicitudes de cola.
  * No debería modificarse a no ser que se cambie toda lógica detrás del
  * algoritmo de recomendación.
+ * @author Francisco Márquez <12-11163@usb.ve>
  * @public
  * @param {Object} req - Un HTTP Request
  * @param {Object} res - Un HTTP Response
- * @returns {Object} 
+ * @returns {Object}
  */
-function recommend(req, res) {
+function recommend (req, res) {
   try {
     const info = prioridad(req.body.destination)
     return res.status(200).send(response(true, info, ''))
   } catch (error) {
-    return res.status(400).send(response(false, {}, 'Ha ocurrido un error.'))
+    console.log('Errores: ', error)
+    return res.status(400).send(response(false, {}, 'Ha ocurrido un error'))
   }
 }
 
+function getPriority (destination) {
+  return prioridad(destination)
+}
+
 module.exports.recommend = recommend
+module.exports.getPriority = getPriority

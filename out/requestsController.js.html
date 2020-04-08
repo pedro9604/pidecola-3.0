@@ -31,21 +31,47 @@
  * que la manejan para solicitar una cola, cancelar una solicitud y para ser
  * usado por el módulo controllers/algorithmController en la recomendación de
  * solicitudes de cola a un usuario conductor del sistema PideCola.
- * @module controllers/requestsController
- * @author Francisco Márquez &lt;12-11163@gmail.com>
+ * @module requestsController
+ * @author Francisco Márquez &lt;12-11163@usb.ve>
  * @require módulo: controllers/userController
- * @require lib/utils/validation.validateIn
+ * @require lib/utils/emails.sendEmail
+ * @require lib/utils/codeTemplate.offerTemplate
+ * @require lib/utils/codeTemplate.responseTemplate
  * @require lib/utils/response.response
+ * @require lib/utils/utils.callbackMail
+ * @require lib/utils/utils.callbackReturn
+ * @require lib/utils/validation.requestsMessage
+ * @require lib/utils/validation.requestsRules
+ * @require lib/utils/validation.validateIn
  */
-const validateIn = require('../lib/utils/validation').validateIn
-const response = require('../lib/utils/response').response
+
+///////////////////////////////////////////////////////////////////////////////
+//////////////////////// Módulos, funciones requeridas ////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+// Modulos
 const usr = require('./userController.js')
+
+// Funciones
+const callback         = require('../lib/utils/utils').callbackReturn
+const callbackMail     = require('../lib/utils/utils').callbackMail
+const errorsMessage    = require('../lib/utils/validation').requestsMessage
+const offerTemplate    = require('../lib/utils/codeTemplate').offerTemplate
+const requestsRules    = require('../lib/utils/validation').requestsRules
+const responseTemplate = require('../lib/utils/codeTemplate').responseTemplate
+const response         = require('../lib/utils/response').response
+const sendEmail        = require('../lib/utils/emails').sendEmail
+const validateIn       = require('../lib/utils/validation').validateIn
+
+///////////////////////////////////////////////////////////////////////////////
+//////////////////////// Variable global: requestsList ////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 /**
  * @typedef Request
  * @type {Object}
  * @property {string}  email - E-mail del usuario del PideCola
- * @property {Objtect} user - Datos relevantes del usuario para la solicitud
+ * @property {Object}  user - Datos relevantes del usuario para la solicitud
  * @property {string}  user.usbid - USB-ID del usuario solicitante
  * @property {string}  user.phone - Número de teléfono del usuario solicitante
  * @property {string}  user.fName - Nombre del usuario solicitante
@@ -57,6 +83,7 @@ const usr = require('./userController.js')
  * @property {string}  comment - Observación del usuario solicitante
  * @property {string}  im_going - Verdadero destino del usuario solicitante
  * @property {boolean} status - Estado de la solicitud
+ * @author Francisco Márquez &lt;12-11163@usb.ve>
  */
 
 /**
@@ -64,12 +91,14 @@ const usr = require('./userController.js')
  * @type {Object}
  * @property {string} name - Nombre de la parada
  * @property {Request[]} requests - Lista de solicitudes de cola
+ * @author Francisco Márquez &lt;12-11163@usb.ve>
  */
 
 /**
  * Lista global de paradas donde se almacenan ordenadas como una cola First In-
  * First Out, las solicitudes de cola por parada de destino o de origen. El
  * orden de las paradas obdece a la distancia de cada parada desde la USB.
+ * @author Francisco Márquez &lt;12-11163@usb.ve>
  * @name stops
  * @type {Stop[]}
  * @constant
@@ -85,170 +114,203 @@ const requestsList = [
 
 /**
  * Función que dado el nombre de una parada devuelve lo que sería su índice
- * dentro de requestsList.
- * @function
- * @private
+ * dentro de requestsList. Debe ir en este módulo para facilitar su edición.
+ * @author Francisco Márquez &lt;12-11163@usb.ve>
+ * @protected
  * @param {string} name
- * @returns {number} Índice válido o -1 si no se recibe el nombre de una parada
+ * @returns {number} Índice válido, -1 si name === 'USB', -2 si no
  */
-const fromNameToInt = (name) => {
+function fromNameToInt(name) {
   if (name === 'Baruta') return 0
   else if (name === 'Coche') return 1
   else if (name === 'Chacaito') return 2
   else if (name === 'La Paz') return 3
   else if (name === 'Bellas Artes') return 4
-  else return -1
+  else if (name === 'USB') return -1
+  else return -2
 }
 
 /**
- * Reglas que tienen que cumplir las solicitudes enviadas desde Front-End para
- * generar una nueva solicitud de cola o eliminar una ya existente.
- * @name requestsRules
+ * @typedef Elem
  * @type {Object}
- * @property {string} user - Campo user de la solicitud es obligatorio y debe
- * tener formato de e-mail
- * @property {string} startLocation - Campo startLocation de la solicitud es
- * obligatorio
- * @property {string} destination - Campo destination de la solicitud es
- * obligatorio
- * @property {string} comment - Campo comment de la solicitud no es obligatorio
- * @property {string} im_going - Campo im_going de la solicitud no es
- * obligatorio
- * @constant
- * @private
+ * @property {boolean} in   - Indica si el elemento existe en una Stop
+ * @property {Request} elem - Solicitud existente en una Stop
+ * @author Francisco Márquez &lt;12-11163@usb.ve>
  */
-const requestsRules = {
-  user: 'required|email',
-  startLocation: 'required|string',
-  destination: 'required|string',
-  comment: 'string',
-  im_going: 'string'
-}
 
 /**
- * Mensajes de error en caso de no se cumplan las requestsRules en una
- * solicitud.
- * @name errorsMessage
- * @type {Object}
- * @property {string} 'required.user' - Caso: Omisión o error del user
- * @property {string} 'required.startLocation' - Caso: Omisión del startLocation
- * @property {string} 'required.destination' - Caso: Omisión del destination
- * @constant
- * @private
- */
-const errorsMessage = {
-  'required.user': 'El usuario es necesario.',
-  'required.startLocation': 'El lugar de partida es necesario.',
-  'required.destination': 'El lugar de destino es necesario.'
-}
-
-/**
- * Función que agrega una solicitud de cola a su respectiva parada.
- * @function
- * @private
- * @param {Object} newRequest
- * @returns {Object} Solicitud insertada o solicitud recibida si hay error
- */
-const add = (newRequest) => {
-  const fromUSB = newRequest.startLocation === 'USB'
-  const toUSB = newRequest.destination === 'USB'
-  try {
-    var req = {
-      email: newRequest.user,
-      user: {
-        usbid: "",
-        phone: "",
-        fName: "",
-        lName: "",
-        major: "",
-        prPic: ""
-      },
-      startLocation: newRequest.startLocation,
-      destination: newRequest.destination,
-      comment: newRequest.comment,
-      im_going: newRequest.im_going,
-      status: false
-    }
-    if (fromUSB || toUSB) {
-      let index
-      if (fromUSB) {
-        index = fromNameToInt(newRequest.destination)
-      } else {
-        index = fromNameToInt(newRequest.startLocation)
-      }
-      usr.findByEmail(newRequest.user).then((sucs, err) => {
-        if (!err) {
-          req.user.usbid = sucs.email.slice(0, 8),
-          req.user.phone = sucs.phone_number,
-          req.user.fName = sucs.first_name,
-          req.user.lName = sucs.last_name,
-          req.user.major = sucs.major,
-          req.user.prPic = sucs.profile_pic
-        }
-      })
-      req.status = true
-      requestsList[index].requests.push(req)
-      return req
-    } else {
-      return newRequest
-    }
-  } catch (error) {
-    newRequest.status = false
-    return newRequest
-  }
-}
-
-/**
- * Endpoint para conexión con Front-end.
+ * Indica si el email se encuentra en la lista list.
  * No debería modificarse a no ser que se cambie toda lógica detrás del
  * algoritmo de recomendación.
- * @function
+ * @author Francisco Márquez &lt;12-11163@usb.ve>
+ * @private
+ * @param {string} email  - Un email
+ * @param {Object[]} list - Una lista de solicitudes
+ * @returns {Elem}
+ */
+function inList(email, list) {
+  for (var i = 0; i &lt; list.length; i++) {
+    if (list[i].email === email) return { in: true, elem: list[i] }
+  }
+  return { in: false, elem: {} }
+}
+
+/**
+ * Indica si el email se encuentra en la lista requestsList.
+ * No debería modificarse a no ser que se cambie toda lógica detrás del
+ * algoritmo de recomendación.
+ * @author Francisco Márquez &lt;12-11163@usb.ve>
+ * @private
+ * @param {string} email - Un email
+ * @returns {Elem}
+ */
+function alreadyRequested(email) {
+  for (var i = 0; i &lt; requestsList.length; i++) {
+    if (inList(email, requestsList[i].requests).in) {
+      return inList(email, requestsList[i].requests)
+    }
+  }
+  return { in: false, elem: {} }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/////////////////////////// Endpoint Pedir una cola//// ///////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Endpoint que crea una solicitud de cola.
+ * No debería modificarse a no ser que se cambie toda lógica detrás del
+ * algoritmo de recomendación.
+ * @author Francisco Márquez &lt;12-11163@usb.ve>
  * @public
+ * @async
  * @param {Object} req - Un HTTP Request
  * @param {Object} res - Un HTTP Response
  * @returns {Object} 
  */
-exports.create = (req, res) => {
-  const reqsInf = {
-    user: req.body.user,
+async function create(req, res) {
+  const { status, errors, message } = verifyRequest(req.body)
+  if (!status) return res.status(400).send(response(false, errors, message))
+  const user = await usr.findByEmail(req.body.user).then(callback)
+  const request = {
+    email: req.body.user,
+    user: {
+      usbid: user.email.slice(0, 8),
+      phone: user.phone_number,
+      fName: user.first_name,
+      lName: user.last_name,
+      major: user.major,
+      prPic: user.profile_pic
+    },
     startLocation: req.body.startLocation,
     destination: req.body.destination,
     comment: req.body.comment,
-    im_going: req.body.im_going
+    im_going: req.body.im_going,
+    status: true
   }
-  const validate = validateIn(reqsInf, requestsRules, errorsMessage)
+  const insert = add(request)
+  return res.status(200).send(response(true, insert, 'Solicitud exitosa'))
+}
 
-  if (!validate.pass) {
-    return res.status(400).send(
-      response(false, validate.errors, 'Ha ocurrido un error en el proceso.')
-    )
+/**
+ * Función que verifica la validez de los datos de una solicitud para
+ * modificar la lista de solicitudes de cola.
+ * @author Francisco Márquez &lt;12-11163@usb.ve>
+ * @private
+ * @param {string} request
+ * @returns {Verification}
+ */
+function verifyRequest(request) {
+  const validate = validateIn(request, requestsRules, errorsMessage)
+  const fromUSB  = request.startLocation === 'USB'
+  const toUSB    = request.destination === 'USB'
+  const start    = fromNameToInt(request.startLocation) > -2
+  const dest     = fromNameToInt(request.destination) > -2
+  const exists   = alreadyRequested(request.user).in
+  if (!(validate.pass &amp;&amp; !exists &amp;&amp; (fromUSB != toUSB) &amp;&amp; start &amp;&amp; dest)) {
+    var errors = ''
+    var message = ''
+    if (!validate.pass) {
+      errors = validate.errors
+      message = 'Los datos introducidos no cumplen con el formato requerido'
+    } else if (exists) {
+      errors = 'Solicitud existente'
+      message = 'No puedes solicitar más de una cola'
+    } else if (fromUSB) {
+      errors = 'Cola es desde la USB'
+      message = 'No puede haber una cola desde la USB hasta la USB'
+    } else if (!toUSB) {
+      errors = 'Cola no involucra a la USB'
+      message = 'No puede haber una cola que no salga de, o llegue a, la USB'
+    } else if (!start) {
+      errors = 'Cola no empieza en una parada autorizada'
+      message = 'Ninguna cola puede involucrar una parada no autorizada'
+    } else {
+      errors = 'Cola no termina en una parada autorizada'
+      message = 'Ninguna cola puede involucrar una parada no autorizada'
+    }
+    return { valid: false, errors: errors, message: message }
   }
-  const insert = add(reqsInf)
-  const inf = {
-    user: insert.email,
-    information: insert.user,
-    startLocation: insert.startLocation,
-    destination: insert.destination,
-    comment: insert.comment,
-    im_going: insert.im_going,
-    status: insert.status
-  }
-  if (insert.status) {
-    // console.log(inf.information.phone_number)
-    return res.status(200).send(response(true, inf, 'Solicitud exitosa.'))
+  return { valid: true, errors: '', message: '' }
+}
+
+/**
+ * Función que agrega una solicitud de cola a su respectiva parada.
+ * @author Francisco Márquez &lt;12-11163@usb.ve>
+ * @private
+ * @param {Object} newRequest
+ * @returns {Object} Solicitud insertada o solicitud recibida si hay error
+ */
+function add(newRequest) {
+  const fromUSB = newRequest.startLocation === 'USB'
+  const toUSB   = newRequest.destination === 'USB'
+  let index
+  if (fromUSB) {
+    index = fromNameToInt(newRequest.destination)
   } else {
-    return res.status(500).send(response(false, inf, 'Solicitud errada.'))
+    index = fromNameToInt(newRequest.startLocation)
+  }
+  requestsList[index].requests.push(newRequest)
+  return newRequest
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/////////////////// Endpoint Cancelar una solicitud de cola ///////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Endpoint para cancelar una solicitud de cola.
+ * No debería modificarse a no ser que se cambie toda lógica detrás del
+ * algoritmo de recomendación.
+ * @author Francisco Márquez &lt;12-11163@usb.ve>
+ * @public
+ * @param {Object} req - Un HTTP Request
+ * @param {Object} res - Un HTTP Response
+ * @returns {Object}
+ */
+function cancel(req, res) {
+  const { status, errors, message } = verifyRequest(req.body)
+  if (!status) return res.status(400).send(response(false, errors, message))
+
+  var del = remove(req.body)
+
+  if (del) {
+    return res.status(200).send(response(true, '', 'Solicitud exitosa'))
+  } else {
+    return res.status(200).send(response(false, '', 'Cola no existe'))
   }
 }
 
 /**
  * Función que elimina una solicitud de cola a su respectiva parada.
- * @function
+ * No debería modificarse a no ser que se cambie toda lógica detrás del
+ * algoritmo de recomendación.
+ * @author Francisco Márquez &lt;12-11163@usb.ve>
  * @private
  * @param {Object} deleteRequest
  * @returns {boolean} true si y solo si fue correctamente eliminada
  */
-const remove = (deleteRequest) => {
+function remove(deleteRequest) {
   let index
   const fromUSB = deleteRequest.startLocation === 'USB'
   if (fromUSB) {
@@ -256,53 +318,289 @@ const remove = (deleteRequest) => {
   } else {
     index = fromNameToInt(deleteRequest.startLocation)
   }
-  try {
-    for (let i = 0; i &lt; requestsList[index].requests.length; i++) {
-      if (requestsList[index].requests[i].user === deleteRequest.user) {
-        requestsList[index].requests.splice(i, 1)
-        return true
-      }
+  for (let i = 0; i &lt; requestsList[index].requests.length; i++) {
+    if (requestsList[index].requests[i].user === deleteRequest.user) {
+      requestsList[index].requests.splice(i, 1)
+      return true
     }
-    return false
-  } catch (error) {
-    return false
+  }
+  return false
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///////////// Endpoint Cambiar el estado de una solicitud de cola /////////////
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Endpoint para cambiar el estado de una solicitud de cola.
+ * No debería modificarse a no ser que se cambie toda lógica detrás del
+ * algoritmo de recomendación.
+ * @public
+ * @param {Object} req - Un HTTP Request
+ * @param {Object} res - Un HTTP Response
+ * @returns {Object}
+ */
+function updateStatus(req, res) {
+  const { status, errors, message } = verifyStatus(req.body)
+  if (!status) {
+    return res.status(400).send(response(false, errors, message))
+  }
+  changeStatus(req.body.user, req.body.place)
+  return res.status(200).send(response(true, '', 'Cambiado exitosamente'))
+}
+
+/**
+ * Función que verifica que los datos recibidos tengan el formato adecuado para
+ * cambiar el estado de una solicitud de cola.
+ * No debería modificarse a no ser que se cambie toda lógica detrás del
+ * algoritmo de recomendación.
+ * @author Francisco Márquez &lt;12-11163@usb.ve>
+ * @private
+ * @param {Object} request 
+ * @param {string} request.user  - Un correo de usuario.
+ * @param {string} request.place - Una parada del sistema PideCola
+ * @returns {Verification}
+ */
+function verifyStatus(request) {
+  const changeStatusRules = {user: 'required|email', place: 'required|string'}
+  const errorMessage = {
+    'required.user': 'El email del usuario es necesario',
+    'required.place': 'El lugar, diferente de la USB, necesario'
+  }
+  const validate = validateIn(request, changeStatusRules, errorMessage)
+  const index = fromNameToInt(request.place)
+  if (!(validate.pass &amp;&amp; request.place != 'USB' &amp;&amp; index > -1)) {
+    var errors = ''
+    var message = ''
+    if (!validate.pass) {
+      errors = validate.errors
+      message = 'Los datos introducidos no cumplen con el formato requerido'
+    } else if (req.body.place === 'USB') {
+      errors = 'Lugar es la USB'
+      message = 'Si vas a la USB, di el lugar de donde vienes. '
+      message = message + 'Si vienes de la USB, di el lugar a donde vas'
+    } else {
+      errors = 'El lugar no es una parada autorizada'
+      message = 'Debes indicar una parada autorizada'
+    }
+    return { status: false, errors: errors, message: message }
+  }
+  return { status: true, errors: '', message: '' }
+}
+
+/**
+ * Procedimiento: Cambia el estado de una solicitud de cola, cuando esta existe
+ * No debería modificarse a no ser que se cambie toda lógica detrás del
+ * algoritmo de recomendación.
+ * @author Francisco Márquez &lt;12-11163@usb.ve>
+ * @private
+ * @param {string} email - Un email
+ * @param {string} place - Una parada
+ */
+function changeStatus(email, place) {
+  const s = fromNameToInt(place)
+  for (var i = 0; i &lt; requestsList[s].requests.length; i++) {
+    if (requestsList[stop].requests[i].email === email) {
+      requestsList[s].requests[i].status = !requestsList[s].requests[i].status
+      break
+    }
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+////////////////////////// Endpoint Ofrecer una cola //////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Endpoint para ofrecer la cola
+ * No debería modificarse a no ser que se cambie toda lógica detrás del
+ * algoritmo de recomendación.
+ * @author Francisco Márquez &lt;12-11163@usb.ve>
+ * @public
+ * @async
+ * @param {Object} req - Un HTTP Request
+ * @param {Object} res - Un HTTP Response
+ * @returns {Object}
+ */
+async function offerRide(req, res) {
+  const { status, errors, message } = verifyOffer(req.body)
+  if (!status) return res.status(400).send(response(false, errors, message))
+  const offer = await sendOffer(req.body)
+  if (offer.sent) {
+    return res.status(200).send(response(true, offer.log, 'Oferta enviada'))
+  } else {
+    return res.status(500).send(response(false, offer.errors, 'Error'))
   }
 }
 
 /**
- * Endpoint para conexión con Front-end.
+ * Función que verifica que los datos recibidos tengan el formato adecuado para
+ * ofrecer la cola.
  * No debería modificarse a no ser que se cambie toda lógica detrás del
  * algoritmo de recomendación.
- * @function
+ * @author Francisco Márquez &lt;12-11163@usb.ve>
+ * @private
+ * @param {Object} dataOffer 
+ * @param {string} dataOffer.rider     - El correo del ofertante
+ * @param {string} dataOffer.passenger - El correo del solicitante
+ * @returns {Verification}
+ */
+function verifyOffer(dataOffer) {
+  const offerRules = { rider: 'required|email', passenger: 'required|email' }
+  const offerMessage = {
+    'required.rider': 'El conductor es necesario',
+    'required.passenger': 'El pasajero es necesario'
+  }
+  let errors
+  let message
+  const validate = validateIn(dataOffer, offerRules, offerMessage)
+  if (!validate.pass) {
+    errors = validate.errors
+    message = 'Los datos introducidos no cumplen con el formato requerido'
+    return { status: false, errors: errors, message: message }
+  }
+  return { status: true, errors: '', message: '' }
+}
+
+/**
+ * @typedef SentStatus
+ * @type {Object}
+ * @property {boolean}       sent   - Estado del envío
+ * @property {string}        log    - Información del servicio de email
+ * @property {Object|string} errors - Errores experimentados
+ * @author Francisco Márquez &lt;12-11163@usb.ve>
+ */
+
+/**
+ * Función que envía un correo electrónico notificando que hay una oferta de
+ * cola para una solicitud.
+ * No debería modificarse a no ser que se cambie toda lógica detrás del
+ * algoritmo de recomendación.
+ * @author Francisco Márquez &lt;12-11163@usb.ve>
+ * @private
+ * @async
+ * @param {Object} offer
+ * @param {string} offer.rider     - El correo del ofertante
+ * @param {string} offer.passenger - El correo del solicitante
+ * @returns {SentStatus}
+ */
+async function sendOffer(offer) {
+  const subj = 'Nueva oferta de cola'
+  const name = await users.findByEmail(offer.passenger).then(callback)
+  const html = offerTemplate(name.first_name)
+  return sendEmail(offer.passenger, subj, html).then(callbackMail)
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/////////////////// Endpoint Responder a una oferta de cola ///////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Endpoint para responder una oferta de cola.
+ * No debería modificarse a no ser que se cambie toda lógica detrás del
+ * algoritmo de recomendación.
+ * @author Francisco Márquez &lt;12-11163@usb.ve>
  * @public
+ * @async
  * @param {Object} req - Un HTTP Request
  * @param {Object} res - Un HTTP Response
- * @returns {Object} 
+ * @returns {Object}
  */
-exports.delete = (req, res) => {
-  const reqsInf = {
-    user: req.body.user,
-    startLocation: req.body.startLocation,
-    destination: req.body.destination,
-    comment: req.body.comment,
-    im_going: req.body.im_going
-  }
-  const validate = validateIn(reqsInf, requestsRules, errorsMessage)
-
-  if (!validate.pass) {
-    return res.status(400).send(
-      response(false, validate.errors, 'Ha ocurrido un error en el proceso.')
-    )
-  } else if (remove(reqsInf)) {
-    return res.status(200).send(response(true, reqsInf, 'Solicitud exitosa.'))
+async function respondOfferRide(req, res) {
+  const { status, errors, message } = verifyRespondOffer(req.body)
+  if (!status) return res.status(400).send(response(false, errors, message))
+  const answer = await respondOffer(req.body)
+  if (answer.sent) {
+    return res.status(200).send(response(true, answer.log, 'Respondiste'))
   } else {
-    return res.status(500).send(response(false, reqsInf, 'Solicitud errada.'))
+    return res.status(500).send(response(false, answer.errors, 'Error'))
   }
 }
 
-module.exports.requestsList = requestsList
-module.exports.cast = fromNameToInt
-</code></pre>
+/**
+ * Función que verifica que los datos recibidos tengan el formato adecuado para
+ * No debería modificarse a no ser que se cambie toda lógica detrás del
+ * algoritmo de recomendación.
+ * @author Francisco Márquez &lt;12-11163@usb.ve>
+ * @private
+ * @param {Object} dataResponse 
+ * @param {string} dataResponse.rider     - El correo del ofertante
+ * @param {string} dataResponse.passenger - El correo del solicitante
+ * @param {string} dataResponse.accept    - String = 'Sí' || 'No'
+ * @returns {Verification}
+ */
+function verifyRespondOffer(dataResponse) {
+  const responseRules = {
+    rider: 'required|email',
+    passenger: 'required|email',
+    accept: 'required|string'
+  }
+  const offerMessage = {
+    'required.rider': 'El conductor es necesario',
+    'required.passenger': 'El pasajero es necesario',
+    'required.accept': 'La respuesta del solicitante es necesaria'
+  }
+  let errors
+  let message
+  const validate = validateIn(dataResponse, responseRules, offerMessage)
+  const yesOrNot = dataResponse.accept === 'Sí' || dataResponse.accept === 'No'
+  if (!(validate.pass &amp;&amp; yesOrNot)) {
+    if (!validate) {
+      errors = validate.errors
+      message = 'Los datos introducidos no cumplen con el formato requerido'
+    } else {
+      errors = 'La respuesta no parece ser Sí o No'
+      message = 'La respuesta tiene que ser Sí o No'
+    }
+    return { status: false, errors: errors, message: message }
+  }
+  return { status: true, errors: '', message: '' }
+}
+
+/**
+ * Función que envía un correo electrónico notificando que la cola ha sido
+ * aceptada y elimina la solicitud de la lista; o rechazada.
+ * No debería modificarse a no ser que se cambie toda lógica detrás del
+ * algoritmo de recomendación.
+ * @author Francisco Márquez &lt;12-11163@usb.ve>
+ * @private
+ * @async
+ * @param {Object} response
+ * @param {string} response.rider     - El correo del ofertante
+ * @param {string} response.passenger - El correo del solicitante
+ * @returns {SentStatus}
+ */
+async function respondOffer(response) {
+  if (response.accept === 'Sí') {
+    if (remove(alreadyRequested(response.passenger).elem)) {
+      const subj = 'Han respondido a tu oferta de cola'
+      const name = await users.findByEmail(response.rider).then(callback)
+      const html = responseTemplate(name.first_name)
+      return sendEmail(offer.rider, subj, html).then(callbackMail)
+    } else {
+      const log = 'Parece que la solicitud de cola no existe'
+      const errors = 'La solicitud de cola no fue encontrada'
+      return { sent: false, log: log, errors: errors }
+    }
+  } else {
+    const subj = 'Han respondido a tu oferta de cola'
+    const name = await users.findByEmail(response.rider).then(callback)
+    const html = responseTemplate(name.first_name)
+    return sendEmail(offer.rider, subj, html).then(callbackMail)
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//////////////////////////// Exportar Endpoints ///////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+module.exports.requestsList     = requestsList
+module.exports.cast             = fromNameToInt // Esto no es un endpoint
+module.exports.create           = create
+module.exports.cancel           = cancel
+module.exports.updateStatus     = updateStatus
+module.exports.offerRide        = offerRide
+module.exports.respondOfferRide = respondOfferRide</code></pre>
         </article>
     </section>
 
@@ -312,13 +610,13 @@ module.exports.cast = fromNameToInt
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-controllers_algorithmController.html">controllers/algorithmController</a></li><li><a href="module-controllers_requestsController.html">controllers/requestsController</a></li><li><a href="module-controllers_rideController.html">controllers/rideController</a></li><li><a href="module-controllers_userController.html">controllers/userController</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-algorithmController.html">algorithmController</a></li><li><a href="module-requestsController.html">requestsController</a></li><li><a href="module-rideController.html">rideController</a></li><li><a href="module-userController.html">userController</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Wed Mar 18 2020 01:25:53 GMT-0400 (hora de Venezuela)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Mar 26 2020 03:30:32 GMT-0400 (hora de Venezuela)
 </footer>
 
 <script> prettyPrint(); </script>
