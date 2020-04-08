@@ -91,7 +91,7 @@ const connectREDIS = require('../lib/connections').connectREDIS
 const client = connectREDIS()
 requestsList.forEach( (elem, index) => {
   client.smembers( elem.name, (err, list) => {
-    if(err) return console.log(err)
+    if (err) return console.log(err)
     list.forEach( request => {
       requestsList[index].requests.push(JSON.parse(request))
     })
@@ -331,7 +331,9 @@ function remove (deleteRequest) {
   }
   for (let i = 0; i < requestsList[index].requests.length; i++) {
     if (requestsList[index].requests[i].email === deleteRequest.user) {
+      const req = requestsList[index].requests[i]
       requestsList[index].requests.splice(i, 1)
+      client.srem(requestsList[index].name, JSON.stringify(req))
       return true
     }
   }
