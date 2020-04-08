@@ -2,6 +2,9 @@ const express = require('express')
 const router = express.Router()
 const requestsController = require('../controllers/requestsController.js')
 
+// GETs
+router.get('/get', requestsController.getRequest)
+
 // POSTs
 router.post('/create', requestsController.create)
 router.post('/cancel', requestsController.cancel)

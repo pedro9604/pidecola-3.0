@@ -27,6 +27,8 @@ const users = require('./userController.js')
 // Funciones
 const callback = require('../lib/utils/utils').callbackReturn
 const callbackMail = require('../lib/utils/utils').callbackMail
+const emailRules = require('../lib/utils/validation').emailRules
+const emailMessage = require('../lib/utils/validation').emailMessage
 const errorsMessage = require('../lib/utils/validation').requestsMessage
 const offerTemplate = require('../lib/utils/codeTemplate').offerTemplate
 const requestsRules = require('../lib/utils/validation').requestsRules
@@ -620,6 +622,51 @@ async function respondOffer (response) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+//////////// Endpoint Obtener información de una solicitud de cola ////////////
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Endpoint para responder una oferta de cola.
+ * No debería modificarse a no ser que se cambie toda lógica detrás del
+ * algoritmo de recomendación.
+ * @author Francisco Márquez <12-11163@usb.ve>
+ * @public
+ * @async
+ * @param {Object} req - Un HTTP Request
+ * @param {Object} res - Un HTTP Response
+ * @returns {Object}
+ */
+function getRequest (req, res) {
+  const { status, errors, message } = verifyGet(req.body)
+  if (!status) return res.status(400).send(response(false, errors, message))
+  const elm = alreadyRequested(req.body.email)
+  const statusCode = elm.in ? 200 : 500, msg = elm.in ? '' : 'No existe'
+  return res.status(statusCode).send(response(elm.in, elm.elem, msg))
+}
+
+/**
+ * Función que verifica que los datos recibidos tengan el formato adecuado para
+ * cambiar el estado de una solicitud de cola.
+ * No debería modificarse a no ser que se cambie toda lógica detrás del
+ * algoritmo de recomendación.
+ * @author Francisco Márquez <12-11163@usb.ve>
+ * @private
+ * @param {Object} request
+ * @param {string} request.user  - Un correo de usuario.
+ * @param {string} request.place - Una parada del sistema PideCola
+ * @returns {Verification}
+ */
+function verifyGet (request) {
+  const validate = validateIn(request, emailRules, emailMessage)
+  var errors = '', message = ''
+  if (!validate.pass) {
+    errors = validate.errors
+    message = 'Los datos introducidos no cumplen con el formato requerido'
+  }
+  return { status: errors === '', errors: '', message: '' }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 //////////////////////////// Exportar Endpoints ///////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -630,3 +677,4 @@ module.exports.cancel = cancel
 module.exports.updateStatus = updateStatus
 module.exports.offerRide = offerRide
 module.exports.respondOfferRide = respondOfferRide
+module.exports.getRequest = getRequest
