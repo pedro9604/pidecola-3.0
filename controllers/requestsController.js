@@ -640,7 +640,7 @@ function getRequest (req, res) {
   const { status, errors, message } = verifyGet(req.secret)
   if (!status) return res.status(400).send(response(false, errors, message))
   const elm = alreadyRequested(req.secret.email)
-  const statusCode = elm.in ? 200 : 204, msg = elm.in ? '' : 'No existe'
+  const statusCode = elm.in ? 200 : 206, msg = elm.in ? '' : 'No existe'
   return res.status(statusCode).send(response(true, elm.elem, msg))
 }
 
