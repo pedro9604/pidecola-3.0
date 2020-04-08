@@ -372,6 +372,49 @@ async function comment (dataRide) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+///////////////// Endpoint Obtener la información de una cola /////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Endpoint para obtener información de una cola.
+ * No debería modificarse a no ser que se cambie toda lógica detrás del
+ * algoritmo de recomendación.
+ * @author Francisco Márquez <12-11163@usb.ve>
+ * @public
+ * @async
+ * @param {Object} req - Un HTTP Request
+ * @param {Object} res - Un HTTP Response
+ * @returns {Object}
+ */
+async function getRide (req, res) {
+  const { status, errors, message } = await verifyDataRide(req.body)
+  if (!status) return res.status(400).send(response(false, errors, message))
+  const rideInf = await findRide(req.body)
+  const statusCode = rideInf ? 200 : 206, data = rideInf || 'Cola no existe'
+  const msg = rideInf ? '' : 'La cola buscada no está registrada'
+  return res.status(statusCode).send(response(true, data, msg))
+}
+
+/**
+ * Función que devuelve una cola de la base de datos.
+ * @author Francisco Márquez <12-11163@usb.ve>
+ * @private
+ * @async
+ * @param {Object} dataRide - Datos de la cola a modificar
+ * @returns {Object} Datos de la cola insertada en la base de datos
+ */
+async function findRide (dataRide) {
+  const ride = {
+    rider: dataRide.rider,
+    passenger: dataRide.passenger,
+    available_seats: dataRide.seats,
+    start_location: dataRide.startLocation,
+    destination: dataRide.destination,
+  }
+  return rides.findOne(ride).then(callback)
+}
+
+///////////////////////////////////////////////////////////////////////////////
 //////////////////////////// Exportar Endpoints ///////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -379,3 +422,4 @@ module.exports.create = create
 module.exports.endRide = endRide
 module.exports.changeStatus = changeStatus
 module.exports.commentARide = commentARide
+module.exports.getRide = getRide
