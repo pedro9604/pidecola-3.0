@@ -23,6 +23,8 @@ const rides = require('../models/rideModel.js')
 
 // Funciones
 const callback = require('../lib/utils/utils').callbackReturn
+const emailRules = require('../lib/utils/validation').emailRules
+const emailMessage = require('../lib/utils/validation').emailMessage
 const errorsMessage = require('../lib/utils/validation').rideMessage
 const response = require('../lib/utils/response').response
 const rideRules = require('../lib/utils/validation').rideRules
@@ -387,12 +389,22 @@ async function comment (dataRide) {
  * @returns {Object}
  */
 async function getRide (req, res) {
-  const { status, errors, message } = await verifyDataRide(req.body)
+  const { status, errors, message } = verifyGetRide(req.secret)
   if (!status) return res.status(400).send(response(false, errors, message))
-  const rideInf = await findRide(req.body)
+  const rideInf = await findRide(req.secret.email)
   const statusCode = rideInf ? 200 : 206, data = rideInf || 'Cola no existe'
   const msg = rideInf ? '' : 'La cola buscada no está registrada'
   return res.status(statusCode).send(response(true, data, msg))
+}
+
+function verifyGetRide (request) {
+  const validate = validateIn(request, emailRules, emailMessage)
+  var errors = '', message = ''
+  if (!validate.pass) {
+    errors = validate.errors
+    message = 'Los datos introducidos no cumplen con el formato requerido'
+  }
+  return { status: errors === '', errors: errors, message: message }
 }
 
 /**
@@ -403,15 +415,10 @@ async function getRide (req, res) {
  * @param {Object} dataRide - Datos de la cola a modificar
  * @returns {Object} Datos de la cola insertada en la base de datos
  */
-async function findRide (dataRide) {
-  const ride = {
-    rider: dataRide.rider,
-    passenger: dataRide.passenger,
-    available_seats: dataRide.seats,
-    start_location: dataRide.startLocation,
-    destination: dataRide.destination,
-  }
-  return rides.findOne(ride).then(callback)
+async function findRide (email) {
+  const ride = await rides.findOne({ rider: email, ride_finished: false })
+  const pass = await rides.findOne({ passenger: email, ride_finished: false })
+  return ride || pass
 }
 
 ///////////////////////////////////////////////////////////////////////////////
