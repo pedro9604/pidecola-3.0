@@ -24,6 +24,7 @@
 const autentication = require('../autentication')
 const bcrypt = require('bcryptjs')
 const files = require('../lib/cloudinaryConfig')
+const logger = require('../lib/logger.js')
 const users = require('../models/userModel')
 
 // Funciones
@@ -61,7 +62,10 @@ const validateIn = require('../lib/utils/validation').validateIn
  */
 async function create (req, res) {
   const { code, status, errors, message } = await verifyCreate(req.body)
-  if (!status) return res.status(code).send(response(false, errors, message))
+  if (!status) {
+    logger.log('error', message, {user: req.body.email, operation: 'create', status: status})
+    return res.status(code).send(response(false, errors, message))
+  }
   req.body.password = await bcrypt.hash(req.body.password, 12)
   const user = await addUser(req.body).then((sucs, err) => {
     if (!err && sucs) return { code: 200, user: sucs }
@@ -72,17 +76,21 @@ async function create (req, res) {
     const create = await responseCreate(user.user)
     if (!create.sent) {
       mssg = 'No se ha podido enviar el código de validación. Intente de nuevo'
+      logger.log('error', mssg, {user: req.body.email, operation: 'create', status: 500})
       return res.status(500).send(response(false, create.errors, mssg))
     } else {
       mssg = 'Usuario creado con éxito. El código de validación se ha enviado '
       mssg += 'a su correo'
+      logger.log('info', mssg, {user: req.body.email, operation: 'create', status: 200})
       return res.status(200).send(response(true, create.log, mssg))
     }
   } else if (user.code === 11000) {
     mssg = 'El usuario ya existe'
+    logger.log('error', mssg, {user: req.body.email, operation: 'create', status: 500})
     return res.status(500).send(response(false, 'Ya existe usuario', mssg))
   } else {
     mssg = 'El usuario no ha sido creado debido a un error desconocido'
+    logger.log('error', mssg, {user: req.body.email, operation: 'create', status: 500})
     return res.status(500).send(response(false, 'Error', mssg))
   }
 }
@@ -106,10 +114,12 @@ async function verifyCreate (dataRegister) {
       code = 400
       err = validate.errors
       message = 'Los datos introducidos no cumplen con el formato requerido'
+      logger.log('error', message, {user: dataRegister.email, operation: 'verify-create', status: 400})
     } else if (user.isVerify) {
       code = 403
       err = 'Usuario registrado'
       message = 'Usuario ya se ha registrado exitosamente'
+      logger.log('error', message, {user: dataRegister.email, operation: 'verify-create', status: 403})
     } else {
       code = 409
       err = 'Usuario debe validarse'
@@ -120,10 +130,12 @@ async function verifyCreate (dataRegister) {
         err = errors
         message = 'El usuario debía validarse pero ocurrió un error reenviando'
         message += ' el correo con el código de validación'
+        logger.log('error', message, {user: dataRegister.email, operation: 'verify-create', status: 500})
       }
     }
     return { code: code, status: false, errors: err, message: message }
   }
+  logger.log('info', 'Validacion exitosa', {user: dataRegister.email, operation: 'verify-create', status: 200})
   return { code: 200, status: true, errors: '', message: '' }
 }
 
@@ -225,6 +237,7 @@ async function codeValidate (req, res) {
       err = 'El email es necesario'
       status = 401
     }
+    logger.log('error', message, {user: req.body.email, operation: 'code-validation', status: status})
     return res.status(status).send(response(false, err, message))
   }
   const user = await findByEmail(req.body.email).then(user => {
@@ -251,6 +264,7 @@ async function codeValidate (req, res) {
   } else {
     message = 'Ha ocurrido un error desconocido, por favor intente nuevamente'
   }
+  logger.log('info', message, {user: req.body.email, operation: 'code-validation', status: 200})
   return res.status(status).send(response(status === 200, user.data, message))
 }
 
@@ -274,8 +288,10 @@ async function getUserInformation (req, res) {
   }
   const usr = await findByEmail(req.secret.email).then(callback)
   if (!!usr && usr.isVerify) {
+    logger.log('info', 'Perfil encontrado', {user: req.secret.email, operation: 'view-profile', status: 200})
     return res.status(200).send(response(true, usr, 'Perfil encontrado'))
   } else {
+    logger.log('error', 'Usuario no existe', {user: req.secret.email, operation: 'view-profile', status: 500})
     return res.status(500).send(response(false, null, 'Usuario no existe'))
   }
 }
@@ -294,9 +310,11 @@ async function getUserInformation (req, res) {
  */
 async function updateUser (req, res) {
   const validate = validateIn(req, updateRules, updateMessage)
-  var message = 'Debes verificar tu cuenta antes', status = 0, data = null
+  var message = 'Debes verificar tu cuenta antes', status = 0, data = null, level = null
   if (!validate.pass) {
+    level = 'error'
     message = 'Los datos no cumplen con el formato requerido'
+    logger.log(level, message, {user: req.secret.email, operation: 'update-profile', status: 401})
     return res.status(401).send(response(false, validate.errors, message))
   }
   const query = { $set: req.body }
@@ -305,11 +323,15 @@ async function updateUser (req, res) {
   if (usr && usr.isVerify) {
     data = usr
     message = 'El Usuario fue actualizado'
+    level = 'info'
   } else if (!usr.isVerify) {
     data = 'Usuario no ha sido verificado'
+    level = 'error'
   } else {
     message = 'El Usuario no existe'
+    level = 'error'
   }
+  logger.log(level, message, {user: req.secret.email, operation: 'update-profile', status: status})
   return res.status(status).send(response(usr && usr.isVerify, data, message))
 }
 
@@ -340,7 +362,7 @@ function updateUserByEmail (email, query) {
  */
 async function updateProfilePic (req, res) {
   const validate = validateIn(req.secret, emailRules, emailMessage)
-  var status = 401, err = ''
+  var status = 401, err = '', level = 'error'
   var message = 'Los datos introducidos no cumplen con el formato requerido'
   if (!(req.file && validate.pass)) {
     if (!req.file && !validate.pass) {
@@ -352,6 +374,7 @@ async function updateProfilePic (req, res) {
     } else {
       err = 'La foto de perfil es requerida'
     }
+    logger.log(level, message, {user: req.secret.email, operation: 'update-profile-pic', status: status})
     return res.status(status).send(response(false, err, message))
   }
   const usr = await findByEmail(req.secret.email)
@@ -367,9 +390,10 @@ async function updateProfilePic (req, res) {
     })
     .catch(error => { return { code: 500, data: error } })
   status = usr.code === 200 ? 200 : 500
-  if (usr.code === 200) message = 'Foto de perfil agregada'
-  else if (usr.code === 500) message = 'Ocurrió un error en el proceso'
-  else message = 'Foto de perfil no fue agregada'
+  if (usr.code === 200) message = 'Foto de perfil agregada', level = 'info'
+  else if (usr.code === 500) message = 'Ocurrió un error en el proceso', level = 'error'
+  else message = 'Foto de perfil no fue agregada', level = 'error'
+  logger.log(level, message, {user: req.secret.email, operation: 'update-profile-pic', status: status})
   return res.status(status).send(response(status === 200, usr.data, message))
 }
 
@@ -391,7 +415,7 @@ async function updateProfilePic (req, res) {
  */
 async function addVehicle (req, res) {
   const validate = validateIn(req, addVehicleRules, addVehicleMessage)
-  var status = 401, err = ''
+  var status = 401, err = '', level = 'error'
   let message = 'Los datos introducidos no cumplen con el formato requerido'
   if (!(req.file && validate.pass)) {
     if (!req.file && !validate.pass) {
@@ -403,6 +427,7 @@ async function addVehicle (req, res) {
     } else {
       err = 'La foto del vehículo es requerida'
     }
+    logger.log(level, message, {user: req.secret.email, operation: 'add-vehicle', status: status})
     return res.status(status).send(response(false, err, message))
   }
   const usr = await findByEmail(req.secret.email)
@@ -425,10 +450,11 @@ async function addVehicle (req, res) {
     })
     .catch(error => { return { code: 502, data: error } })
   status = usr.code === 200 || usr.code === 403 ? usr.code : 500
-  if (usr.code === 200) message = 'Vehículo agregado'
-  else if (usr.code === 403) message = 'Vehículo ya existe'
-  else if (usr.code === 500) message = 'Ocurrió un error en el proceso'
-  else message = 'Vehículo no fue agregado'
+  if (usr.code === 200) message = 'Vehículo agregado', level = 'info'
+  else if (usr.code === 403) message = 'Vehículo ya existe', level = 'error'
+  else if (usr.code === 500) message = 'Ocurrió un error en el proceso', level = 'error'
+  else message = 'Vehículo no fue agregado', level = 'error'
+  logger.log(level, message, {user: req.secret.email, operation: 'add-vehicle', status: status})
   return res.status(status).send(response(status === 200, usr.data, message))
 }
 
@@ -446,9 +472,10 @@ async function addVehicle (req, res) {
  */
 async function deleteVehicle (req, res) {
   const validate = validateIn(req, deleteRules, deleteMessage)
-  var status, message
+  var status, message, level
   if (!validate.pass) {
     message = 'Los datos no cumplen con el formato requerido'
+    logger.log('error', message, {user: req.secret.email, operation: 'delete-vehicle', status: 401})
     return res.status(401).send(response(false, validate.errors, message))
   }
   const usr = await findByEmail(req.secret.email)
@@ -469,9 +496,10 @@ async function deleteVehicle (req, res) {
     })
     .catch(error => { return { code: 500, data: error } })
   status = usr.code === 200 || usr.code === 403 ? usr.code : 500
-  if (usr.code === 200) message = 'Vehículo eliminado'
-  else if (usr.code === 403) message = 'Vehículo no existe'
-  else message = 'Vehículo no existe'
+  if (usr.code === 200) message = 'Vehículo eliminado', levvel = 'info'
+  else if (usr.code === 403) message = 'Vehículo no existe', level = 'error'
+  else message = 'Vehículo no existe', level = 'error'
+  logger.log(level, message, {user: req.secret.email, operation: 'delete-vehicle', status: status})
   return res.status(status).send(response(status === 200, usr.data, message))
 }
 

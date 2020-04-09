@@ -5,12 +5,12 @@ const bodyParser = require('body-parser')
 const chalk = require('chalk')
 const cors = require('cors')
 const http = require('http')
-const mongoose = require('mongoose')
 
 
 const config = require('./Config.js')
 const connections = require('./lib/connections.js')
 const cloudinary = require('./lib/cloudinaryConfig.js')
+
 
 connections.connectDB()
 cloudinary.cloudinaryConfig()
@@ -22,8 +22,6 @@ const port = config.SERVER_PORT || 5000
 app.use(bodyParser.json({ limit: '50mb', extended: true }))
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }))
 app.use(cors())
-
-mongoose.plugin(require('./lib/logPlugin.js'))
 
 const autentication = require('./autentication.js')
 app.use('/login', autentication.signIn)
