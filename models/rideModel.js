@@ -5,7 +5,7 @@ const Schema = mongoose.Schema
 
 const RideSchema = new Schema(
   {
-    rider: { type: String, ref: 'User', required: true },
+    rider: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     passenger: { type: Array, required: true },
     available_seats: { type: Number },
     status: { type: String, enum: ['En Espera', 'En Camino', 'Finalizado', 'Accidentado'] },
@@ -15,7 +15,7 @@ const RideSchema = new Schema(
     ride_finished: { type: Boolean },
     comments:
       [{
-        user_email: { type: String, ref: 'User' },
+        user_id: { type: Schema.Types.ObjectId, ref: 'User' },
         like: { type: Boolean },
         dislike: { type: Boolean },
         comment: { type: 'String' }

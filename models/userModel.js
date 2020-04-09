@@ -15,11 +15,10 @@ const UserSchema = new Schema(
     major: {
       type: String,
       enum:
-      ['Ciclo Básico', 'Ing. Eléctrica', 'Ing. Mecánica', 'Ing. Química', 'Ing. Electrónica', 'Ing. de Materiales',
+      ['Ing. Eléctrica', 'Ing. Mecánica', 'Ing. Química', 'Ing. Electrónica', 'Ing. de Materiales',
         'Ing. de Computación', 'Ing. Geofísica', 'Ing. de Producción', 'Ing. de Telecomunicaciones',
         'Arquitectura', 'Urbanismo', 'Lic. en Química', 'Lic. en Matemáticas', 'Lic. en Física', 'Lic. en Biología',
-        'Lic. en Comercio Internacional', 'Lic. en Estudios y Artes Liberales', 'Economía'],
-      default: 'Ciclo Básico'
+        'Lic. en Comercio Internacional', 'Lic. en Estudios y Artes Liberales', 'Economía']
     },
     profile_pic: { type: String },
     status: { type: String, enum: ['Disponible', 'No Disponible'] },
@@ -34,6 +33,13 @@ const UserSchema = new Schema(
           vehicle_capacity: { type: Number },
           vehicle_pic: { type: String }
         }],
+    license: { type: String },
+    rides_given: { type: Number },
+    rides_recieved: { type: Number },
+    likes_count: { type: Number },
+    dislikes_count: { type: Number },
+    last_ride: { type: Schema.Types.ObjectId, ref: 'Ride' },
+    frequent_routes: { type: Array },
     isVerify: { type: Boolean },
     temporalCode: { type: Number }
 
