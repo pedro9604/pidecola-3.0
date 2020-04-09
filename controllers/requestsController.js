@@ -27,6 +27,8 @@ const users = require('./userController.js')
 // Funciones
 const callback = require('../lib/utils/utils').callbackReturn
 const callbackMail = require('../lib/utils/utils').callbackMail
+const emailRules = require('../lib/utils/validation').emailRules
+const emailMessage = require('../lib/utils/validation').emailMessage
 const errorsMessage = require('../lib/utils/validation').requestsMessage
 const offerTemplate = require('../lib/utils/codeTemplate').offerTemplate
 const requestsRules = require('../lib/utils/validation').requestsRules
@@ -91,7 +93,7 @@ const connectREDIS = require('../lib/connections').connectREDIS
 const client = connectREDIS()
 requestsList.forEach( (elem, index) => {
   client.smembers( elem.name, (err, list) => {
-    if(err) return console.log(err)
+    if (err) return console.log(err)
     list.forEach( request => {
       requestsList[index].requests.push(JSON.parse(request))
     })
@@ -331,7 +333,9 @@ function remove (deleteRequest) {
   }
   for (let i = 0; i < requestsList[index].requests.length; i++) {
     if (requestsList[index].requests[i].email === deleteRequest.user) {
+      const req = requestsList[index].requests[i]
       requestsList[index].requests.splice(i, 1)
+      client.srem(requestsList[index].name, JSON.stringify(req))
       return true
     }
   }
@@ -620,6 +624,51 @@ async function respondOffer (response) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+//////////// Endpoint Obtener información de una solicitud de cola ////////////
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Endpoint para responder una oferta de cola.
+ * No debería modificarse a no ser que se cambie toda lógica detrás del
+ * algoritmo de recomendación.
+ * @author Francisco Márquez <12-11163@usb.ve>
+ * @public
+ * @async
+ * @param {Object} req - Un HTTP Request
+ * @param {Object} res - Un HTTP Response
+ * @returns {Object}
+ */
+function getRequest (req, res) {
+  const { status, errors, message } = verifyGet(req.secret)
+  if (!status) return res.status(400).send(response(false, errors, message))
+  const elm = alreadyRequested(req.secret.email)
+  const statusCode = elm.in ? 200 : 206, msg = elm.in ? '' : 'No existe'
+  return res.status(statusCode).send(response(true, elm.elem, msg))
+}
+
+/**
+ * Función que verifica que los datos recibidos tengan el formato adecuado para
+ * cambiar el estado de una solicitud de cola.
+ * No debería modificarse a no ser que se cambie toda lógica detrás del
+ * algoritmo de recomendación.
+ * @author Francisco Márquez <12-11163@usb.ve>
+ * @private
+ * @param {Object} request
+ * @param {string} request.user  - Un correo de usuario.
+ * @param {string} request.place - Una parada del sistema PideCola
+ * @returns {Verification}
+ */
+function verifyGet (request) {
+  const validate = validateIn(request, emailRules, emailMessage)
+  var errors = '', message = ''
+  if (!validate.pass) {
+    errors = validate.errors
+    message = 'Los datos introducidos no cumplen con el formato requerido'
+  }
+  return { status: errors === '', errors: errors, message: message }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 //////////////////////////// Exportar Endpoints ///////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -630,3 +679,4 @@ module.exports.cancel = cancel
 module.exports.updateStatus = updateStatus
 module.exports.offerRide = offerRide
 module.exports.respondOfferRide = respondOfferRide
+module.exports.getRequest = getRequest

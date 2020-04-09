@@ -2,6 +2,9 @@ const express = require('express')
 const router = express.Router()
 const rideController = require('../controllers/rideController.js')
 
+// GETs
+router.get('/get', rideController.getRide)
+
 // POSTs
 router.post('/create', rideController.create)
 
