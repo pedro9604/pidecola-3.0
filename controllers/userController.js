@@ -63,7 +63,7 @@ const validateIn = require('../lib/utils/validation').validateIn
 async function create (req, res) {
   const { code, status, errors, message } = await verifyCreate(req.body)
   if (!status) {
-    logger.log('error', message, {user: req.body.email, operation: 'create', status: status})
+    logger.log('error', message, {user: req.body.email, operation: 'create', status: code})
     return res.status(code).send(response(false, errors, message))
   }
   req.body.password = await bcrypt.hash(req.body.password, 12)
@@ -108,18 +108,22 @@ async function verifyCreate (dataRegister) {
   var code = 0
   var err = ''
   var message = ''
+  if (dataRegister.email.split('@')[1] !== 'usb.ve') {
+    code = 400
+    err = 'Correo invalido'
+    message = 'Correo debe ser usb.ve'
+    return { code: code, status: false, errors: err, message: message }
+  }
   const user = await findByEmail(dataRegister.email)
   if (!(validate.pass && !user)) {
     if (!validate.pass) {
       code = 400
       err = validate.errors
       message = 'Los datos introducidos no cumplen con el formato requerido'
-      logger.log('error', message, {user: dataRegister.email, operation: 'verify-create', status: 400})
     } else if (user.isVerify) {
       code = 403
       err = 'Usuario registrado'
       message = 'Usuario ya se ha registrado exitosamente'
-      logger.log('error', message, {user: dataRegister.email, operation: 'verify-create', status: 403})
     } else {
       code = 409
       err = 'Usuario debe validarse'
@@ -130,12 +134,10 @@ async function verifyCreate (dataRegister) {
         err = errors
         message = 'El usuario debía validarse pero ocurrió un error reenviando'
         message += ' el correo con el código de validación'
-        logger.log('error', message, {user: dataRegister.email, operation: 'verify-create', status: 500})
       }
     }
     return { code: code, status: false, errors: err, message: message }
   }
-  logger.log('info', 'Validacion exitosa', {user: dataRegister.email, operation: 'verify-create', status: 200})
   return { code: 200, status: true, errors: '', message: '' }
 }
 
@@ -198,7 +200,6 @@ async function updateCode (email, code = undefined) {
  */
 function addUser (dataUser) {
   const { email, password, phoneNumber } = dataUser
-  if (email.split('@')[1] !== 'usb.ve') return null
   const data = {
     email: email,
     password: password,
