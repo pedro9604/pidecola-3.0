@@ -445,6 +445,8 @@ async function offerRide (req, res) {
   if (!status) return res.status(400).send(response(false, errors, message))
   const offer = await sendOffer(req.body)
   if (offer.sent) {
+    const user = await users.findByEmail(req.body.rider).then(callback);
+    handleSockets.sendRideOffer(user);
     return res.status(200).send(response(true, offer.log, 'Oferta enviada'))
   } else {
     return res.status(500).send(response(false, offer.errors, 'Error'))
