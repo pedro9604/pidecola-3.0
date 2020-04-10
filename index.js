@@ -10,7 +10,7 @@ const http = require('http')
 const config = require('./Config.js')
 const connections = require('./lib/connections.js')
 const cloudinary = require('./lib/cloudinaryConfig.js')
-
+const logger = require('./lib/logger.js')
 
 connections.connectDB()
 cloudinary.cloudinaryConfig()
@@ -72,6 +72,7 @@ server.listen(port, () => {
 |  |____ |       || |___ |   _   | ___|   ||   ||      |
 |_______||_______||_____||__| |__||_______||___||______|`))
   console.log(chalk.blue(`\nRunning in port ${port}`))
+  logger.log('info', `\Running in port ${port}`, {user: 'System', operation: 'start-server', status: 'OK'})
 })
 
   
