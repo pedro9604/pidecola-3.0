@@ -332,8 +332,9 @@ function remove (deleteRequest) {
     index = fromNameToInt(deleteRequest.startLocation)
   }
   for (let i = 0; i < requestsList[index].requests.length; i++) {
-    if (requestsList[index].requests[i].email === deleteRequest.user) {
-      const req = requestsList[index].requests[i]
+    const req = requestsList[index].requests[i]
+    const email = req.email
+    if (email === deleteRequest.user || email === deleteRequest.email) {
       requestsList[index].requests.splice(i, 1)
       client.srem(requestsList[index].name, JSON.stringify(req))
       return true
@@ -604,11 +605,11 @@ function verifyRespondOffer (dataResponse) {
  * @returns {SentStatus}
  */
 async function respondOffer (response) {
+  const subj = 'Han respondido a tu oferta de cola'
+  const name = await users.findByEmail(response.rider).then(callback)
+  const html = responseTemplate(name.first_name)
   if (response.accept === 'Sí') {
     if (remove(alreadyRequested(response.passenger).elem)) {
-      const subj = 'Han respondido a tu oferta de cola'
-      const name = await users.findByEmail(response.rider).then(callback)
-      const html = responseTemplate(name.first_name)
       return sendEmail(response.rider, subj, html).then(callbackMail)
     } else {
       const log = 'Parece que la solicitud de cola no existe'
@@ -616,9 +617,6 @@ async function respondOffer (response) {
       return { sent: false, log: log, errors: errors }
     }
   } else {
-    const subj = 'Han respondido a tu oferta de cola'
-    const name = await users.findByEmail(response.rider).then(callback)
-    const html = responseTemplate(name.first_name)
     return sendEmail(response.rider, subj, html).then(callbackMail)
   }
 }
@@ -628,7 +626,7 @@ async function respondOffer (response) {
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Endpoint para responder una oferta de cola.
+ * Endpoint para obtener información de una oferta de cola.
  * No debería modificarse a no ser que se cambie toda lógica detrás del
  * algoritmo de recomendación.
  * @author Francisco Márquez <12-11163@usb.ve>
