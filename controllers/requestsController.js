@@ -545,6 +545,7 @@ async function respondOfferRide (req, res) {
   if (!status) return res.status(400).send(response(false, errors, message))
   const answer = await respondOffer(req.body)
   if (answer.sent) {
+    handleSockets.sendPassengerResponse({rider: req.body.rider, passenger: req.body.passenger, answer: req.body.accept})
     return res.status(200).send(response(true, answer.log, 'Respondiste'))
   } else {
     return res.status(500).send(response(false, answer.errors, 'Error'))
