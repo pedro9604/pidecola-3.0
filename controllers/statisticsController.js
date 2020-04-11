@@ -6,6 +6,8 @@ const rides = require('../models/rideModel.js')
 const response = require('../lib/utils/response').response
 const validateIn = require('../lib/utils/validation').validateIn
 
+const logger = require('../lib/logger.js')
+
 // Endpoint que cuenta los documentos donde el conductor (rider) tiene el correo del usuario
 // Utiliza la funcion countDocuments de Mongoose
 // Caso borde: El carnet no esta asociado a ningun conductor -> La consulta devuelve 0
@@ -13,13 +15,14 @@ async function getRidesGiven (req, res) {
   const validate = validateIn(req.secret, emailRules, emailMessage)
   if (!validate.pass) {
     const message = 'Los datos no cumplen con el formato requerido'
+    logger.log('error', message, {user: req.secret.email, operation: 'query-rides-given', status: 401})
     return res.status(401).send(response(false, validate.errors, message))
   }
   
   const { status, data, message } = await rides.countDocuments({ 
     rider: req.secret.email 
   }).then(callbackCount)
-
+  logger.log('info', 'Consulta nro de colas dadas', {user: req.secret.email, operation: 'query-rides-given', status: 200})
   return res.status(status).send(response(status === 200, data, message))
 }
 
@@ -30,13 +33,14 @@ async function getRidesReceived (req, res) {
   const validate = validateIn(req.secret, emailRules, emailMessage)
   if (!validate.pass) {
     const message = 'Los datos no cumplen con el formato requerido'
+    logger.log('error', message, {user: req.secret.email, operation: 'query-rides-received', status: 401})
     return res.status(401).send(response(false, validate.errors, message))
   }
   
   const { status, data, message } = await rides.countDocuments({
     passenger: req.secret.email 
   }).then(callbackCount)
-
+  logger.log('info', 'Consulta nro de colas recibidas', {user: req.secret.email, operation: 'query-rides-received', status: 200})
   return res.status(status).send(response(status === 200, data, message))
 }
 
@@ -51,6 +55,7 @@ async function getLikesCount (req, res) {
   const validate = validateIn(req.secret, emailRules, emailMessage)
   if (!validate.pass) {
     const message = 'Los datos no cumplen con el formato requerido'
+    logger.log('error', message, {user: req.secret.email, operation: 'query-likes', status: 401})
     return res.status(401).send(response(false, validate.errors, message))
   }
   
@@ -61,8 +66,7 @@ async function getLikesCount (req, res) {
     { $group: { _id: null, count: { $sum: 1 } } },
     { $project: {_id: 0} }
   ]).then(callbackAggregation)
-
-
+  logger.log('info', 'Consulta nro de likes', {user: req.secret.email, operation: 'query-likes', status: 200})
   return res.status(status).send(response(status === 200, data, message))
 }
 
@@ -77,6 +81,7 @@ async function getDislikesCount (req, res) {
   const validate = validateIn(req.secret, emailRules, emailMessage)
   if (!validate.pass) {
     const message = 'Los datos no cumplen con el formato requerido'
+    logger.log('error', message, {user: req.secret.email, operation: 'query-dislikes', status: 401})
     return res.status(401).send(response(false, validate.errors, message))
   }
   
@@ -87,7 +92,7 @@ async function getDislikesCount (req, res) {
     { $group: { _id: null, count: { $sum: 1 } } },
     { $project: {_id: 0} }
   ]).then(callbackAggregation)
-
+  logger.log('info', 'Consulta nro de dislikes', {user: req.secret.email, operation: 'query-dislikes', status: 200})
   return res.status(status).send(response(status === 200, data, message))
 }
 

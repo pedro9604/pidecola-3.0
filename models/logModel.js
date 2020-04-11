@@ -6,14 +6,13 @@ const Schema = mongoose.Schema
 const LogSchema = new Schema(
   {
     operation: { type: String, required: true },
-    type: { type: String, required: true },
-    user: { type: Schema.Types.ObjectId, ref: 'User' },
-    message: { type: String },
-    diff: { type: Schema.Types.Mixed }
+    collection_name: { type: String, required: true },
+    user: { type: String, ref: 'User' },
+    message: { type: String }
 
   }, {
     timestamps: true
   })
 
-const Log = mongoose.model('user', LogSchema)
+const Log = mongoose.model('log', LogSchema)
 module.exports = Log
