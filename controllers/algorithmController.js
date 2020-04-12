@@ -8,8 +8,10 @@
  * @require lib/utils/response.response
  */
 
+const logger = require('../lib/logger.js')
 const requests = require('./requestsController.js')
 const response = require('../lib/utils/response').response
+
 
 /**
  * @typedef Graph
@@ -182,9 +184,10 @@ function prioridad (stop) {
 function recommend (req, res) {
   try {
     const info = prioridad(req.body.destination)
+    logger.log('info', 'Recomendacion de pasajeros realizada', {user: 'System', operation: 'recommend', status: 200})
     return res.status(200).send(response(true, info, ''))
   } catch (error) {
-    console.log('Errores: ', error)
+    logger.log('error', `Error en recomendacion: ${error}`, {user: 'System', operation: 'recommend', status: 400})
     return res.status(400).send(response(false, {}, 'Ha ocurrido un error'))
   }
 }
