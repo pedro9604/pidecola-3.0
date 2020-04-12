@@ -1,3 +1,11 @@
+/**
+ * Este módulo contiene los endpoints para consultar las estadisticas
+ * asociadas a los usuarios y las colas que han dado o recibido
+ * @module statisticsController
+ * @author Pedro Madolnado <13-10790@usb.ve>
+ */
+
+// Funciones requeridas
 const callbackCount = require('../lib/utils/utils').callbackCount
 const callbackAggregation = require('../lib/utils/utils').callbackAggregation
 const emailRules = require('../lib/utils/validation').emailRules
@@ -8,9 +16,20 @@ const validateIn = require('../lib/utils/validation').validateIn
 
 const logger = require('../lib/logger.js')
 
-// Endpoint que cuenta los documentos donde el conductor (rider) tiene el correo del usuario
-// Utiliza la funcion countDocuments de Mongoose
-// Caso borde: El carnet no esta asociado a ningun conductor -> La consulta devuelve 0
+///////////////////////////////////////////////////////////////////////////////
+////////////////////////// Endpoint Consultar Colas Dadas /////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+/** 
+ * Endpoint que cuenta los documentos donde el conductor (rider) 
+ * tiene el correo del usuario
+ * Utiliza la funcion countDocuments de Mongoose
+ * @async
+ * @public
+ * @param {Object} req - Un HTTP Request
+ * @param {Object} res - Un HTTP Response
+ * @returns {Object}
+ */
 async function getRidesGiven (req, res) {
   const validate = validateIn(req.secret, emailRules, emailMessage)
   if (!validate.pass) {
@@ -26,9 +45,20 @@ async function getRidesGiven (req, res) {
   return res.status(status).send(response(status === 200, data, message))
 }
 
-// Endpoint que cuenta los documentos donde aparece el correo del usuario en la lista de pasajeros. 
-// Utiliza la funcion countDocuments de Mongoose
-// Caso borde: El carnet no pertenece a ninguna lista de pasajeros -> La consulta devuelve 0
+///////////////////////////////////////////////////////////////////////////////
+///////////////// Endpoint Consultar Colas Recibidas //////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+/** 
+ * Endpoint que cuenta los documentos donde aparece el correo del usuario 
+ * en la lista de pasajeros. 
+ * Utiliza la funcion countDocuments de Mongoose
+ * * @async
+ * @public
+ * @param {Object} req - Un HTTP Request
+ * @param {Object} res - Un HTTP Response
+ * @returns {Object}
+*/
 async function getRidesReceived (req, res) {
   const validate = validateIn(req.secret, emailRules, emailMessage)
   if (!validate.pass) {
@@ -44,13 +74,24 @@ async function getRidesReceived (req, res) {
   return res.status(status).send(response(status === 200, data, message))
 }
 
-// Endpoint que cuenta los documentos donde el usuario ha sido conductor de la cola y suma el numero total de likes
-// Utiliza la funcion aggregate de Mongoose donde $match recibe el filtro de la consulta
-// $unwind Convierte el arreglo seleccionado (comments) en documentos unicos para ser contados
-// $group Agrupa los documentos por id (o revisa todos si se coloca null)
-// $sum acummulador
-// Caso borde: El usuario no aparece como conductor -> La consulta devuelve 0
-// Caso borde: El conductor no ha recibido likes -> La consulta devuelve 0
+
+///////////////////////////////////////////////////////////////////////////////
+////////////////////// Endpoint Consultar Likes ///////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+/** 
+ * Endpoint que cuenta los documentos donde el usuario ha sido conductor de la cola 
+ * y suma el numero total de likes
+ * Utiliza la funcion aggregate de Mongoose donde $match recibe el filtro de la consulta
+ * $unwind Convierte el arreglo seleccionado (comments) en documentos unicos para ser contados
+ * $group Agrupa los documentos por id (o revisa todos si se coloca null)
+ * $sum acummulador
+ * @async
+ * @public
+ * @param {Object} req - Un HTTP Request
+ * @param {Object} res - Un HTTP Response
+ * @returns {Object}
+*/
 async function getLikesCount (req, res) {
   const validate = validateIn(req.secret, emailRules, emailMessage)
   if (!validate.pass) {
@@ -70,13 +111,23 @@ async function getLikesCount (req, res) {
   return res.status(status).send(response(status === 200, data, message))
 }
 
-// Endpoint que cuenta los documentos donde el usuario ha sido conductor de la cola y suma el numero total de dislikes
-// Utiliza la funcion aggregate de Mongoose donde $match recibe el filtro de la consulta
-// $unwind Convierte el arreglo seleccionado (comments) en documentos unicos para ser contados
-// $group Agrupa los documentos por id (o revisa todos si se coloca null)
-// $sum acummulador
-// Caso borde: El usuario no aparece como conductor -> La consulta devuelve 0
-// Caso borde: El conductor no ha recibido dislikes -> La consulta devuelve 0
+///////////////////////////////////////////////////////////////////////////////
+/////////////////// Endpoint Consultar Dislikes ///////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+/** 
+ * Endpoint que cuenta los documentos donde el usuario ha sido conductor de la cola 
+ * y suma el numero total de dislikes
+ * Utiliza la funcion aggregate de Mongoose donde $match recibe el filtro de la consulta
+ * $unwind Convierte el arreglo seleccionado (comments) en documentos unicos para ser contados
+ * $group Agrupa los documentos por id (o revisa todos si se coloca null)
+ * $sum acummulador
+ * @async
+ * @public
+ * @param {Object} req - Un HTTP Request
+ * @param {Object} res - Un HTTP Response
+ * @returns {Object}
+*/
 async function getDislikesCount (req, res) {
   const validate = validateIn(req.secret, emailRules, emailMessage)
   if (!validate.pass) {
@@ -95,6 +146,10 @@ async function getDislikesCount (req, res) {
   logger.log('info', 'Consulta nro de dislikes', {user: req.secret.email, operation: 'query-dislikes', status: 200})
   return res.status(status).send(response(status === 200, data, message))
 }
+
+///////////////////////////////////////////////////////////////////////////////
+//////////////////////////// Exportar Endpoints ///////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 module.exports.getRidesGiven = getRidesGiven
 module.exports.getRidesReceived = getRidesReceived
