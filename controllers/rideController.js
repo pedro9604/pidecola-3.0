@@ -211,7 +211,7 @@ async function updateRide (rideInf, query) {
  * @returns {Object}
  */
 async function changeStatus (req, res) {
-  const { status, errors, message } = verifyStatusRide(req.body)
+  const { status, errors, message } = await verifyStatusRide(req.body)
   if (!status) return res.status(400).send(response(false, errors, message))
   const rideInf = await updateRide(req.body, { status: req.body.status })
   if (rideInf) {
@@ -230,13 +230,12 @@ async function changeStatus (req, res) {
  * @param {string} status
  * @returns {Verification}
  */
-function verifyStatusRide (statusRide) {
-  const { status, errors, message } = verifyDataRide(statusRide)
+async function verifyStatusRide (statusRide) {
+  const { status, errors, message } = await verifyDataRide(statusRide)
   if (!status) return { status: status, errors: errors, message: message }
-  const obj = { status: statusRide }
   const rule = { status: 'required|string' }
   const mssg = { 'required.status': 'El estado de la solicitud es requerido' }
-  const validate = validateIn(obj, rule, mssg)
+  const validate = validateIn(statusRide, rule, mssg)
   if (!validate.pass) {
     return {
       status: false,
