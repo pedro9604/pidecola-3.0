@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const users = require('./controllers/userController')
 const response = require('./lib/utils/response.js').response
+const logger = require('./lib/logger.js')
 const tokenKey = process.env.KEY
 
 const viewCredentials = (authorization) => {
@@ -35,14 +36,25 @@ exports.signIn = (req, res) => {
       return [compare, user]
     })
     .then(resp => {
-      if (!resp) return res.status(401).send(response(false, null, 'Usuario no encontrado.'))
-      else if (!resp[0]) return res.status(401).send(response(false, null, 'Contraseña Incorrecta.'))
+      if (!resp) {
+        logger.log('error', 'Usuario no encontrado.', {user: email, operation: 'signIn', status: 401})
+        return res.status(401).send(response(false, null, 'Usuario no encontrado.'))
+      }  
+      else if (!resp[0]) {
+        logger.log('error', 'Contraseña Incorrecta', {user: email, operation: 'signIn', status: 401})
+        return res.status(401).send(response(false, null, 'Contraseña Incorrecta.'))
+      }
       const user = resp[1]._doc
-      if (!user.isVerify) return res.status(401).send(response(false, null, 'Usuario no verificado.'))
+      if (!user.isVerify) {
+        logger.log('error', 'Usuario no verificado', {user: email, operation: 'signIn', status: 401})
+        return res.status(401).send(response(false, null, 'Usuario no verificado.'))
+      }
       delete user.password
+      logger.log('info', 'Inicio de sesion exitoso', {user: email, operation: 'signIn', status: 200})      
       res.status(200).send(response(true, [{ tkauth: this.generateToken(user.email), ...user }], 'Success.'))
     })
     .catch(error => {
+      logger.log('error', 'Error de autenticacion', {user: email, operation: 'signIn', status: 500})
       res.status(500).send(response(false, error, 'Error authenticating user.'))
     })
 }
