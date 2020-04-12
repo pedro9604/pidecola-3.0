@@ -337,6 +337,7 @@ function remove (deleteRequest) {
     if (email === deleteRequest.user || email === deleteRequest.email) {
       requestsList[index].requests.splice(i, 1)
       client.srem(requestsList[index].name, JSON.stringify(req))
+      handleSockets.sendPassengers(requestsList[index].name)
       return true
     }
   }
