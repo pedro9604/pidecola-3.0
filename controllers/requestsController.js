@@ -306,7 +306,7 @@ function add (newRequest) {
 function cancel (req, res) {
   const { status, errors, message } = verifyRequest(req.body, true)
   if (!status) return res.status(400).send(response(false, errors, message))
-  var del = remove(req.body)
+  var del = remove(req.body, true)
   if (del) {
     return res.status(200).send(response(true, '', 'Solicitud exitosa'))
   } else {
@@ -323,7 +323,7 @@ function cancel (req, res) {
  * @param {Object} deleteRequest
  * @returns {boolean} true si y solo si fue correctamente eliminada
  */
-function remove (deleteRequest) {
+function remove (deleteRequest, removeList= false ) {
   let index
   const fromUSB = deleteRequest.startLocation === 'USB'
   if (fromUSB) {
@@ -336,8 +336,10 @@ function remove (deleteRequest) {
     const email = req.email
     if (email === deleteRequest.user || email === deleteRequest.email) {
       requestsList[index].requests.splice(i, 1)
-      client.srem(requestsList[index].name, JSON.stringify(req))
-      handleSockets.sendPassengers(requestsList[index].name)
+      if(removeList) {
+        client.srem(requestsList[index].name, JSON.stringify(req))
+        handleSockets.sendPassengers(requestsList[index].name)
+      }
       return true
     }
   }
@@ -606,12 +608,12 @@ function verifyRespondOffer (dataResponse) {
  * @param {string} response.passenger - El correo del solicitante
  * @returns {SentStatus}
  */
-async function respondOffer (response) {
+async function respondOffer (response, removeList = false) {
   const subj = 'Han respondido a tu oferta de cola'
   const name = await users.findByEmail(response.rider).then(callback)
   const html = responseTemplate(name.first_name)
   if (response.accept === 'Sí') {
-    if (remove(alreadyRequested(response.passenger).elem)) {
+    if (remove(alreadyRequested(response.passenger).elem, removeList)) {
       return sendEmail(response.rider, subj, html).then(callbackMail)
     } else {
       const log = 'Parece que la solicitud de cola no existe'
