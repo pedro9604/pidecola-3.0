@@ -361,7 +361,7 @@ async function verifyComments (dataRide) {
 async function comment (dataRide) {
   const user = dataRide.user
   const like = dataRide.like === 'Sí'
-  const comen = !dataRide.comment ? undefined : dataRide.comment
+  const comen = !like ? dataRide.comment : undefined
   const data = {
     rider: dataRide.rider,
     start_location: dataRide.startLocation,
