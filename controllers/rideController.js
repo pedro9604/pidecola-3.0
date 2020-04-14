@@ -20,6 +20,7 @@
 // Módulos
 const users = require('../controllers/userController.js')
 const rides = require('../models/rideModel.js')
+const requestsList = require('./requestsController.js').requestsList
 
 // Funciones
 const callback = require('../lib/utils/utils').callbackReturn
@@ -50,6 +51,18 @@ async function create (req, res) {
   if (!status) return res.status(400).send(response(false, errors, message))
   const rideInf = await newRide(req.body)
   if (rideInf) {
+    // for (let i = 0; i < requestsList[index].requests.length; i++) {
+    //   const req = requestsList[index].requests[i]
+    //   const email = req.email
+    //   if (email === deleteRequest.user || email === deleteRequest.email) {
+    //     requestsList[index].requests.splice(i, 1)
+    //     if(removeList) {
+    //       client.srem(requestsList[index].name, JSON.stringify(req))
+    //       handleSockets.sendPassengers(requestsList[index].name)
+    //     }
+    //     return true
+    //   }
+    // }
     return res.status(200).send(response(true, rideInf, 'Cola creada'))
   } else {
     return res.status(500).send(response(true, rideInf, 'Cola no fue creada'))
