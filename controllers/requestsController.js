@@ -450,7 +450,17 @@ async function offerRide (req, res) {
   const offer = await sendOffer(req.body)
   if (offer.sent) {
     const user = await users.findByEmail(req.body.rider).then(callback);
-    handleSockets.sendRideOffer(user);
+    handleSockets.sendRideOffer({
+      email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      age: user.age,
+      major: user.major,
+      phone_number: user.phone_number,
+      profile_pic: user.profile_pic,
+      car: req.body.car,
+      route: req.body.route
+    });
     return res.status(200).send(response(true, offer.log, 'Oferta enviada'))
   } else {
     return res.status(500).send(response(false, offer.errors, 'Error'))
@@ -478,7 +488,7 @@ async function verifyOffer (dataOffer) {
   }
   const offerMessage = {
     'required.rider': 'El conductor es necesario',
-    'required.passenger': 'El pasajero es necesario'
+    'required.passenger': 'El pasajero es necesario',
     'required.car': 'El vehículo es necesario',
     'required.route': 'La ruta es necesaria'
   }

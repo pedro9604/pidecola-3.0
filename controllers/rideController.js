@@ -30,6 +30,7 @@ const errorsMessage = require('../lib/utils/validation').rideMessage
 const response = require('../lib/utils/response').response
 const rideRules = require('../lib/utils/validation').rideRules
 const validateIn = require('../lib/utils/validation').validateIn
+const handleSockets = require('../lib/utils/handleSockets')
 
 ///////////////////////////////////////////////////////////////////////////////
 /////////////////////////// Endpoint Crear una cola ///////////////////////////
@@ -228,6 +229,7 @@ async function changeStatus (req, res) {
   if (!status) return res.status(400).send(response(false, errors, message))
   const rideInf = await updateRide(req.body, { status: req.body.status })
   if (rideInf) {
+    handleSockets.sendRideStatus(rideInf);
     return res.status(200).send(response(true, rideInf, 'Estado cambiado'))
   } else {
     const err = 'Cola no existe'
