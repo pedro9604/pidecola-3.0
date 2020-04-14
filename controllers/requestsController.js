@@ -472,27 +472,35 @@ async function offerRide (req, res) {
 async function verifyOffer (dataOffer) {
   const offerRules = {
     rider: 'required|email',
-    passenger: 'required|email'
+    passenger: 'required|email',
+    car: 'required|string',
+    route: 'required|string'
   }
   const offerMessage = {
     'required.rider': 'El conductor es necesario',
     'required.passenger': 'El pasajero es necesario'
+    'required.car': 'El vehículo es necesario',
+    'required.route': 'La ruta es necesaria'
   }
   let errors
   let message
   const validate = validateIn(dataOffer, offerRules, offerMessage)
   const user = alreadyRequested(dataOffer.passenger).elem.status
   const rider = await users.findByEmail(dataOffer.rider).then(callback)
-  if (!(validate.pass && user && rider.vehicles.length > 0)) {
+  const valCar = rider.vehicles.find(c => c.plate === dataOffer.car)
+  if (!(validate.pass && user && rider.vehicles.length > 0 && valCar)) {
     if (!validate.pass) {
       errors = validate.errors
       message = 'Los datos introducidos no cumplen con el formato requerido'
     } else if (!user) {
       errors = 'Usuario no disponible para ofrecer cola'
       message = 'El usuario seleccionado ya tiene una oferta previa'
-    } else {
+    } else if (rider.vehicles.length <= 0) {
       errors = 'Conductor no tiene vehículos'
       message = 'Para dar la cola tienes que registrar al menos un vehículo'
+    } else {
+      errors = 'Vehículo no es del conductor'
+      message = 'Para dar la cola, el vehículo indicado debe estar registrado'
     }
     return { status: false, errors: errors, message: message }
   }
