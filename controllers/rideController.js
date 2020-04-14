@@ -361,7 +361,7 @@ async function verifyComments (dataRide) {
 async function comment (dataRide) {
   const user = dataRide.user
   const like = dataRide.like === 'Sí'
-  const comen = !like ? dataRide.comment : undefined
+  const comn = !like ? dataRide.comment : undefined
   const data = {
     rider: dataRide.rider,
     start_location: dataRide.startLocation,
@@ -369,7 +369,7 @@ async function comment (dataRide) {
     status: 'Finalizado',
     ride_finished: true
   }
-  const query = { user_email: user, like: like, dislike: !like, comment: comen }
+  const query = { user_email: user, like: like, dislike: !like, comment: comn }
   return rides.findOne(data).then((sucs, err) => {
     if (!err && sucs) {
       for (var i = 0; i < sucs.comments.length; i++) {
