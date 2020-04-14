@@ -458,7 +458,7 @@ async function offerRide (req, res) {
       major: user.major,
       phone_number: user.phone_number,
       profile_pic: user.profile_pic,
-      car: req.body.car,
+      car: user.vehicles.find(car => car.plate === req.body.car),
       route: req.body.route
     });
     return res.status(200).send(response(true, offer.log, 'Oferta enviada'))
