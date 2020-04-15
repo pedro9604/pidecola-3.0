@@ -204,7 +204,8 @@ async function updateRide (rideInf, query) {
     passenger: rideInf.passenger,
     available_seats: rideInf.seats,
     start_location: rideInf.startLocation,
-    destination: rideInf.destination
+    destination: rideInf.destination,
+    ride_finished: false
   }
   return rides.findOneAndUpdate(data, query, original).then(callback)
 }
