@@ -30,6 +30,7 @@ const errorsMessage = require('../lib/utils/validation').rideMessage
 const response = require('../lib/utils/response').response
 const rideRules = require('../lib/utils/validation').rideRules
 const validateIn = require('../lib/utils/validation').validateIn
+const handleSockets = require('../lib/utils/handleSockets')
 
 ///////////////////////////////////////////////////////////////////////////////
 /////////////////////////// Endpoint Crear una cola ///////////////////////////
@@ -203,7 +204,8 @@ async function updateRide (rideInf, query) {
     passenger: rideInf.passenger,
     available_seats: rideInf.seats,
     start_location: rideInf.startLocation,
-    destination: rideInf.destination
+    destination: rideInf.destination,
+    ride_finished: false
   }
   return rides.findOneAndUpdate(data, query, original).then(callback)
 }
@@ -228,6 +230,7 @@ async function changeStatus (req, res) {
   if (!status) return res.status(400).send(response(false, errors, message))
   const rideInf = await updateRide(req.body, { status: req.body.status })
   if (rideInf) {
+    handleSockets.sendRideStatus(rideInf);
     return res.status(200).send(response(true, rideInf, 'Estado cambiado'))
   } else {
     const err = 'Cola no existe'
@@ -359,7 +362,7 @@ async function verifyComments (dataRide) {
 async function comment (dataRide) {
   const user = dataRide.user
   const like = dataRide.like === 'Sí'
-  const comen = !dataRide.comment ? undefined : dataRide.comment
+  const comn = !like ? dataRide.comment : undefined
   const data = {
     rider: dataRide.rider,
     start_location: dataRide.startLocation,
@@ -367,8 +370,8 @@ async function comment (dataRide) {
     status: 'Finalizado',
     ride_finished: true
   }
-  const query = { user_email: user, like: like, dislike: !like, comment: comen }
-  return rides.findOne(data).then((sucs, err) => {
+  const query = { user_email: user, like: like, dislike: !like, comment: comn }
+  return rides.findOne(data, {}, { sort: { '_id': -1 } }).then((sucs, err) => {
     if (!err && sucs) {
       for (var i = 0; i < sucs.comments.length; i++) {
         if (sucs.comments[i].user_email === query.user_email) {
@@ -377,7 +380,7 @@ async function comment (dataRide) {
       }
       sucs.comments.push(query)
       sucs.markModified('comments')
-      sucs.save(sucs => { return sucs }).catch(error => console.log(error))
+      sucs.save().then(sucs => sucs).catch(error => console.log(error))
       return sucs
     } else {
       return err
