@@ -20,6 +20,7 @@
 // Módulos
 const users = require('../controllers/userController.js')
 const rides = require('../models/rideModel.js')
+const requestsList = require('./requestsController.js').requestsList
 
 // Funciones
 const callback = require('../lib/utils/utils').callbackReturn
@@ -29,6 +30,7 @@ const errorsMessage = require('../lib/utils/validation').rideMessage
 const response = require('../lib/utils/response').response
 const rideRules = require('../lib/utils/validation').rideRules
 const validateIn = require('../lib/utils/validation').validateIn
+const handleSockets = require('../lib/utils/handleSockets')
 
 ///////////////////////////////////////////////////////////////////////////////
 /////////////////////////// Endpoint Crear una cola ///////////////////////////
@@ -50,6 +52,18 @@ async function create (req, res) {
   if (!status) return res.status(400).send(response(false, errors, message))
   const rideInf = await newRide(req.body)
   if (rideInf) {
+    // for (let i = 0; i < requestsList[index].requests.length; i++) {
+    //   const req = requestsList[index].requests[i]
+    //   const email = req.email
+    //   if (email === deleteRequest.user || email === deleteRequest.email) {
+    //     requestsList[index].requests.splice(i, 1)
+    //     if(removeList) {
+    //       client.srem(requestsList[index].name, JSON.stringify(req))
+    //       handleSockets.sendPassengers(requestsList[index].name)
+    //     }
+    //     return true
+    //   }
+    // }
     return res.status(200).send(response(true, rideInf, 'Cola creada'))
   } else {
     return res.status(500).send(response(true, rideInf, 'Cola no fue creada'))
@@ -190,7 +204,8 @@ async function updateRide (rideInf, query) {
     passenger: rideInf.passenger,
     available_seats: rideInf.seats,
     start_location: rideInf.startLocation,
-    destination: rideInf.destination
+    destination: rideInf.destination,
+    ride_finished: false
   }
   return rides.findOneAndUpdate(data, query, original).then(callback)
 }
@@ -211,10 +226,11 @@ async function updateRide (rideInf, query) {
  * @returns {Object}
  */
 async function changeStatus (req, res) {
-  const { status, errors, message } = verifyStatusRide(req.body)
+  const { status, errors, message } = await verifyStatusRide(req.body)
   if (!status) return res.status(400).send(response(false, errors, message))
   const rideInf = await updateRide(req.body, { status: req.body.status })
   if (rideInf) {
+    handleSockets.sendRideStatus(rideInf);
     return res.status(200).send(response(true, rideInf, 'Estado cambiado'))
   } else {
     const err = 'Cola no existe'
@@ -230,13 +246,12 @@ async function changeStatus (req, res) {
  * @param {string} status
  * @returns {Verification}
  */
-function verifyStatusRide (statusRide) {
-  const { status, errors, message } = verifyDataRide(statusRide)
+async function verifyStatusRide (statusRide) {
+  const { status, errors, message } = await verifyDataRide(statusRide)
   if (!status) return { status: status, errors: errors, message: message }
-  const obj = { status: statusRide }
   const rule = { status: 'required|string' }
   const mssg = { 'required.status': 'El estado de la solicitud es requerido' }
-  const validate = validateIn(obj, rule, mssg)
+  const validate = validateIn(statusRide, rule, mssg)
   if (!validate.pass) {
     return {
       status: false,
@@ -347,7 +362,7 @@ async function verifyComments (dataRide) {
 async function comment (dataRide) {
   const user = dataRide.user
   const like = dataRide.like === 'Sí'
-  const comen = !dataRide.comment ? undefined : dataRide.comment
+  const comn = !like ? dataRide.comment : undefined
   const data = {
     rider: dataRide.rider,
     start_location: dataRide.startLocation,
@@ -355,8 +370,8 @@ async function comment (dataRide) {
     status: 'Finalizado',
     ride_finished: true
   }
-  const query = { user_email: user, like: like, dislike: !like, comment: comen }
-  return rides.findOne(data).then((sucs, err) => {
+  const query = { user_email: user, like: like, dislike: !like, comment: comn }
+  return rides.findOne(data, {}, { sort: { '_id': -1 } }).then((sucs, err) => {
     if (!err && sucs) {
       for (var i = 0; i < sucs.comments.length; i++) {
         if (sucs.comments[i].user_email === query.user_email) {
@@ -365,7 +380,7 @@ async function comment (dataRide) {
       }
       sucs.comments.push(query)
       sucs.markModified('comments')
-      sucs.save(sucs => { return sucs }).catch(error => console.log(error))
+      sucs.save().then(sucs => sucs).catch(error => console.log(error))
       return sucs
     } else {
       return err
