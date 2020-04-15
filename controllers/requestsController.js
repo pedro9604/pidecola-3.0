@@ -306,7 +306,7 @@ function add (newRequest) {
 function cancel (req, res) {
   const { status, errors, message } = verifyRequest(req.body, true)
   if (!status) return res.status(400).send(response(false, errors, message))
-  var del = remove(req.body)
+  var del = remove(req.body, true)
   if (del) {
     return res.status(200).send(response(true, '', 'Solicitud exitosa'))
   } else {
@@ -323,7 +323,7 @@ function cancel (req, res) {
  * @param {Object} deleteRequest
  * @returns {boolean} true si y solo si fue correctamente eliminada
  */
-function remove (deleteRequest) {
+function remove (deleteRequest, removeList = false) {
   let index
   const fromUSB = deleteRequest.startLocation === 'USB'
   if (fromUSB) {
@@ -337,7 +337,9 @@ function remove (deleteRequest) {
     if (email === deleteRequest.user || email === deleteRequest.email) {
       requestsList[index].requests.splice(i, 1)
       client.srem(requestsList[index].name, JSON.stringify(req))
-      handleSockets.sendPassengers(requestsList[index].name)
+      if (removeList) {
+        handleSockets.sendPassengers(requestsList[index].name)
+      }
       return true
     }
   }
@@ -564,12 +566,7 @@ async function respondOfferRide (req, res) {
   if (!status) return res.status(400).send(response(false, errors, message))
   const answer = await respondOffer(req.body)
   if (answer.sent) {
-    const passengerResponse = {
-      rider: req.body.rider,
-      passenger: req.body.passenger,
-      answer: req.body.accept
-    }
-    handleSockets.sendPassengerResponse(passengerResponse)
+    handleSockets.sendPassengerResponse({rider: req.body.rider, passenger: req.body.passenger, answer: req.body.accept})
     return res.status(200).send(response(true, answer.log, 'Respondiste'))
   } else {
     return res.status(500).send(response(false, answer.errors, 'Error'))
