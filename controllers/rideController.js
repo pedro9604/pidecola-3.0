@@ -79,6 +79,7 @@ async function create (req, res) {
  * @returns {Verification}
  */
 async function verifyDataRide (dataRide) {
+  console.log(dataRide)
   const validate = validateIn(dataRide, rideRules, errorsMessage)
   const arrayPas = Array.isArray(dataRide.passenger)
   var emptyPas = true
@@ -203,7 +204,7 @@ async function updateRide (rideInf, query) {
   const original = { returnOriginal: false }
   const data = {
     rider: rideInf.rider,
-    passenger: rideInf.passenger,
+    passenger: rideInf.passenger.map(user => user.email),
     available_seats: rideInf.seats,
     start_location: rideInf.startLocation,
     destination: rideInf.destination,
