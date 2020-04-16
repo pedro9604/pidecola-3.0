@@ -151,11 +151,8 @@ async function newRide (dataRide) {
 }
 
 function sendPassengers (passengers) {
-  console.log(passengers)
   for (var i = 0; i < passengers.length; i++) {
-    const pos = cast(passengers[i].startLocation)
-    const index = pos < 0 ? cast(passengers[i].destination) : pos
-    console.log(index)
+    const index = cast(passengers[i].ruta)
     for (var j = 0; j < list[index].requests.length; j++) {
       if (list[index].requests[j].email === passengers[i].email) {
         handleSockets.sendPassengers(list[index].name)
