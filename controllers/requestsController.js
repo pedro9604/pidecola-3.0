@@ -331,7 +331,7 @@ function remove (deleteRequest, removeList = false) {
   } else {
     index = fromNameToInt(deleteRequest.startLocation)
   }
-  for (let i = 0; i < requestsList[index].requests.length; i++) {
+  for (var i = 0; i < requestsList[index].requests.length; i++) {
     const req = requestsList[index].requests[i]
     const email = req.email
     if (email === deleteRequest.user || email === deleteRequest.email) {

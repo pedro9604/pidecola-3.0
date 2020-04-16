@@ -52,18 +52,7 @@ async function create (req, res) {
   if (!status) return res.status(400).send(response(false, errors, message))
   const rideInf = await newRide(req.body)
   if (rideInf) {
-    // for (let i = 0; i < requestsList[index].requests.length; i++) {
-    //   const req = requestsList[index].requests[i]
-    //   const email = req.email
-    //   if (email === deleteRequest.user || email === deleteRequest.email) {
-    //     requestsList[index].requests.splice(i, 1)
-    //     if(removeList) {
-    //       client.srem(requestsList[index].name, JSON.stringify(req))
-    //       handleSockets.sendPassengers(requestsList[index].name)
-    //     }
-    //     return true
-    //   }
-    // }
+    sendPassengers(req.body.passenger)
     return res.status(200).send(response(true, rideInf, 'Cola creada'))
   } else {
     return res.status(500).send(response(true, rideInf, 'Cola no fue creada'))
@@ -97,9 +86,9 @@ async function verifyDataRide (dataRide) {
   const valSeats = parseInt(dataRide.seats) >= dataRide.passenger.length
   const rider = await users.findByEmail(dataRide.rider).then(callback) != null
   if (dataRide.passenger.length > 0) {
-    pass = !(dataRide.rider in dataRide.passenger)
+    pass = !(dataRide.passenger.find(user => user.email === dataRide.rider))
     for (var i = 0; i < dataRide.passenger.length; i++) {
-      if (await users.findByEmail(dataRide.passenger[i]) === null) {
+      if (await users.findByEmail(dataRide.passenger[i].email) === null) {
         validPass = false
       }
     }
@@ -158,6 +147,19 @@ async function newRide (dataRide) {
     comments: []
   }
   return rides.create(ride).then(callback)
+}
+
+function sendPassengers (passengers) {
+  for (var i = 0; i < passengers.length; i++) {
+    const pos = cast(passengers[i].startLocation)
+    const index = pos < 0 ? cast(passengers[i].destination) : pos
+    for (var j = 0; j < list[index].requests.length; j++) {
+      if (list[index].requests[j].email === passengers[i].email) {
+        handleSockets.sendPassengers(requestsList[index].name)
+        break
+      }
+    }
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
