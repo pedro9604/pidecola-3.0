@@ -138,7 +138,7 @@ async function newRide (dataRide) {
   const { rider, passenger, seats, startLocation, destination } = dataRide
   const ride = {
     rider: rider,
-    passenger: passenger.map(user => user.email),
+    passenger: passenger,
     available_seats: seats,
     status: 'En Espera',
     start_location: startLocation,
@@ -203,7 +203,7 @@ async function updateRide (rideInf, query) {
   const original = { returnOriginal: false }
   const data = {
     rider: rideInf.rider,
-    passenger: rideInf.passenger.map(user => user.email),
+    passenger: rideInf.passenger,
     available_seats: rideInf.seats,
     start_location: rideInf.startLocation,
     destination: rideInf.destination,
@@ -409,20 +409,6 @@ async function getRide (req, res) {
   const { status, errors, message } = verifyGetRide(req.secret)
   if (!status) return res.status(400).send(response(false, errors, message))
   const rideInf = await findRide(req.secret.email)
-  rideInf.passenger.map(async user => {
-    const usr = await users.findByEmail(user)
-    const usb = rideInf.destination === 'USB'
-    return {
-      email: user,
-      foto: usr.photo,
-      nombre: usr.first_name + ' ' + usr.last_name,
-      cohorte: user.split('-')[0]
-      telefono: usr.phone,
-      carrera: usr.major,
-      ruta: usb ? rideInf.start_location : rideInf.destination,
-      comentario: ''
-    }
-  })
   const statusCode = rideInf ? 200 : 206, data = rideInf || 'Cola no existe'
   const msg = rideInf ? '' : 'La cola buscada no está registrada'
   return res.status(statusCode).send(response(true, data, msg))
