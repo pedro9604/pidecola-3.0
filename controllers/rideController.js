@@ -79,7 +79,6 @@ async function create (req, res) {
  * @returns {Verification}
  */
 async function verifyDataRide (dataRide) {
-  console.log(dataRide)
   const validate = validateIn(dataRide, rideRules, errorsMessage)
   const arrayPas = Array.isArray(dataRide.passenger)
   var emptyPas = true
