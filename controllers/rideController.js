@@ -18,19 +18,20 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // Módulos
-const users = require('../controllers/userController.js')
-const rides = require('../models/rideModel.js')
-const requestsList = require('./requestsController.js').requestsList
+const users = require('../controllers/userController')
+const rides = require('../models/rideModel')
 
 // Funciones
 const callback = require('../lib/utils/utils').callbackReturn
+const cast = require('./requestsController').cast
 const emailRules = require('../lib/utils/validation').emailRules
 const emailMessage = require('../lib/utils/validation').emailMessage
 const errorsMessage = require('../lib/utils/validation').rideMessage
+const handleSockets = require('../lib/utils/handleSockets')
+const list = require('./requestsController').requestsList
 const response = require('../lib/utils/response').response
 const rideRules = require('../lib/utils/validation').rideRules
 const validateIn = require('../lib/utils/validation').validateIn
-const handleSockets = require('../lib/utils/handleSockets')
 
 ///////////////////////////////////////////////////////////////////////////////
 /////////////////////////// Endpoint Crear una cola ///////////////////////////
