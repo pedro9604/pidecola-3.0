@@ -415,10 +415,9 @@ async function getRide (req, res) {
       phone: rider.phone_number,
       vehicle: rider.vehicles.find(car => car._id === rideInf.vehicle)
     }
+    return res.status(200).send(response(true, rideInf, ''))
   }
-  const statusCode = rideInf ? 200 : 206, data = rideInf || 'Cola no existe'
-  const msg = rideInf ? '' : 'La cola buscada no está registrada'
-  return res.status(statusCode).send(response(true, data, msg))
+  return res.status(206).send(response(true, 'Cola no existe', 'La cola buscada no está registrada'))
 }
 
 function verifyGetRide (request) {
