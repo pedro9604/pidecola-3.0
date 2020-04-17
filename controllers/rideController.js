@@ -412,6 +412,7 @@ async function getRide (req, res) {
   if (rideInf) {
     console.log('Sin datos: ', rideInf)
     const rider = await findByEmail(rideInf.rider).then(callback)
+    console.log(rider)
     rideInf.riderInfo = {
       phone: rider.phone_number,
       vehicle: rider.vehicles.find(car => car._id === rideInf.vehicle)
