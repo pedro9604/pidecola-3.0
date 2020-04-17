@@ -419,8 +419,8 @@ async function getRide (req, res) {
         { $match: {'vehicles._id': rideInf.vehicle }},
         { $project: {_id: 0, vehicles: 1}} 
       ]).then(callback)
-    data = { ride: rideInf, riderInfo: riderInfo }
     }
+    data = { ride: rideInf, riderInfo: riderInfo }
     return res.status(200).send(response(true, data, ''))
   }
   return res.status(206).send(response(true, 'Cola no existe', 'La cola buscada no está registrada'))
