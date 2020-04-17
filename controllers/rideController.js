@@ -416,7 +416,7 @@ async function getRide (req, res) {
       phone: rider.phone_number,
       vehicle: await users.aggregate([
         { $unwind: '$vehicles' },
-        { $match: {'vehicles._id': rideInf._id }},
+        { $match: {'vehicles._id': rideInf.vehicle }},
         { $project: {_id: 0, vehicles: 1}} 
       ]).then(callback)
     }
