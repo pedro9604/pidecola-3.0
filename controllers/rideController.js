@@ -138,7 +138,7 @@ async function newRide (dataRide) {
   const ride = {
     rider: dataRide.rider,
     passenger: dataRide.passenger,
-    vehicle: dataRide.vehicleId
+    vehicle: dataRide.vehicleId,
     available_seats: dataRide.seats,
     status: 'En Espera',
     start_location: dataRide.startLocation,
