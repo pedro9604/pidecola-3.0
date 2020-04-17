@@ -414,6 +414,11 @@ async function getRide (req, res) {
     const rider = await findByEmail(rideInf.rider).then(callback)
     const riderInfo = {
       phone: rider.phone_number,
+      fname: rider.first_name,
+      lname: rider.last_name,
+      age: rider.age,
+      major: rider.major,
+      photo: rider.profile_pic,
       vehicle: await users.aggregate([
         { $unwind: '$vehicles' },
         { $match: {'vehicles._id': rideInf.vehicle }},
