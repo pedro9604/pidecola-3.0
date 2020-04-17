@@ -411,10 +411,12 @@ async function getRide (req, res) {
   var rideInf = await findRide(req.secret.email)
   if (rideInf) {
     const rider = await findByEmail(rideInf.rider).then(callback)
-    console.log(rider)
     rideInf.riderInfo = {
       phone: rider.phone_number,
-      vehicle: rider.vehicles.find(car => car._id === rideInf.vehicle)
+      vehicle: rider.vehicles.find(car => {
+        console.log(typeof(car._id), typeof(rideInf.vehicle))
+        console.log(car._id === rideInf.vehicle)
+        return car._id === rideInf.vehicle})
     }
     return res.status(200).send(response(true, rideInf, ''))
   }
