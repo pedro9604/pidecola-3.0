@@ -18,7 +18,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // Módulos
-const users = require('../controllers/userController')
 const rides = require('../models/rideModel')
 
 // Funciones
@@ -27,6 +26,7 @@ const cast = require('./requestsController').cast
 const emailRules = require('../lib/utils/validation').emailRules
 const emailMessage = require('../lib/utils/validation').emailMessage
 const errorsMessage = require('../lib/utils/validation').rideMessage
+const findByEmail = require('../controllers/userController').findByEmail
 const handleSockets = require('../lib/utils/handleSockets')
 const list = require('./requestsController').requestsList
 const response = require('../lib/utils/response').response
@@ -85,11 +85,11 @@ async function verifyDataRide (dataRide) {
   var pass = true
   var validPass = true
   const valSeats = parseInt(dataRide.seats) >= dataRide.passenger.length
-  const rider = await users.findByEmail(dataRide.rider).then(callback) != null
+  const rider = await findByEmail(dataRide.rider).then(callback) != null
   if (dataRide.passenger.length > 0) {
     pass = !(dataRide.passenger.find(user => user.email === dataRide.rider))
     for (var i = 0; i < dataRide.passenger.length; i++) {
-      if (await users.findByEmail(dataRide.passenger[i].email) === null) {
+      if (await findByEmail(dataRide.passenger[i].email) === null) {
         validPass = false
       }
     }
@@ -135,14 +135,14 @@ async function verifyDataRide (dataRide) {
  * @returns {Object} Datos de la cola insertada en la base de datos
  */
 async function newRide (dataRide) {
-  const { rider, passenger, seats, startLocation, destination } = dataRide
   const ride = {
-    rider: rider,
-    passenger: passenger,
-    available_seats: seats,
+    rider: dataRide.rider,
+    passenger: dataRide.passenger,
+    vehicle: dataRide.vehicleId
+    available_seats: dataRide.seats,
     status: 'En Espera',
-    start_location: startLocation,
-    destination: destination,
+    start_location: dataRide.startLocation,
+    destination: dataRide.destination,
     time: new Date(),
     ride_finished: false,
     comments: []
@@ -332,7 +332,7 @@ async function verifyComments (dataRide) {
   }
   const validate = validateIn(dataRide, rules, mssg)
   const like = dataRide.like === 'Sí' || dataRide.like === 'No'
-  const rider = await users.findByEmail(dataRide.rider).then((sucs, err) => {
+  const rider = await findByEmail(dataRide.rider).then((sucs, err) => {
     return !err && !!sucs
   })
   if (!(validate.pass && like && rider)) {
@@ -436,6 +436,18 @@ async function findRide (email) {
   const psgr = { $elemMatch: { email: email } }
   const ride = await rides.findOne({ rider: email, ride_finished: false })
   const pass = await rides.findOne({ passenger: psgr, ride_finished: false })
+  const rider = await findByEmail(!ride ? pass.rider : ride.rider)
+  if (!ride) {
+    pass.rider = {
+      phone: rider.phone,
+      vehicle: rider.vehicles.find(car => car._id = pass.vehicle)
+    }
+  } else {
+    ride.rider = {
+      phone: rider.phone,
+      vehicle: rider.vehicles.find(car => car._id = ride.vehicle)
+    }
+  }
   return ride || pass
 }
 
