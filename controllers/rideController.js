@@ -409,12 +409,10 @@ async function getRide (req, res) {
   const { status, errors, message } = verifyGetRide(req.secret)
   if (!status) return res.status(400).send(response(false, errors, message))
   const rideInf = await findRide(req.secret.email)
-  if (rideInf) {
-    const rider = await findByEmail(rideInf.rider)
-    rideInf.rider = {
-      phone: rider.phone_number,
-      vehicle: rider.vehicles.find(car => car._id === rideInf.vehicle)
-    }
+  const rider = !rideInf ? null : await findByEmail(rideInf.rider)
+  rideInf.riderInfo = !rider ? null : {
+    phone: rider.phone_number,
+    vehicle: rider.vehicles.find(car => car._id === rideInf.vehicle)
   }
   const statusCode = rideInf ? 200 : 206, data = rideInf || 'Cola no existe'
   const msg = rideInf ? '' : 'La cola buscada no está registrada'
