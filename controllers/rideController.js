@@ -412,14 +412,14 @@ async function getRide (req, res) {
   var rideInf = await findRide(req.secret.email)
   if (rideInf) {
     const rider = await findByEmail(rideInf.rider).then(callback)
-    data = rideInf
-    data.riderInfo = {
+    const riderInfo = {
       phone: rider.phone_number,
       vehicle: await users.aggregate([
         { $unwind: '$vehicles' },
         { $match: {'vehicles._id': rideInf.vehicle }},
         { $project: {_id: 0, vehicles: 1}} 
       ]).then(callback)
+    data = { ride: rideInf, riderInfo: riderInfo }
     }
     return res.status(200).send(response(true, data, ''))
   }
