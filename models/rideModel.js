@@ -7,6 +7,7 @@ const RideSchema = new Schema(
   {
     rider: { type: String, ref: 'User', required: true },
     passenger: { type: Array, required: true },
+    vehicle_plate: { type: String }, 
     available_seats: { type: Number },
     status: { type: String, enum: ['En Espera', 'En Camino', 'Finalizado', 'Accidentado'] },
     start_location: { type: String },

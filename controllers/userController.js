@@ -504,6 +504,36 @@ async function deleteVehicle (req, res) {
   return res.status(status).send(response(status === 200, usr.data, message))
 }
 
+
+///////////////////////////////////////////////////////////////////////////////
+//////////////////// Endpoint Ver vehiculo de un usuario //////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Endpoint que realiza una consulta sobre la colección Usuario para mostrar
+ * todos los datos asociados a un usuario dado su email.
+ * @public
+ * @param {Object} req - Un HTTP Request
+ * @param {Object} res - Un HTTP Response
+ * @returns {Object}
+ */
+async function getVehicleInformation (req, res) {
+
+  const vehicle = await users.aggregate([
+    { $unwind: '$vehicles' },
+    { $match: {'vehicles.plate': req.body.plate }},
+    { $project: {_id: 0, vehicles: 1}} 
+  ]).then(callback)
+  if (!!vehicle) {
+    logger.log('info', 'Vehiculo encontrado', {user: req.secret.email, operation: 'view-vehicle', status: 200})
+    return res.status(200).send(response(true, vehicle[0], 'Vehiculo encontrado'))
+  } else {
+    logger.log('error', 'Vehiculo no existe', {user: req.secret.email, operation: 'view-vehicle', status: 500})
+    return res.status(500).send(response(false, null, 'Vehiculo no existe'))
+  }
+  
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 //////////////////////////// Exportar Endpoints ///////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -516,3 +546,4 @@ module.exports.updateUser = updateUser
 module.exports.updateProfilePic = updateProfilePic
 module.exports.addVehicle = addVehicle
 module.exports.deleteVehicle = deleteVehicle
+module.exports.getVehicleInformation = getVehicleInformation

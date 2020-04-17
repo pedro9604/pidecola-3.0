@@ -135,10 +135,11 @@ async function verifyDataRide (dataRide) {
  * @returns {Object} Datos de la cola insertada en la base de datos
  */
 async function newRide (dataRide) {
-  const { rider, passenger, seats, startLocation, destination } = dataRide
+  const { rider, passenger, plate, seats, startLocation, destination } = dataRide
   const ride = {
     rider: rider,
     passenger: passenger,
+    vehicle_plate: plate,
     available_seats: seats,
     status: 'En Espera',
     start_location: startLocation,

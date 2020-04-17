@@ -5,6 +5,7 @@ const upload = require('../lib/cloudinaryConfig.js').upload
 
 // GETs
 router.get('/view/profile', userController.getUserInformation)
+router.get('/view/vehicle', userController.getVehicleInformation)
 
 // POSTs
 router.post('/', userController.create)
