@@ -408,17 +408,15 @@ async function comment (dataRide) {
 async function getRide (req, res) {
   const { status, errors, message } = verifyGetRide(req.secret)
   if (!status) return res.status(400).send(response(false, errors, message))
-  const rideInf = await findRide(req.secret.email)
+  var rideInf = await findRide(req.secret.email)
   if (rideInf) {
-    console.log('Sin datos: ', rideInf)
     const rider = await findByEmail(rideInf.rider).then(callback)
-    const riderInfo = {
+    console.log(rider)
+    rideInf.riderInfo = {
       phone: rider.phone_number,
       vehicle: rider.vehicles.find(car => car._id === rideInf.vehicle)
     }
-    const data = { ride: rideInf, riderInfo: riderInfo }
-    console.log('Con datos: ', data)
-    return res.status(200).send(response(true, data, ''))
+    return res.status(200).send(response(true, rideInf, ''))
   }
   return res.status(206).send(response(true, 'Cola no existe', 'La cola buscada no está registrada'))
 }
