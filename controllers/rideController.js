@@ -412,8 +412,8 @@ async function getRide (req, res) {
   if (rideInf) {
     const rider = await findByEmail(rideInf.rider).then(callback)
     rideInf.riderInfo = {
-      phone: rid.phone_number,
-      vehicle: rid.vehicles.find(car => car._id === rideInf.vehicle)
+      phone: rider.phone_number,
+      vehicle: rider.vehicles.find(car => car._id === rideInf.vehicle)
     }
   }
   const statusCode = rideInf ? 200 : 206, data = rideInf || 'Cola no existe'
