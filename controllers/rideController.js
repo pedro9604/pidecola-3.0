@@ -412,7 +412,8 @@ async function getRide (req, res) {
   var rideInf = await findRide(req.secret.email)
   if (rideInf) {
     const rider = await findByEmail(rideInf.rider).then(callback)
-    rideInf.riderInfo = {
+    data = rideInf
+    data.riderInfo = {
       phone: rider.phone_number,
       vehicle: await users.aggregate([
         { $unwind: '$vehicles' },
@@ -420,7 +421,7 @@ async function getRide (req, res) {
         { $project: {_id: 0, vehicles: 1}} 
       ]).then(callback)
     }
-    return res.status(200).send(response(true, rideInf, ''))
+    return res.status(200).send(response(true, data, ''))
   }
   return res.status(206).send(response(true, 'Cola no existe', 'La cola buscada no está registrada'))
 }
