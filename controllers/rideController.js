@@ -409,6 +409,13 @@ async function getRide (req, res) {
   const { status, errors, message } = verifyGetRide(req.secret)
   if (!status) return res.status(400).send(response(false, errors, message))
   const rideInf = await findRide(req.secret.email)
+  if (rideInf) {
+    const rider = await findByEmail(rideInf.rider)
+    rideInf.rider = {
+      phone: rider.phone,
+      vehicle: rider.vehicles.find(car => car._id = pass.vehicle)
+    }
+  }
   const statusCode = rideInf ? 200 : 206, data = rideInf || 'Cola no existe'
   const msg = rideInf ? '' : 'La cola buscada no está registrada'
   return res.status(statusCode).send(response(true, data, msg))
@@ -436,20 +443,6 @@ async function findRide (email) {
   const psgr = { $elemMatch: { email: email } }
   const ride = await rides.findOne({ rider: email, ride_finished: false })
   const pass = await rides.findOne({ passenger: psgr, ride_finished: false })
-  console.log(ride, pass)
-  if (!ride) {
-    const rider = await findByEmail(pass.rider)
-    pass.rider = {
-      phone: rider.phone,
-      vehicle: rider.vehicles.find(car => car._id = pass.vehicle)
-    }
-  } else {
-    const rider = await findByEmail(email)
-    ride.rider = {
-      phone: rider.phone,
-      vehicle: rider.vehicles.find(car => car._id = ride.vehicle)
-    }
-  }
   return ride || pass
 }
 
