@@ -433,8 +433,9 @@ function verifyGetRide (request) {
  * @returns {Object} Datos de la cola insertada en la base de datos
  */
 async function findRide (email) {
+  const psgr = { $elemMatch: { email: email } }
   const ride = await rides.findOne({ rider: email, ride_finished: false })
-  const pass = await rides.findOne({ passenger: email, ride_finished: false })
+  const pass = await rides.findOne({ passenger: psgr, ride_finished: false })
   return ride || pass
 }
 
