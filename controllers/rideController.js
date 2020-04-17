@@ -436,13 +436,14 @@ async function findRide (email) {
   const psgr = { $elemMatch: { email: email } }
   const ride = await rides.findOne({ rider: email, ride_finished: false })
   const pass = await rides.findOne({ passenger: psgr, ride_finished: false })
-  const rider = await findByEmail(!ride ? pass.rider : email)
   if (!ride) {
+    const rider = await findByEmail(pass.rider)
     pass.rider = {
       phone: rider.phone,
       vehicle: rider.vehicles.find(car => car._id = pass.vehicle)
     }
   } else {
+    const rider = await findByEmail(email)
     ride.rider = {
       phone: rider.phone,
       vehicle: rider.vehicles.find(car => car._id = ride.vehicle)
