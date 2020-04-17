@@ -19,6 +19,7 @@
 
 // Módulos
 const rides = require('../models/rideModel')
+const users = require('../models/userModel')
 
 // Funciones
 const callback = require('../lib/utils/utils').callbackReturn
@@ -413,10 +414,11 @@ async function getRide (req, res) {
     const rider = await findByEmail(rideInf.rider).then(callback)
     rideInf.riderInfo = {
       phone: rider.phone_number,
-      vehicle: rider.vehicles.find(car => {
-        console.log(typeof(car._id), typeof(rideInf.vehicle))
-        console.log(car._id === rideInf.vehicle)
-        return car._id === rideInf.vehicle})
+      vehicle: await users.aggregate([
+        { $unwind: '$vehicles' },
+        { $match: {'vehicles._id': rideInf._id }},
+        { $project: {_id: 0, vehicles: 1}} 
+      ]).then(callback)
     }
     return res.status(200).send(response(true, rideInf, ''))
   }
