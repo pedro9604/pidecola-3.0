@@ -22,6 +22,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // Modulos
+const logger = require('../lib/logger.js')
 const users = require('./userController.js')
 
 // Funciones
@@ -143,7 +144,10 @@ function fromNameToInt (name) {
  */
 async function create (req, res) {
   const { status, errors, message } = verifyRequest(req.body)
-  if (!status) return res.status(400).send(response(false, errors, message))
+  if (!status) {
+    logger.log('error', message, {user: req.body.user, operation: 'create-request', status: 400})
+    return res.status(400).send(response(false, errors, message))
+  }
   const user = await users.findByEmail(req.body.user).then(callback)
   const request = {
     email: req.body.user,
@@ -162,6 +166,7 @@ async function create (req, res) {
     status: true
   }
   const insert = add(request)
+  logger.log('info', 'Solicitud creada', {user: req.body.user, operation: 'create-request', status: 200})
   return res.status(200).send(response(true, insert, 'Solicitud exitosa'))
 }
 
@@ -305,11 +310,16 @@ function add (newRequest) {
  */
 function cancel (req, res) {
   const { status, errors, message } = verifyRequest(req.body, true)
-  if (!status) return res.status(400).send(response(false, errors, message))
+  if (!status) {
+    logger.log('error', message, {user: req.body.email, operation: 'delete-request', status: 400})
+    return res.status(400).send(response(false, errors, message))
+  }
   var del = remove(req.body, true)
   if (del) {
+    logger.log('info', 'Solicitud eliminada', {user: req.body.email, operation: 'delete-request', status: 200})
     return res.status(200).send(response(true, '', 'Solicitud exitosa'))
   } else {
+    logger.log('error', 'La solicitud no existe', {user: req.body.email, operation: 'delete-request', status: 500})
     return res.status(200).send(response(false, '', 'Cola no existe'))
   }
 }
@@ -362,9 +372,11 @@ function remove (deleteRequest, removeList = false) {
 function updateStatus (req, res) {
   const { status, errors, message } = verifyStatus(req.body)
   if (!status) {
+    logger.log('error', message, {user: req.body.user, operation: 'update-request', status: 400})
     return res.status(400).send(response(false, errors, message))
   }
   changeStatus(req.body.user, req.body.place)
+  logger.log('info', 'Estado de solicitud actualizado', {user: req.body.user, operation: 'update-request', status: 200})
   return res.status(200).send(response(true, '', 'Cambiado exitosamente'))
 }
 
@@ -446,7 +458,10 @@ function changeStatus (email, place) {
  */
 async function offerRide (req, res) {
   const { status, errors, message } = await verifyOffer(req.body)
-  if (!status) return res.status(400).send(response(false, errors, message))
+  if (!status) {
+    logger.log('error', message, {user: req.body.rider, operation: 'offer-ride', status: 400})
+    return res.status(400).send(response(false, errors, message))
+  }
   const offer = await sendOffer(req.body)
   if (offer.sent) {
     const user = await users.findByEmail(req.body.rider).then(callback);
@@ -461,8 +476,10 @@ async function offerRide (req, res) {
       car: user.vehicles.find(car => car.plate === req.body.car),
       route: req.body.route
     });
+    logger.log('info', 'Oferta enviada', {user: req.body.rider, operation: 'offer-ride', status: 200})
     return res.status(200).send(response(true, offer.log, 'Oferta enviada'))
   } else {
+    logger.log('error', 'Error en Oferta', {user: req.body.rider, operation: 'offer-ride', status: 500})
     return res.status(500).send(response(false, offer.errors, 'Error'))
   }
 }
@@ -563,12 +580,17 @@ async function sendOffer (offer) {
  */
 async function respondOfferRide (req, res) {
   const { status, errors, message } = verifyRespondOffer(req.body)
-  if (!status) return res.status(400).send(response(false, errors, message))
+  if (!status) {
+    logger.log('error', message, {user: req.body.rider, operation: 'respond-request', status: 400})
+    return res.status(400).send(response(false, errors, message))
+  }
   const answer = await respondOffer(req.body)
   if (answer.sent) {
     handleSockets.sendPassengerResponse({rider: req.body.rider, passenger: req.body.passenger, answer: req.body.accept})
+    logger.log('info', 'Oferta respondida', {user: req.body.rider, operation: 'respond-request', status: 200})
     return res.status(200).send(response(true, answer.log, 'Respondiste'))
   } else {
+    logger.log('error', 'Error en respuesta', {user: req.body.rider, operation: 'respond-request', status: 500})
     return res.status(500).send(response(false, answer.errors, 'Error'))
   }
 }
@@ -660,9 +682,13 @@ async function respondOffer (response, removeList = false) {
  */
 function getRequest (req, res) {
   const { status, errors, message } = verifyGet(req.secret)
-  if (!status) return res.status(400).send(response(false, errors, message))
+  if (!status) {
+    logger.log('error', message, {user: req.secret.email, operation: 'get-request', status: 400})
+    return res.status(400).send(response(false, errors, message))
+  }
   const elm = alreadyRequested(req.secret.email)
   const statusCode = elm.in ? 200 : 206, msg = elm.in ? '' : 'No existe'
+  logger.log('info', msg, {user: req.secret.email, operation: 'get-request', status: statusCode})
   return res.status(statusCode).send(response(true, elm.elem, msg))
 }
 
