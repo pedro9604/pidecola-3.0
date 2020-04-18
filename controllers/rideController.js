@@ -18,19 +18,21 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // Módulos
-const users = require('../controllers/userController.js')
-const rides = require('../models/rideModel.js')
-const requestsList = require('./requestsController.js').requestsList
+const rides = require('../models/rideModel')
+const users = require('../models/userModel')
 
 // Funciones
 const callback = require('../lib/utils/utils').callbackReturn
+const cast = require('./requestsController').cast
 const emailRules = require('../lib/utils/validation').emailRules
 const emailMessage = require('../lib/utils/validation').emailMessage
 const errorsMessage = require('../lib/utils/validation').rideMessage
+const findByEmail = require('../controllers/userController').findByEmail
+const handleSockets = require('../lib/utils/handleSockets')
+const list = require('./requestsController').requestsList
 const response = require('../lib/utils/response').response
 const rideRules = require('../lib/utils/validation').rideRules
 const validateIn = require('../lib/utils/validation').validateIn
-const handleSockets = require('../lib/utils/handleSockets')
 
 ///////////////////////////////////////////////////////////////////////////////
 /////////////////////////// Endpoint Crear una cola ///////////////////////////
@@ -52,18 +54,7 @@ async function create (req, res) {
   if (!status) return res.status(400).send(response(false, errors, message))
   const rideInf = await newRide(req.body)
   if (rideInf) {
-    // for (let i = 0; i < requestsList[index].requests.length; i++) {
-    //   const req = requestsList[index].requests[i]
-    //   const email = req.email
-    //   if (email === deleteRequest.user || email === deleteRequest.email) {
-    //     requestsList[index].requests.splice(i, 1)
-    //     if(removeList) {
-    //       client.srem(requestsList[index].name, JSON.stringify(req))
-    //       handleSockets.sendPassengers(requestsList[index].name)
-    //     }
-    //     return true
-    //   }
-    // }
+    sendPassengers(req.body.passenger)
     return res.status(200).send(response(true, rideInf, 'Cola creada'))
   } else {
     return res.status(500).send(response(true, rideInf, 'Cola no fue creada'))
@@ -95,11 +86,11 @@ async function verifyDataRide (dataRide) {
   var pass = true
   var validPass = true
   const valSeats = parseInt(dataRide.seats) >= dataRide.passenger.length
-  const rider = await users.findByEmail(dataRide.rider).then(callback) != null
+  const rider = await findByEmail(dataRide.rider).then(callback) != null
   if (dataRide.passenger.length > 0) {
-    pass = !(dataRide.rider in dataRide.passenger)
+    pass = !(dataRide.passenger.find(user => user.email === dataRide.rider))
     for (var i = 0; i < dataRide.passenger.length; i++) {
-      if (await users.findByEmail(dataRide.passenger[i]) === null) {
+      if (await findByEmail(dataRide.passenger[i].email) === null) {
         validPass = false
       }
     }
@@ -145,19 +136,31 @@ async function verifyDataRide (dataRide) {
  * @returns {Object} Datos de la cola insertada en la base de datos
  */
 async function newRide (dataRide) {
-  const { rider, passenger, seats, startLocation, destination } = dataRide
   const ride = {
-    rider: rider,
-    passenger: passenger,
-    available_seats: seats,
+    rider: dataRide.rider,
+    passenger: dataRide.passenger,
+    vehicle: dataRide.vehicleId,
+    available_seats: dataRide.seats,
     status: 'En Espera',
-    start_location: startLocation,
-    destination: destination,
+    start_location: dataRide.startLocation,
+    destination: dataRide.destination,
     time: new Date(),
     ride_finished: false,
     comments: []
   }
   return rides.create(ride).then(callback)
+}
+
+function sendPassengers (passengers) {
+  for (var i = 0; i < passengers.length; i++) {
+    const index = cast(passengers[i].ruta)
+    for (var j = 0; j < list[index].requests.length; j++) {
+      if (list[index].requests[j].email === passengers[i].email) {
+        handleSockets.sendPassengers(list[index].name)
+        break
+      }
+    }
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -330,7 +333,7 @@ async function verifyComments (dataRide) {
   }
   const validate = validateIn(dataRide, rules, mssg)
   const like = dataRide.like === 'Sí' || dataRide.like === 'No'
-  const rider = await users.findByEmail(dataRide.rider).then((sucs, err) => {
+  const rider = await findByEmail(dataRide.rider).then((sucs, err) => {
     return !err && !!sucs
   })
   if (!(validate.pass && like && rider)) {
@@ -406,10 +409,26 @@ async function comment (dataRide) {
 async function getRide (req, res) {
   const { status, errors, message } = verifyGetRide(req.secret)
   if (!status) return res.status(400).send(response(false, errors, message))
-  const rideInf = await findRide(req.secret.email)
-  const statusCode = rideInf ? 200 : 206, data = rideInf || 'Cola no existe'
-  const msg = rideInf ? '' : 'La cola buscada no está registrada'
-  return res.status(statusCode).send(response(true, data, msg))
+  var rideInf = await findRide(req.secret.email)
+  if (rideInf) {
+    const rider = await findByEmail(rideInf.rider).then(callback)
+    const riderInfo = {
+      phone: rider.phone_number,
+      fname: rider.first_name,
+      lname: rider.last_name,
+      age: rider.age,
+      major: rider.major,
+      photo: rider.profile_pic,
+      vehicle: await users.aggregate([
+        { $unwind: '$vehicles' },
+        { $match: {'vehicles._id': rideInf.vehicle }},
+        { $project: {_id: 0, vehicles: 1}} 
+      ]).then(callback)
+    }
+    data = { ride: rideInf, riderInfo: riderInfo }
+    return res.status(200).send(response(true, data, ''))
+  }
+  return res.status(206).send(response(true, 'Cola no existe', 'La cola buscada no está registrada'))
 }
 
 function verifyGetRide (request) {
@@ -431,8 +450,9 @@ function verifyGetRide (request) {
  * @returns {Object} Datos de la cola insertada en la base de datos
  */
 async function findRide (email) {
+  const psgr = { $elemMatch: { email: email } }
   const ride = await rides.findOne({ rider: email, ride_finished: false })
-  const pass = await rides.findOne({ passenger: email, ride_finished: false })
+  const pass = await rides.findOne({ passenger: psgr, ride_finished: false })
   return ride || pass
 }
 
