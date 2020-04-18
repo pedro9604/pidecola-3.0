@@ -18,6 +18,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // Módulos
+const logger = require('../lib/logger.js')
 const rides = require('../models/rideModel')
 const users = require('../models/userModel')
 
@@ -51,12 +52,17 @@ const validateIn = require('../lib/utils/validation').validateIn
  */
 async function create (req, res) {
   const { status, errors, message } = await verifyDataRide(req.body)
-  if (!status) return res.status(400).send(response(false, errors, message))
+  if (!status) {
+    logger.log('error', message, {user: req.body.rider, operation: 'create-ride', status: 400})
+    return res.status(400).send(response(false, errors, message))
+  }
   const rideInf = await newRide(req.body)
   if (rideInf) {
     sendPassengers(req.body.passenger)
+    logger.log('info', 'Cola creada', {user: req.body.rider, operation: 'create-ride', status: 200})
     return res.status(200).send(response(true, rideInf, 'Cola creada'))
   } else {
+    logger.log('error', 'Error en creacion de cola', {user: req.body.rider, operation: 'create-ride', status: 500})
     return res.status(500).send(response(true, rideInf, 'Cola no fue creada'))
   }
 }
@@ -180,12 +186,17 @@ function sendPassengers (passengers) {
  */
 async function endRide (req, res) {
   const { status, errors, message } = await verifyDataRide(req.body)
-  if (!status) return res.status(400).send(response(false, errors, message))
+  if (!status) {
+    logger.log('error', message, {user: req.body.rider, operation: 'end-ride', status: 400})
+    return res.status(400).send(response(false, errors, message))
+  }
   const query = { $set: { ride_finished: true, status: 'Finalizado' } }
   const rideInf = await updateRide(req.body, query)
   if (rideInf) {
+    logger.log('info', 'Cola finalizada', {user: req.body.rider, operation: 'end-ride', status: 200})
     return res.status(200).send(response(true, rideInf, 'Cola finalizada'))
   } else {
+    logger.log('error', 'Error en finalizar cola', {user: req.body.rider, operation: 'end-ride', status: 500})
     return res.status(500).send(response(false, '', 'Cola no existe'))
   }
 }
@@ -230,14 +241,19 @@ async function updateRide (rideInf, query) {
  */
 async function changeStatus (req, res) {
   const { status, errors, message } = await verifyStatusRide(req.body)
-  if (!status) return res.status(400).send(response(false, errors, message))
+  if (!status) {
+    logger.log('error', message, {user: req.body.rider, operation: 'update-ride', status: 400})
+    return res.status(400).send(response(false, errors, message))
+  }
   const rideInf = await updateRide(req.body, { status: req.body.status })
   if (rideInf) {
     handleSockets.sendRideStatus(rideInf);
+    logger.log('info', 'Estado de cola cambiado', {user: req.body.rider, operation: 'update-ride', status: 200})
     return res.status(200).send(response(true, rideInf, 'Estado cambiado'))
   } else {
     const err = 'Cola no existe'
     const msg = 'La cola buscada no está registrada'
+    logger.log('error', msg, {user: req.body.rider, operation: 'end-ride', status: 500})
     return res.status(500).send(response(false, err, msg))
   }
 }
@@ -295,13 +311,18 @@ async function verifyStatusRide (statusRide) {
  */
 async function commentARide (req, res) {
   const { status, errors, message } = await verifyComments(req.body)
-  if (!status) return res.status(400).send(response(false, errors, message))
+  if (!status) {
+    logger.log('error', message, {user: req.body.rider, operation: 'comment-ride', status: 400})
+    return res.status(400).send(response(false, errors, message))
+  }
   const rideInf = await comment(req.body)
   if (rideInf) {
+    logger.log('info', 'Comentario agregado', {user: req.body.rider, operation: 'comment-ride', status: 200})
     return res.status(200).send(response(true, rideInf, 'Comentario agregado'))
   } else {
     const err = 'Cola no existe'
     const msg = 'La cola buscada no está registrada'
+    logger.log('error', msg, {user: req.body.rider, operation: 'comment-ride', status: 500})
     return res.status(500).send(response(false, err, msg))
   }
 }
@@ -408,7 +429,10 @@ async function comment (dataRide) {
  */
 async function getRide (req, res) {
   const { status, errors, message } = verifyGetRide(req.secret)
-  if (!status) return res.status(400).send(response(false, errors, message))
+  if (!status) {
+    logger.log('error', message, {user: req.secret.email, operation: 'get-ride', status: 400})
+    return res.status(400).send(response(false, errors, message))
+  }
   var rideInf = await findRide(req.secret.email)
   if (rideInf) {
     const rider = await findByEmail(rideInf.rider).then(callback)
@@ -426,8 +450,10 @@ async function getRide (req, res) {
       ]).then(callback)
     }
     data = { ride: rideInf, riderInfo: riderInfo }
+    logger.log('info', 'Cola encontrada', {user: req.secret.email, operation: 'get-ride', status: 200})
     return res.status(200).send(response(true, data, ''))
   }
+  logger.log('info', 'Cola no existe', {user: req.secret.email, operation: 'get-ride', status: 206})
   return res.status(206).send(response(true, 'Cola no existe', 'La cola buscada no está registrada'))
 }
 
