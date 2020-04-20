@@ -341,6 +341,7 @@ function remove (deleteRequest, removeList = false) {
   } else {
     index = fromNameToInt(deleteRequest.startLocation)
   }
+  if(!requestsList[index].requests) return false
   for (var i = 0; i < requestsList[index].requests.length; i++) {
     const req = requestsList[index].requests[i]
     const email = req.email
@@ -462,26 +463,23 @@ async function offerRide (req, res) {
     logger.log('error', message, {user: req.body.rider, operation: 'offer-ride', status: 400})
     return res.status(400).send(response(false, errors, message))
   }
-  const offer = await sendOffer(req.body)
-  if (offer.sent) {
-    const user = await users.findByEmail(req.body.rider).then(callback);
-    handleSockets.sendRideOffer({
-      email: user.email,
-      first_name: user.first_name,
-      last_name: user.last_name,
-      age: user.age,
-      major: user.major,
-      phone_number: user.phone_number,
-      profile_pic: user.profile_pic,
-      car: user.vehicles.find(car => car.plate === req.body.car),
-      route: req.body.route
-    });
-    logger.log('info', 'Oferta enviada', {user: req.body.rider, operation: 'offer-ride', status: 200})
-    return res.status(200).send(response(true, offer.log, 'Oferta enviada'))
-  } else {
-    logger.log('error', 'Error en Oferta', {user: req.body.rider, operation: 'offer-ride', status: 500})
-    return res.status(500).send(response(false, offer.errors, 'Error'))
+  sendOffer(req.body)
+  const user = await users.findByEmail(req.body.rider).then(callback);
+  const dataOffer = {
+    email: user.email,
+    first_name: user.first_name,
+    last_name: user.last_name,
+    age: user.age,
+    major: user.major,
+    phone_number: user.phone_number,
+    profile_pic: user.profile_pic,
+    car: user.vehicles.find(car => car.plate === req.body.car),
+    route: req.body.route
   }
+  client.set('OFFER-' + req.body.passenger + '-' + user.email, JSON.stringify(dataOffer))
+  handleSockets.sendRideOffer(req.body.passenger, dataOffer);
+  logger.log('info', 'Oferta enviada', {user: req.body.rider, operation: 'offer-ride', status: 200})
+  return res.status(200).send(response(true, 'Ok', 'Oferta enviada'))
 }
 
 /**
@@ -654,6 +652,13 @@ async function respondOffer (response, removeList = false) {
   const html = responseTemplate(name.first_name)
   if (response.accept === 'Sí') {
     if (remove(alreadyRequested(response.passenger).elem, removeList)) {
+      client.keys('OFFER-' + response.passenger + '*', (err, list) => {
+        if (err) return console.log(err)
+        if (!list || !list.length) return
+        list.forEach( offer => {
+          client.del(offer)
+        })
+      })
       return sendEmail(response.rider, subj, html).then(callbackMail)
     } else {
       const log = 'Parece que la solicitud de cola no existe'
@@ -661,6 +666,7 @@ async function respondOffer (response, removeList = false) {
       return { sent: false, log: log, errors: errors }
     }
   } else {
+    client.del('OFFER-' + response.passenger + '-' + response.rider)
     return sendEmail(response.rider, subj, html).then(callbackMail)
   }
 }
