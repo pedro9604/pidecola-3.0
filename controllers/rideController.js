@@ -67,6 +67,14 @@ async function create (req, res) {
   }
 }
 
+async function cancel (req, res) {
+  const {rider, passengers} = req.body
+  passengers.forEach( passenger => {
+    handleSockets.cancelOffer(rider, passenger)
+  })
+  return res.status(200).send(response(true, 'Ok', 'Cola cancelada.'))
+}
+
 /**
  * @typedef Verification
  * @type {Object}
@@ -491,3 +499,4 @@ module.exports.endRide = endRide
 module.exports.changeStatus = changeStatus
 module.exports.commentARide = commentARide
 module.exports.getRide = getRide
+module.exports.cancel = cancel

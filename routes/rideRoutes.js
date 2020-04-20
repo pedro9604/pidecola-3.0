@@ -7,6 +7,7 @@ router.get('/get', rideController.getRide)
 
 // POSTs
 router.post('/create', rideController.create)
+router.post('/cancel', rideController.cancel)
 
 // PUTs
 router.put('/endRide', rideController.endRide)
