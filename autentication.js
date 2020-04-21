@@ -64,6 +64,9 @@ exports.verifyAutentication = (req, res, next) => {
   if (token === 'code validation' || req.path === '/users') {
     return next()
   }
+  else if (req.path === '/users/reset/pw' || req.path === '/users/update/pw' ) {
+    return next()
+  }
   if (!token) return res.status(401).send(response(false, null, 'Unauthorized.'))
   jwt.verify(token, tokenKey, (err, secret) => {
     if (err || !token) return res.status(401).send(response(false, null, 'Unauthorized.'))

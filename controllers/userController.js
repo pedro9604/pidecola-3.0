@@ -35,12 +35,15 @@ const callbackMail = require('../lib/utils/utils').callbackMail
 const deleteRules = require('../lib/utils/validation').deleteRules
 const deleteMessage = require('../lib/utils/validation').deleteMessage
 const emailRules = require('../lib/utils/validation').emailRules
+const jwt = require('jsonwebtoken')
 const emailMessage = require('../lib/utils/validation').emailMessage
 const registerMessage = require('../lib/utils/validation').registerMessage
 const registerRules = require('../lib/utils/validation').registerRules
 const response = require('../lib/utils/response').response
+const resetTemplate = require('../lib/utils/codeTemplate').resetPasswordTemplate
 const sendEmail = require('../lib/utils/emails').sendEmail
 const template = require('../lib/utils/codeTemplate').template
+const tokenKey = process.env.KEY
 const updateRules = require('../lib/utils/validation').updateRules
 const updateMessage = require('../lib/utils/validation').updateMessage
 const validateIn = require('../lib/utils/validation').validateIn
@@ -268,6 +271,102 @@ async function codeValidate (req, res) {
   logger.log('info', message, {user: req.body.email, operation: 'code-validation', status: 200})
   return res.status(status).send(response(status === 200, user.data, message))
 }
+
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////// Endpoint Recuperar Contraseña ///////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Endpoint que envia por por email un enlace para reestablecer la contraseña.
+ * @function
+ * @async
+ * @public
+ * @param {Object} req - Un HTTP Request
+ * @param {Object} res - Un HTTP Response
+ * @returns {Object}
+ */
+
+async function resetPassword (req, res) {
+  if (req.body.email.split('@')[1] !== 'usb.ve') {
+    logger.log('error', 'Correo invalido', {user: req.body.email, operation: 'reset-pw', status: 500})
+    return res.status(500).send(response(false, null, 'Correo invalido'))
+  }
+
+  const user = await findByEmail(req.body.email).then(callback)
+  if (!user) {
+    logger.log('error', 'Usuario no existe', {user: req.body.email, operation: 'reset-pw', status: 500})
+    return res.status(500).send(response(false, null, 'Usuario no existe'))
+  }
+  const token = jwt.sign({ email: req.body.email }, tokenKey, { expiresIn: 3600 })
+  const link = `http://localhost:5000/users/update/pw/${user.email}/${token}`
+  const {sent, log, errors } = await forgotPasswordEmail(req.body.email, link)
+  if (!sent) {
+    logger.log('error', 'Correo no pudo ser enviado', {user: req.body.email, operation: 'reset-pw', status: 500})
+    return res.status(500).send(response(sent, log, 'Correo no pudo ser enviado'))
+  }
+  logger.log('info', 'Correo enviado', {user: req.body.email, operation: 'reset-pw', status: 200})
+  return res.status(200).send(response(sent, log, 'Correo de Reestablecimiento de Contraseña Enviado'))
+}
+
+/**
+ * Funcion que envia por correo enlace para reestablecer contraseña.
+ * @function
+ * @async
+ * @public
+ * @param {String} email - email destino
+ * @param {String} link - enlace para reestablecer contraseña
+ * @returns {SentStatus}
+ */
+
+async function forgotPasswordEmail (email, link) {
+  const subj = 'Reestablecer contraseña'
+  const html = resetTemplate(link)
+  return sendEmail(email, subj, html).then(callbackMail)
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////// Endpoint Reestablecer Contraseña ////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Endpoint que actualiza la contraseña del usuario a traves del enlace enviado
+ * previamente por correo.
+ * @function
+ * @async
+ * @public
+ * @param {Object} req - Un HTTP Request
+ * @param {Object} res - Un HTTP Response
+ * @returns {Object}
+ */
+
+async function updatePassword (req, res) {
+  const { email, token } = req.body
+  let password
+
+  const user = await findByEmail(email).then(callback)
+  if (!user) {
+    logger.log('error', 'Usuario no existe', {user: req.body.email, operation: 'update-pw', status: 500})
+    return res.status(500).send(response(false, null, 'Usuario no existe'))
+  }
+
+  const secret = tokenKey
+  const payload = jwt.decode(token, secret)
+
+  if (payload.email === user.email) {
+    password = await bcrypt.hash(req.body.password, 12)
+  }
+
+  const query = { $set: { password: password }}
+  const newPassword = await updateUserByEmail(email, query).then(callback)
+  if (!newPassword) {
+    logger.log('error', 'Error al cambiar contraseña', {user: email, operation: 'update-pw', status: 500})
+    return res.status(500).send(response(false, newPassword, 'Error al cambiar contraseña'))
+  }
+  logger.log('info', 'Contraseña cambiada', {user: email, operation: 'update-pw', status: 200})
+  return res.status(200).send(response(true, newPassword, 'Contraseña cambiada'))
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ////////////////////// Endpoint Ver perfil de un usuario //////////////////////
@@ -512,6 +611,8 @@ module.exports.create = create
 module.exports.findByEmail = findByEmail // Esto no es un endpoint
 module.exports.codeValidate = codeValidate
 module.exports.getUserInformation = getUserInformation
+module.exports.resetPassword = resetPassword
+module.exports.updatePassword = updatePassword
 module.exports.updateUser = updateUser
 module.exports.updateProfilePic = updateProfilePic
 module.exports.addVehicle = addVehicle
