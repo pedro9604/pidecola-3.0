@@ -38,7 +38,7 @@ async function getRidesReceived (req, res) {
   }
   
   const { status, data, message } = await rides.countDocuments({
-    passenger: req.secret.email 
+    'passenger.email': req.secret.email 
   }).then(callbackCount)
   logger.log('info', 'Consulta nro de colas recibidas', {user: req.secret.email, operation: 'query-rides-received', status: 200})
   return res.status(status).send(response(status === 200, data, message))
@@ -60,7 +60,7 @@ async function getLikesCount (req, res) {
   }
   
   const { status, data, message } = await rides.aggregate([
-    { $match: { rider: req.secret.email } },
+    { $match: { rider: req.secret.email, ride_finished: true } },
     { $unwind: '$comments' },
     { $match: {'comments.like': true } },
     { $group: { _id: null, count: { $sum: 1 } } },
@@ -86,7 +86,7 @@ async function getDislikesCount (req, res) {
   }
   
   const { status, data, message } = await rides.aggregate([
-    { $match: { rider: req.secret.email } },
+    { $match: { rider: req.secret.email, ride_finished: true } },
     { $unwind: '$comments' },
     { $match: {'comments.dislike': true } },
     { $group: { _id: null, count: { $sum: 1 } } },
