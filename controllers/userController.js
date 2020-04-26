@@ -497,7 +497,7 @@ async function deleteVehicle (req, res) {
     })
     .catch(error => { return { code: 500, data: error } })
   status = usr.code === 200 || usr.code === 403 ? usr.code : 500
-  if (usr.code === 200) message = 'Vehículo eliminado', levvel = 'info'
+  if (usr.code === 200) message = 'Vehículo eliminado', level = 'info'
   else if (usr.code === 403) message = 'Vehículo no existe', level = 'error'
   else message = 'Vehículo no existe', level = 'error'
   logger.log(level, message, {user: req.secret.email, operation: 'delete-vehicle', status: status})
