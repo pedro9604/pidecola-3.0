@@ -482,6 +482,30 @@ async function offerRide (req, res) {
   return res.status(200).send(response(true, 'Ok', 'Oferta enviada'))
 }
 
+async function getDataRide(offer){
+  return new Promise( async (resolved, reject) => {
+    await client.get(offer, (err, data) => {
+      resolved(JSON.parse(data))
+    })
+  })
+}
+
+async function reviewOffers(req, res){
+  if(!req.body.email) return res.status(400).send(response(false, [], 'El correo electronico es necesario'))
+  let offers = []
+  client.keys('OFFER-*-' + req.body.email, async (err, list) => {
+    if (err) return console.log(err)
+    if (!list || !list.length) return res.status(403).send(response(false, [], 'No existen Ofertas.'))
+    list.forEach( (offer, index) => {
+      client.get(offer, (err, data) => {
+        if(err) return
+        offers.push({[offer] : JSON.parse(data) })
+        if(index === list.length-1) return res.status(200).send(response(true, offers, 'Existen Ofertas.'))
+      })
+    })
+  })
+}
+
 /**
  * Función que verifica que los datos recibidos tengan el formato adecuado para
  * ofrecer la cola.
@@ -732,3 +756,4 @@ module.exports.updateStatus = updateStatus
 module.exports.offerRide = offerRide
 module.exports.respondOfferRide = respondOfferRide
 module.exports.getRequest = getRequest
+module.exports.reviewOffers = reviewOffers

@@ -11,5 +11,6 @@ router.post('/cancel', requestsController.cancel)
 router.post('/updateStatus', requestsController.updateStatus)
 router.post('/offerRide', requestsController.offerRide)
 router.post('/respondOfferRide', requestsController.respondOfferRide)
+router.post('/review/offers', requestsController.reviewOffers)
 
 module.exports = router

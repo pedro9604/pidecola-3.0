@@ -74,5 +74,3 @@ server.listen(port, () => {
   console.log(chalk.blue(`\nRunning in port ${port}`))
   logger.log('info', `\Running in port ${port}`, {user: 'System', operation: 'start-server', status: 'OK'})
 })
-
-  
