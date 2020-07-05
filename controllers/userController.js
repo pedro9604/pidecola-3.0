@@ -173,7 +173,13 @@ async function responseCreate (usr, already = false) {
   } else {
     code = usr.temporalCode
   }
-  return sendEmail(to, sb, template(code, to.split('@')[0])).then(callbackMail)
+  try {
+    return sendEmail(to, sb, template(code, to.split('@')[0])).then(callbackMail)
+  } catch (error) {
+    console.log('ERROR SENDING EMAIL');
+    
+  }
+  
 }
 
 /**

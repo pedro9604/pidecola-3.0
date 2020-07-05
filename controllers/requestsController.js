@@ -582,7 +582,11 @@ async function sendOffer (offer) {
   const subj = 'Nueva oferta de cola'
   const name = await users.findByEmail(offer.passenger).then(callback)
   const html = offerTemplate(name.first_name)
-  return sendEmail(offer.passenger, subj, html).then(callbackMail)
+  try {
+    return sendEmail(offer.passenger, subj, html).then(callbackMail)
+  } catch (error) {
+    console.log('ERROR SENDING EMAIL');
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -683,7 +687,11 @@ async function respondOffer (response, removeList = false) {
           client.del(offer)
         })
       })
-      return sendEmail(response.rider, subj, html).then(callbackMail)
+      try {
+        return sendEmail(response.rider, subj, html).then(callbackMail)       
+      } catch (error) {
+       console.log('ERROR SENDING EMAIL');
+      }
     } else {
       const log = 'Parece que la solicitud de cola no existe'
       const errors = 'La solicitud de cola no fue encontrada'
@@ -691,7 +699,11 @@ async function respondOffer (response, removeList = false) {
     }
   } else {
     client.del('OFFER-' + response.passenger + '-' + response.rider)
-    return sendEmail(response.rider, subj, html).then(callbackMail)
+    try {
+      return sendEmail(response.rider, subj, html).then(callbackMail) 
+    } catch (error) {
+      console.log('ERROR SENDING EMAIL');
+    }
   }
 }
 
