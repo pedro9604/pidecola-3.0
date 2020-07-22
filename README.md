@@ -433,8 +433,7 @@ Universidad.
 ## ¿Cómo hacer los cambios?
 
 Para cambiar algún controlador se dejan indicaciones en la documentación de
-cada uno. Para añadir nuevos controladores revisar la sección **Agregar un
-nuevo controlador** de este manual.
+cada uno. Para añadir nuevos controladores revisar la [sección correspondiente](#agregar-un-nuevo-controlador-xcontrollerjs) de este manual.
 
 ## Recomendaciones generales
 
