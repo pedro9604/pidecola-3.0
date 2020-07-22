@@ -1,7 +1,5 @@
-<!--
-  Título
--->
-#Manual de Back-end
+<!-- Título -->
+# Manual de Back-end
 
 <!--
   Autor | Contacto | Fecha | Versión
