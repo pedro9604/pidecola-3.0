@@ -6,7 +6,7 @@
 -->
 |     Hecho por     |      Email      |    Fecha    |   Versión   |
 | ----------------- | --------------- | ----------- | ----------- |
-| Francisco Márquez | 12-11163@usb.ve | Abril 2 020 | Versión 1.0 |
+| Francisco Márquez | 12-11163@usb.ve | Julio  2020 | Versión 1.1 |
 
 <!-- ¿Qué es? -->
 Este manual es una guía para añadir añadir nuevos controladores para la
@@ -21,20 +21,20 @@ funcionalidades que deseen que la misma soporte.
 
 <!-- ¿Cuáles son sus partes? -->
 Este manual se compone de las siguientes secciones:
- * [Agregar un nuevo controlador][8]
+ * [Agregar un nuevo controlador `xController.js`][8]
  * [Diseño de la aplicación][9]
  * [Estado actual][1]
  * [Posibles cambios][10]
  * [Cómo ejecutar los cambios][11]
  * [Recomendaciones generales][12]
 
+## Agregar un nuevo controlador `xController.js`
+
 **¿Qué es un controlador?**
 
 Un controlador es una función que responde a eventos (usualmente acciones del
 usuario) e invoca peticiones a la base de datos cuando se hace alguna
 solicitud sobre la información fuente: [Wikipedia][2]
-
-## Agregar un nuevo controlador `xController.js`
 
 1. Genere el archivo `xController.js` en el directorio `/controllers`, donde
 `x` es un nombre descriptivo de su controlador. Por ejemplo: 
@@ -311,7 +311,7 @@ Los endpoints que contiene son:
 * Validar código de confirmación
 * Ver perfil del usuario
 
-Para más información consulte la documentación del módulo [userController][4].
+Para más información consulte la documentación del módulo userController.
 
 ### Controlador de colas: rideController
 
@@ -330,7 +330,7 @@ Los endpoints que contiene son:
 * Cambiar estado de una cola
 * Comentar una cola
 
-Para más información consulte la documentación del módulo [rideController][5].
+Para más información consulte la documentación del módulo rideController.
 
 ### Controlador de solicitudes de colas: requestsController
 
@@ -351,8 +351,7 @@ Los endpoints que contiene son:
 * Ofrecer una cola
 * Responder a una oferta de cola
 
-Para más información consulte la documentación del módulo
-[requestsController][6].
+Para más información consulte la documentación del módulo requestsController.
 
 ### Controlador del algoritmo de recomendación: algorithmController
 
@@ -366,8 +365,7 @@ Contiene los endpoints y funciones que manejan la información de las colas.
 
 El endpoint que contiene es: recomendar solicitudes de cola
 
-Para más información consulte la documentación del módulo
-[algorithmController][7].
+Para más información consulte la documentación del módulo algorithmController.
 
 ## Posibles cambios
 
@@ -472,10 +470,10 @@ errores difíciles de detectar y en consecuencia, corregir.
 [1]: #estado-actual
 [2]: https://es.wikipedia.org/wiki/Modelo–vista–controlador
 [3]: https://en.wikipedia.org/wiki/Endpoint
-[4]: https://github.com/pedro9604/pidecola-3.0/blob/develop/out/module-userController.html
+<!-- [4]: https://github.com/pedro9604/pidecola-3.0/blob/develop/out/module-userController.html
 [5]: https://github.com/pedro9604/pidecola-3.0/blob/develop/out/module-rideController.html
 [6]: https://github.com/pedro9604/pidecola-3.0/blob/develop/out/module-requestsController.html
-[7]: https://github.com/pedro9604/pidecola-3.0/blob/develop/out/module-algorithmController.html
+[7]: https://github.com/pedro9604/pidecola-3.0/blob/develop/out/module-algorithmController.html -->
 [8]: #agregar-un-nuevo-controlador-xcontrollerjs
 [9]: #diseño-de-la-aplicación
 [10]: #posibles-cambios
