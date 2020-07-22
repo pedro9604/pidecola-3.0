@@ -22,12 +22,12 @@ funcionalidades que deseen que la misma soporte.
 <!-- ¿Cuáles son sus partes? -->
 Este manual se compone de las siguientes secciones:
 
- * [Agregar un nuevo controlador `xController.js`][#agregar-un-nuevo-controlador-xcontrollerjs]
- * [Diseño de la aplicación][#diseño-de-la-aplicación]
- * [Estado actual][#estado-actual]
- * [Posibles cambios][#posibles-cambios]
- * [Cómo ejecutar los cambios][#cómo-hacer-los-cambios]
- * [Recomendaciones generales][#recomendaciones-generales]
+ * [Agregar un nuevo controlador `xController.js`](#agregar-un-nuevo-controlador-xcontrollerjs)
+ * [Diseño de la aplicación](#diseño-de-la-aplicación)
+ * [Estado actual](#estado-actual)
+ * [Posibles cambios](#posibles-cambios)
+ * [Cómo ejecutar los cambios](#cómo-hacer-los-cambios)
+ * [Recomendaciones generales](#recomendaciones-generales)
 
 ## Agregar un nuevo controlador `xController.js`
 
