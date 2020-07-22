@@ -469,7 +469,7 @@ primer _endpoint_ que la usó.
 errores difíciles de detectar y en consecuencia, corregir.
 
 <!-- Referencias -->
-[1]: #agregar-un-nuevo-controlador-xController.js
+[1]: #agregar-un-nuevo-controlador-xcontrollerjs
 [2]: https://es.wikipedia.org/wiki/Modelo–vista–controlador
 [3]: https://en.wikipedia.org/wiki/Endpoint
 [4]: https://github.com/pedro9604/pidecola-3.0/blob/develop/out/module-userController.html
