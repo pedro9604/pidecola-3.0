@@ -21,7 +21,7 @@ funcionalidades que deseen que la misma soporte.
 
 <!-- ¿Cuáles son sus partes? -->
 Este manual se compone de las siguientes secciones:
- * Agregar un nuevo controlador
+ * [Agregar un nuevo controlador][1]
  * Diseño de la aplicación
  * [Estado actual][1]
  * Posibles cambios
@@ -469,7 +469,7 @@ primer _endpoint_ que la usó.
 errores difíciles de detectar y en consecuencia, corregir.
 
 <!-- Referencias -->
-[1]: https://github.com/pedro9604/pidecola-3.0/blob/develop/out/index.html
+[1]: #agregar-un-nuevo-controlador-xController.js
 [2]: https://es.wikipedia.org/wiki/Modelo–vista–controlador
 [3]: https://en.wikipedia.org/wiki/Endpoint
 [4]: https://github.com/pedro9604/pidecola-3.0/blob/develop/out/module-userController.html
