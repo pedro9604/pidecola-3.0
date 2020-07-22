@@ -35,7 +35,7 @@ Este manual se compone de las siguientes secciones:
 
 Un controlador es una función que responde a eventos (usualmente acciones del
 usuario) e invoca peticiones a la base de datos cuando se hace alguna
-solicitud sobre la información fuente: [Wikipedia][2]
+solicitud sobre la información fuente: [Wikipedia](https://es.wikipedia.org/wiki/Modelo–vista–controlador)
 
 1. Genere el archivo `xController.js` en el directorio `/controllers`, donde
 `x` es un nombre descriptivo de su controlador. Por ejemplo: 
@@ -288,18 +288,19 @@ Se considerarán solamente los controladores y _endpoints_ de la aplicación. La
 información oncerniente a la base de datos se presenta en el Manual de Base
 de Datos de la aplicación.
 
-Para más información consulte la información [aquí][1]
+Para más información consulte la información la documentación generada por
+`jsdoc` en el directorio `/out`
 
 **¿Qué es un endpoint?**
 
 En este contexto es una función que sirve de extremo en la conexión Back-End/
-Front-End. Fuente: [Wikipedia][3]
+Front-End. Fuente: [Wikipedia](https://en.wikipedia.org/wiki/Endpoint)
 
 ### Controlador de usuarios: userController
 
 Desarrollado por:
 
-|    Hecho por    |      Email      |
+|     Nombre      |      Email      |
 | --------------- | --------------- |
 | Pedro Maldonado | 13-10790@usb.ve |
 |  Ángel Morante  | 13-10931@usb.ve |
@@ -323,7 +324,7 @@ Para más información consulte la documentación del módulo userController.
 
 Desarrollado por:
 
-|     Hecho por     |      Email      |
+|      Nombre       |      Email      |
 | ----------------- | --------------- |
 | Francisco Márquez | 12-11163@usb.ve |
 
@@ -342,7 +343,7 @@ Para más información consulte la documentación del módulo rideController.
 
 Desarrollado por:
 
-|     Hecho por     |      Email      |
+|      Nombre       |      Email      |
 | ----------------- | --------------- |
 | Francisco Márquez | 12-11163@usb.ve |
 
@@ -363,7 +364,7 @@ Para más información consulte la documentación del módulo requestsController
 
 Desarrollado por:
 
-|     Hecho por     |      Email      |
+|      Nombre       |      Email      |
 | ----------------- | --------------- |
 | Francisco Márquez | 12-11163@usb.ve |
 
@@ -415,7 +416,19 @@ Y cualquier otra parada que contemple la Federación de Centros de Estudiantes
 de la Universidad Simón Bolívar (FCEUSB).
 
 En tal sentido, se tendrán que añadir todas las paradas adicionales al
-[controlador de solicitudes][6], según las recomendaciones presentadas en él.
+controlador de solicitudes (`requestsController.js`) y al controlador del
+algoritmo (`algorithmController.js`), según las recomendaciones presentadas en
+ambos y resumidas aquí:
+
+- Utilizar manualmente Google Maps para calcular las distancias entre paradas
+y entre paradas y la Universidad, teniendo cuidado de no permitir que Google Maps seleccione la ruta, esto puede llevar a inconsistencias catastróficas.
+
+- Las distancias entre paradas se mantienen en `algorithmController.js`. Para
+agregar las distancias, mantener el orden de distancias.
+
+- Las paradas se manejan en `requestsController.js`. Para agregar paradas,
+hacerlo de forma ordenada respecto a la distancia de la parada a la
+Universidad.
 
 ## ¿Cómo hacer los cambios?
 
@@ -471,12 +484,3 @@ primer _endpoint_ que la usó.
 
 * Tenga cuidado cuando defina parámetros por defecto. Esto puede ocasionarle
 errores difíciles de detectar y en consecuencia, corregir.
-
-<!-- Referencias -->
-[1]: 
-[2]: https://es.wikipedia.org/wiki/Modelo–vista–controlador
-[3]: https://en.wikipedia.org/wiki/Endpoint
-<!-- [4]: https://github.com/pedro9604/pidecola-3.0/blob/develop/out/module-userController.html
-[5]: https://github.com/pedro9604/pidecola-3.0/blob/develop/out/module-rideController.html
-[6]: https://github.com/pedro9604/pidecola-3.0/blob/develop/out/module-requestsController.html
-[7]: https://github.com/pedro9604/pidecola-3.0/blob/develop/out/module-algorithmController.html -->
