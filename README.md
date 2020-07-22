@@ -4,9 +4,9 @@
 <!--
   Autor | Contacto | Fecha | Versión
 -->
-|     Hecho por     |      Email      |    Fecha    |   Versión   |
-| ----------------- | --------------- | ----------- | ----------- |
-| Francisco Márquez | 12-11163@usb.ve | Julio  2020 | Versión 1.1 |
+|     Hecho por     |      Email      |    Fecha    |   Versión del Manual  |
+| ----------------- | --------------- | ----------- | --------------------- |
+| Francisco Márquez | 12-11163@usb.ve | Julio  2020 |      Versión 1.1      |
 
 <!-- ¿Qué es? -->
 Este manual es una guía para añadir añadir nuevos controladores para la
@@ -21,12 +21,13 @@ funcionalidades que deseen que la misma soporte.
 
 <!-- ¿Cuáles son sus partes? -->
 Este manual se compone de las siguientes secciones:
- * [Agregar un nuevo controlador `xController.js`][8]
- * [Diseño de la aplicación][9]
- * [Estado actual][1]
- * [Posibles cambios][10]
- * [Cómo ejecutar los cambios][11]
- * [Recomendaciones generales][12]
+
+ * [Agregar un nuevo controlador `xController.js`][#agregar-un-nuevo-controlador-xcontrollerjs]
+ * [Diseño de la aplicación][#diseño-de-la-aplicación]
+ * [Estado actual][#estado-actual]
+ * [Posibles cambios][#posibles-cambios]
+ * [Cómo ejecutar los cambios][#cómo-hacer-los-cambios]
+ * [Recomendaciones generales][#recomendaciones-generales]
 
 ## Agregar un nuevo controlador `xController.js`
 
@@ -243,10 +244,15 @@ La aplicación se diseñó de la siguiente manera:
 
     * Gestionar sus colas.
 
-        * El usuario puede solicitar la cola cuando lo desee.
+        * Si el usuario no tiene una solicitud cola activa entonces:
 
-        * Si el usuario tiene al menos un (1) vehículo registrado, puede
-        ofrecer la cola a otros usuarios.
+            * Puede solicitar la cola cuando lo desee.
+
+            * Si el usuario tiene al menos un (1) vehículo registrado, puede
+              ofrecer la cola a otros usuarios.
+
+        * El usuario puede cancelar una solicitud de cola, esto eliminará la
+        solicitud del sistema y permitirá crear una nueva solicitud de cola.
 
         * Una vez que el solicitante se le muestra su solicitud a los posibles
         oferentes de acuerdo a los criterios del algoritmo de recomendación.
@@ -467,15 +473,10 @@ primer _endpoint_ que la usó.
 errores difíciles de detectar y en consecuencia, corregir.
 
 <!-- Referencias -->
-[1]: #estado-actual
+[1]: 
 [2]: https://es.wikipedia.org/wiki/Modelo–vista–controlador
 [3]: https://en.wikipedia.org/wiki/Endpoint
 <!-- [4]: https://github.com/pedro9604/pidecola-3.0/blob/develop/out/module-userController.html
 [5]: https://github.com/pedro9604/pidecola-3.0/blob/develop/out/module-rideController.html
 [6]: https://github.com/pedro9604/pidecola-3.0/blob/develop/out/module-requestsController.html
 [7]: https://github.com/pedro9604/pidecola-3.0/blob/develop/out/module-algorithmController.html -->
-[8]: #agregar-un-nuevo-controlador-xcontrollerjs
-[9]: #diseño-de-la-aplicación
-[10]: #posibles-cambios
-[11]: #cómo-hacer-los-cambios
-[12]: #recomendaciones-generales
