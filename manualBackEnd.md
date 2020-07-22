@@ -21,12 +21,12 @@ funcionalidades que deseen que la misma soporte.
 
 <!-- ¿Cuáles son sus partes? -->
 Este manual se compone de las siguientes secciones:
- * [Agregar un nuevo controlador][1]
- * Diseño de la aplicación
+ * [Agregar un nuevo controlador][8]
+ * [Diseño de la aplicación][9]
  * [Estado actual][1]
- * Posibles cambios
- * Cómo ejecutar los cambios
- * Recomendaciones generales
+ * [Posibles cambios][10]
+ * [Cómo ejecutar los cambios][11]
+ * [Recomendaciones generales][12]
 
 **¿Qué es un controlador?**
 
@@ -469,10 +469,15 @@ primer _endpoint_ que la usó.
 errores difíciles de detectar y en consecuencia, corregir.
 
 <!-- Referencias -->
-[1]: #agregar-un-nuevo-controlador-xcontrollerjs
+[1]: #estado-actual
 [2]: https://es.wikipedia.org/wiki/Modelo–vista–controlador
 [3]: https://en.wikipedia.org/wiki/Endpoint
 [4]: https://github.com/pedro9604/pidecola-3.0/blob/develop/out/module-userController.html
 [5]: https://github.com/pedro9604/pidecola-3.0/blob/develop/out/module-rideController.html
 [6]: https://github.com/pedro9604/pidecola-3.0/blob/develop/out/module-requestsController.html
 [7]: https://github.com/pedro9604/pidecola-3.0/blob/develop/out/module-algorithmController.html
+[8]: #agregar-un-nuevo-controlador-xcontrollerjs
+[9]: #diseño-de-la-aplicación
+[10]: #posibles-cambios
+[11]: #cómo-hacer-los-cambios
+[12]: #recomendaciones-generales
