@@ -241,7 +241,7 @@ La aplicación se diseñó de la siguiente manera:
         * El usuario puede gestionar sus vehículos. Si no tiene vehículos
         registrados no puede ofrecer colas dentro de la aplicación.
 
-* Gestionar sus colas.
+    * Gestionar sus colas.
 
         * El usuario puede solicitar la cola cuando lo desee.
 
