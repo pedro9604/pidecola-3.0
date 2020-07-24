@@ -420,7 +420,10 @@ administrador de la base de datos**.
 Asimismo, las solicitudes de cola se ordenan como una cola (primero en entrar
 a la lista, primero en mostrarse). Si se desea cambiar este orden deben
 agregarse **funciones** que manejen la inserción ordenada de las solicitudes a
-la lista.
+la lista. Si se desean agregar campos a las solicitudes de cola para que haya
+algún tipo de discriminación adicional (no recomendado), debe revisarse
+exhaustivamente la aplicación de forma tal que no haya algún error escondido
+en un flujo alternativo.
 
 Para más información consulte la documentación del módulo requestsController.
 
