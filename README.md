@@ -66,6 +66,61 @@ tales métodos y exporte esa función.
 Por cada controlador, si desea generar un archivo de pruebas, genérelo en
 el directorio `/__test__`
 
+### Agregar un nuevo endpoint
+
+**¿Qué es un endpoint?**
+
+En este contexto es una función que sirve de extremo en la conexión Back-End/
+Front-End. Fuente: [Wikipedia](https://en.wikipedia.org/wiki/Endpoint)
+
+Cada controlador es un conjunto de endpoints, y funciones auxiliares del
+endpoint y cada endpoint tiene la finalidad de satisfacer una petición
+específica del Front-End así, cree el endpoint `endpoint` de la siguiente
+manera:
+
+1. Declare el endpoint como una función:
+```Javascript
+function endpoint (req, res) {
+  // Cuerpo de la funcion
+}
+```
+
+2. En el final del archivo incluya:
+```JavaScript
+module.exports.endpoint = endpoint
+```
+
+3. En el archivo `routes.js` de su controlador (si su controlador es
+`xController.js`, este archivo debería llamarse `xRoutes.js` y estar en
+el directorio `/routes`), agregue el nuevo endpoint según las indicaciones en
+la [sección correspondiente](#agregar-el-archivo-a-routes)).
+
+4. Todo endpoint se recomienda mantenga la siguiente estructura:
+
+  1. Verificar la integridad de los datos en la solicitud (`req`). Apoyese en
+  funciones auxiliares para ello.
+
+  2. Retornar mensajes de error descriptivos de los que ha ocurrido. Se
+  recomienda revisar el archivo `lib/utils/validation.js`. En este archivo se
+  encuentran numerosas variables que contienen los campos a verificar y los
+  mensajes de error a devolver.
+
+  3. Retornar la información requerida por el Front-End en caso de pasar las
+  verificaciones en la respuesta `res`.
+
+Se recomienda adicionalmente, para la legibilidad del controlador inciar sus
+endpoints con el siguiente formato:
+
+```Javascript
+///////////////////////////////////////////////////////////////////////////////
+//////////////////// Endpoint Nombre-y-Descripcion-Endpoint ///////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+function endpoint (req, res) {...}
+```
+
+**No olvide documentar sus endpoints con el formato de jsdoc**
+
 ### Agregar un archivo de pruebas para el controlador `xController.js`
 
 1. Genere el archivo `xController.test.js` en el directorio `/__test__`, donde
@@ -290,11 +345,6 @@ de Datos de la aplicación.
 
 Para más información consulte la información la documentación generada por
 `jsdoc` en el directorio `/out`
-
-**¿Qué es un endpoint?**
-
-En este contexto es una función que sirve de extremo en la conexión Back-End/
-Front-End. Fuente: [Wikipedia](https://en.wikipedia.org/wiki/Endpoint)
 
 ### Controlador de usuarios: userController
 
