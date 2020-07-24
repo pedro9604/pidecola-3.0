@@ -4,7 +4,7 @@
 <!--
   Autor | Contacto | Fecha | Versión
 -->
-|     Hecho por     |      Email      |    Fecha    |   Versión del Manual  |
+|    Escrito por    |      Email      |    Fecha    |   Versión del Manual  |
 | ----------------- | --------------- | ----------- | --------------------- |
 | Francisco Márquez | 12-11163@usb.ve | Julio  2020 |      Versión 1.1      |
 
@@ -66,7 +66,7 @@ tales métodos y exporte esa función.
 Por cada controlador, si desea generar un archivo de pruebas, genérelo en
 el directorio `/__test__`
 
-## Agregar un archivo de pruebas para el controlador `xController.js`
+### Agregar un archivo de pruebas para el controlador `xController.js`
 
 1. Genere el archivo `xController.test.js` en el directorio `/__test__`, donde
 `x` es el nombre descriptivo de su controlador. Por ejemplo:
@@ -127,12 +127,12 @@ documentación de `JEST` si se desea mejorar el desempeño de las pruebas.
 Para ejecutar las pruebas basta con ejecutar vía interfaz de línea de
 comandos (CLI): `npm run test`
 
-## Para conectar un nuevo controlador con el resto de la aplicación
+### Para conectar un nuevo controlador con el resto de la aplicación
 Para que su controlador sea accesible desde el Front-end, se debe agregar
 una nueva ruta para su controlador en el directorio `/routes` y ese archivo
 será usado por `index.js` aplicación.
 
-### Agregar el archivo a `/routes`
+#### Agregar el archivo a `/routes`
 
 1. Para el controlador `xController.js` genere el archivo `xRoutes.js` en el
   directorio `/routes`, donde `x` es el nombre descriptivo de su controlador.
@@ -180,7 +180,7 @@ router.put('/addVehicle', userController.addVehicle)
 
 module.exports = router
 ```
-### Hacer visible la nueva ruta en `index.js`
+#### Hacer visible la nueva ruta en `index.js`
 Agregada la ruta, esta debe poder ser visible debe ser visible en `index.js`
 entonces:
 
