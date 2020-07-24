@@ -6,7 +6,7 @@
 -->
 |    Escrito por    |      Email      |    Fecha    |   Versión del Manual  |
 | ----------------- | --------------- | ----------- | --------------------- |
-| Francisco Márquez | 12-11163@usb.ve | Julio  2020 |      Versión 1.1      |
+| Francisco Márquez | 12-11163@usb.ve | Julio  2020 |      Versión 1.2      |
 
 <!-- ¿Qué es? -->
 Este manual es una guía para añadir añadir nuevos controladores para la
@@ -408,6 +408,20 @@ Los endpoints que contiene son:
 * Ofrecer una cola
 * Responder a una oferta de cola
 
+Las solicitudes de cola, para el momento de la elaboración de este manual,
+versión 1.2 no son persistentes, _i. e._, se eliminan permanentemente luego de
+que o son atendidas o son canceladas. Se mantienen activas incluso ante fallas
+del servidor porque se almacenan en Redis. Si se desea, en cambio que las
+solicitudes sean persistentes para su posterior consulta, dependiendo del medio
+que se elija para almacenarlas, deben [agregarse endpoints](#agregar-un-nuevo-endpoint) para gestionarlas desde donde se hayan almacenado.
+Si se desea almacenar en la base de datos, **consulte el manual del
+administrador de la base de datos**.
+
+Asimismo, las solicitudes de cola se ordenan como una cola (primero en entrar
+a la lista, primero en mostrarse). Si se desea cambiar este orden deben
+agregarse **funciones** que manejen la inserción ordenada de las solicitudes a
+la lista.
+
 Para más información consulte la documentación del módulo requestsController.
 
 ### Controlador del algoritmo de recomendación: algorithmController
@@ -420,7 +434,7 @@ Desarrollado por:
 
 Contiene los endpoints y funciones que manejan la información de las colas.
 
-El endpoint que contiene es: recomendar solicitudes de cola
+El endpoint que contiene es: recomendar solicitudes de cola.
 
 Para más información consulte la documentación del módulo algorithmController.
 
