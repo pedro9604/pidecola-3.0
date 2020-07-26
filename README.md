@@ -6,7 +6,7 @@
 -->
 |    Escrito por    |      Email      |    Fecha    |   Versión del Manual  |
 | ----------------- | --------------- | ----------- | --------------------- |
-| Francisco Márquez | 12-11163@usb.ve | Julio  2020 |      Versión 1.2      |
+| Francisco Márquez | 12-11163@usb.ve | Julio  2020 |      Versión 1.3      |
 
 <!-- ¿Qué es? -->
 Este manual es una guía para añadir añadir nuevos controladores para la
@@ -78,14 +78,14 @@ endpoint y cada endpoint tiene la finalidad de satisfacer una petición
 específica del Front-End así, cree el endpoint `endpoint` de la siguiente
 manera:
 
-1. Declare el endpoint como una función:
+1. Declare el endpoint como una función, **no edite ninguna función ya escrita**:
 ```Javascript
 function endpoint (req, res) {
   // Cuerpo de la funcion
 }
 ```
 
-2. En el final del archivo incluya:
+2. Para **hacer visible su endpoint a la aplicación**, en el final del archivo incluya:
 ```JavaScript
 module.exports.endpoint = endpoint
 ```
@@ -93,12 +93,13 @@ module.exports.endpoint = endpoint
 3. En el archivo `routes.js` de su controlador (si su controlador es
 `xController.js`, este archivo debería llamarse `xRoutes.js` y estar en
 el directorio `/routes`), agregue el nuevo endpoint según las indicaciones en
-la [sección correspondiente](#agregar-el-archivo-a-routes)).
+la [sección correspondiente](#agregar-el-archivo-a-routes)). Esto establece una
+**ruta de acceso** a su endpoint.
 
 4. Todo endpoint se recomienda mantenga la siguiente estructura:
 
   1. Verificar la integridad de los datos en la solicitud (`req`). Apoyese en
-  funciones auxiliares para ello.
+  funciones auxiliares para ello. **No asegure nada sobre la entrada**
 
   2. Retornar mensajes de error descriptivos de los que ha ocurrido. Se
   recomienda revisar el archivo `lib/utils/validation.js`. En este archivo se
