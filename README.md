@@ -1,12 +1,12 @@
 <!-- Título -->
-#Manual de Back-end
+# Manual de Back-end
 
 <!--
   Autor | Contacto | Fecha | Versión
 -->
-|     Hecho por     |      Email      |    Fecha    |   Versión   |
-| ----------------- | --------------- | ----------- | ----------- |
-| Francisco Márquez | 12-11163@usb.ve | Abril 2 020 | Versión 1.0 |
+|    Escrito por    |      Email      |    Fecha    |   Versión del Manual  |
+| ----------------- | --------------- | ----------- | --------------------- |
+| Francisco Márquez | 12-11163@usb.ve | Julio  2020 |      Versión 1.3      |
 
 <!-- ¿Qué es? -->
 Este manual es una guía para añadir añadir nuevos controladores para la
@@ -21,20 +21,21 @@ funcionalidades que deseen que la misma soporte.
 
 <!-- ¿Cuáles son sus partes? -->
 Este manual se compone de las siguientes secciones:
- * Agregar un nuevo controlador
- * Diseño de la aplicación
- * [Estado actual][1]
- * Posibles cambios
- * Cómo ejecutar los cambios
- * Recomendaciones generales
+
+ * [Agregar un nuevo controlador `xController.js`](#agregar-un-nuevo-controlador-xcontrollerjs)
+ * [Diseño de la aplicación](#diseño-de-la-aplicación)
+ * [Estado actual](#estado-actual)
+ * [Posibles cambios](#posibles-cambios)
+ * [Cómo ejecutar los cambios](#cómo-hacer-los-cambios)
+ * [Recomendaciones generales](#recomendaciones-generales)
+
+## Agregar un nuevo controlador `xController.js`
 
 **¿Qué es un controlador?**
 
 Un controlador es una función que responde a eventos (usualmente acciones del
 usuario) e invoca peticiones a la base de datos cuando se hace alguna
-solicitud sobre la información fuente: [Wikipedia][2]
-
-## Agregar un nuevo controlador `xController.js`
+solicitud sobre la información fuente: [Wikipedia](https://es.wikipedia.org/wiki/Modelo–vista–controlador)
 
 1. Genere el archivo `xController.js` en el directorio `/controllers`, donde
 `x` es un nombre descriptivo de su controlador. Por ejemplo: 
@@ -65,7 +66,63 @@ tales métodos y exporte esa función.
 Por cada controlador, si desea generar un archivo de pruebas, genérelo en
 el directorio `/__test__`
 
-## Agregar un archivo de pruebas para el controlador `xController.js`
+### Agregar un nuevo endpoint
+
+**¿Qué es un endpoint?**
+
+En este contexto es una función que sirve de extremo en la conexión Back-End/
+Front-End. Fuente: [Wikipedia](https://en.wikipedia.org/wiki/Endpoint)
+
+Cada controlador es un conjunto de endpoints, y funciones auxiliares del
+endpoint y cada endpoint tiene la finalidad de satisfacer una petición
+específica del Front-End así, cree el endpoint `endpoint` de la siguiente
+manera:
+
+1. Declare el endpoint como una función, **no edite ninguna función ya escrita**:
+```Javascript
+function endpoint (req, res) {
+  // Cuerpo de la funcion
+}
+```
+
+2. Para **hacer visible su endpoint a la aplicación**, en el final del archivo incluya:
+```JavaScript
+module.exports.endpoint = endpoint
+```
+
+3. En el archivo `routes.js` de su controlador (si su controlador es
+`xController.js`, este archivo debería llamarse `xRoutes.js` y estar en
+el directorio `/routes`), agregue el nuevo endpoint según las indicaciones en
+la [sección correspondiente](#agregar-el-archivo-a-routes)). Esto establece una
+**ruta de acceso** a su endpoint.
+
+4. Todo endpoint se recomienda mantenga la siguiente estructura:
+
+  1. Verificar la integridad de los datos en la solicitud (`req`). Apoyese en
+  funciones auxiliares para ello. **No asegure nada sobre la entrada**
+
+  2. Retornar mensajes de error descriptivos de los que ha ocurrido. Se
+  recomienda revisar el archivo `lib/utils/validation.js`. En este archivo se
+  encuentran numerosas variables que contienen los campos a verificar y los
+  mensajes de error a devolver.
+
+  3. Retornar la información requerida por el Front-End en caso de pasar las
+  verificaciones en la respuesta `res`.
+
+Se recomienda adicionalmente, para la legibilidad del controlador inciar sus
+endpoints con el siguiente formato:
+
+```Javascript
+///////////////////////////////////////////////////////////////////////////////
+//////////////////// Endpoint Nombre-y-Descripcion-Endpoint ///////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+function endpoint (req, res) {...}
+```
+
+**No olvide documentar sus endpoints con el formato de jsdoc**
+
+### Agregar un archivo de pruebas para el controlador `xController.js`
 
 1. Genere el archivo `xController.test.js` en el directorio `/__test__`, donde
 `x` es el nombre descriptivo de su controlador. Por ejemplo:
@@ -126,12 +183,12 @@ documentación de `JEST` si se desea mejorar el desempeño de las pruebas.
 Para ejecutar las pruebas basta con ejecutar vía interfaz de línea de
 comandos (CLI): `npm run test`
 
-## Para conectar un nuevo controlador con el resto de la aplicación
+### Para conectar un nuevo controlador con el resto de la aplicación
 Para que su controlador sea accesible desde el Front-end, se debe agregar
 una nueva ruta para su controlador en el directorio `/routes` y ese archivo
 será usado por `index.js` aplicación.
 
-### Agregar el archivo a `/routes`
+#### Agregar el archivo a `/routes`
 
 1. Para el controlador `xController.js` genere el archivo `xRoutes.js` en el
   directorio `/routes`, donde `x` es el nombre descriptivo de su controlador.
@@ -179,7 +236,7 @@ router.put('/addVehicle', userController.addVehicle)
 
 module.exports = router
 ```
-### Hacer visible la nueva ruta en `index.js`
+#### Hacer visible la nueva ruta en `index.js`
 Agregada la ruta, esta debe poder ser visible debe ser visible en `index.js`
 entonces:
 
@@ -241,12 +298,17 @@ La aplicación se diseñó de la siguiente manera:
         * El usuario puede gestionar sus vehículos. Si no tiene vehículos
         registrados no puede ofrecer colas dentro de la aplicación.
 
-* Gestionar sus colas.
+    * Gestionar sus colas.
 
-        * El usuario puede solicitar la cola cuando lo desee.
+        * Si el usuario no tiene una solicitud cola activa entonces:
 
-        * Si el usuario tiene al menos un (1) vehículo registrado, puede
-        ofrecer la cola a otros usuarios.
+            * Puede solicitar la cola cuando lo desee.
+
+            * Si el usuario tiene al menos un (1) vehículo registrado, puede
+              ofrecer la cola a otros usuarios.
+
+        * El usuario puede cancelar una solicitud de cola, esto eliminará la
+        solicitud del sistema y permitirá crear una nueva solicitud de cola.
 
         * Una vez que el solicitante se le muestra su solicitud a los posibles
         oferentes de acuerdo a los criterios del algoritmo de recomendación.
@@ -282,18 +344,14 @@ Se considerarán solamente los controladores y _endpoints_ de la aplicación. La
 información oncerniente a la base de datos se presenta en el Manual de Base
 de Datos de la aplicación.
 
-Para más información consulte la información [aquí][1]
-
-**¿Qué es un endpoint?**
-
-En este contexto es una función que sirve de extremo en la conexión Back-End/
-Front-End. Fuente: [Wikipedia][3]
+Para más información consulte la información la documentación generada por
+`jsdoc` en el directorio `/out`
 
 ### Controlador de usuarios: userController
 
 Desarrollado por:
 
-|    Hecho por    |      Email      |
+|     Nombre      |      Email      |
 | --------------- | --------------- |
 | Pedro Maldonado | 13-10790@usb.ve |
 |  Ángel Morante  | 13-10931@usb.ve |
@@ -311,13 +369,13 @@ Los endpoints que contiene son:
 * Validar código de confirmación
 * Ver perfil del usuario
 
-Para más información consulte la documentación del módulo [userController][4].
+Para más información consulte la documentación del módulo userController.
 
 ### Controlador de colas: rideController
 
 Desarrollado por:
 
-|     Hecho por     |      Email      |
+|      Nombre       |      Email      |
 | ----------------- | --------------- |
 | Francisco Márquez | 12-11163@usb.ve |
 
@@ -330,13 +388,13 @@ Los endpoints que contiene son:
 * Cambiar estado de una cola
 * Comentar una cola
 
-Para más información consulte la documentación del módulo [rideController][5].
+Para más información consulte la documentación del módulo rideController.
 
 ### Controlador de solicitudes de colas: requestsController
 
 Desarrollado por:
 
-|     Hecho por     |      Email      |
+|      Nombre       |      Email      |
 | ----------------- | --------------- |
 | Francisco Márquez | 12-11163@usb.ve |
 
@@ -351,23 +409,38 @@ Los endpoints que contiene son:
 * Ofrecer una cola
 * Responder a una oferta de cola
 
-Para más información consulte la documentación del módulo
-[requestsController][6].
+Las solicitudes de cola, para el momento de la elaboración de este manual,
+versión 1.2 no son persistentes, _i. e._, se eliminan permanentemente luego de
+que o son atendidas o son canceladas. Se mantienen activas incluso ante fallas
+del servidor porque se almacenan en Redis. Si se desea, en cambio que las
+solicitudes sean persistentes para su posterior consulta, dependiendo del medio
+que se elija para almacenarlas, deben [agregarse endpoints](#agregar-un-nuevo-endpoint) para gestionarlas desde donde se hayan almacenado.
+Si se desea almacenar en la base de datos, **consulte el manual del
+administrador de la base de datos**.
+
+Asimismo, las solicitudes de cola se ordenan como una cola (primero en entrar
+a la lista, primero en mostrarse). Si se desea cambiar este orden deben
+agregarse **funciones** que manejen la inserción ordenada de las solicitudes a
+la lista. Si se desean agregar campos a las solicitudes de cola para que haya
+algún tipo de discriminación adicional (no recomendado), debe revisarse
+exhaustivamente la aplicación de forma tal que no haya algún error escondido
+en un flujo alternativo.
+
+Para más información consulte la documentación del módulo requestsController.
 
 ### Controlador del algoritmo de recomendación: algorithmController
 
 Desarrollado por:
 
-|     Hecho por     |      Email      |
+|      Nombre       |      Email      |
 | ----------------- | --------------- |
 | Francisco Márquez | 12-11163@usb.ve |
 
 Contiene los endpoints y funciones que manejan la información de las colas.
 
-El endpoint que contiene es: recomendar solicitudes de cola
+El endpoint que contiene es: recomendar solicitudes de cola.
 
-Para más información consulte la documentación del módulo
-[algorithmController][7].
+Para más información consulte la documentación del módulo algorithmController.
 
 ## Posibles cambios
 
@@ -411,13 +484,24 @@ Y cualquier otra parada que contemple la Federación de Centros de Estudiantes
 de la Universidad Simón Bolívar (FCEUSB).
 
 En tal sentido, se tendrán que añadir todas las paradas adicionales al
-[controlador de solicitudes][6], según las recomendaciones presentadas en él.
+controlador de solicitudes (`requestsController.js`) y al controlador del
+algoritmo (`algorithmController.js`), según las recomendaciones presentadas en
+ambos y resumidas aquí:
+
+- Utilizar manualmente Google Maps para calcular las distancias entre paradas
+y entre paradas y la Universidad, teniendo cuidado de no permitir que Google Maps seleccione la ruta, esto puede llevar a inconsistencias catastróficas.
+
+- Las distancias entre paradas se mantienen en `algorithmController.js`. Para
+agregar las distancias, mantener el orden de distancias.
+
+- Las paradas se manejan en `requestsController.js`. Para agregar paradas,
+hacerlo de forma ordenada respecto a la distancia de la parada a la
+Universidad.
 
 ## ¿Cómo hacer los cambios?
 
 Para cambiar algún controlador se dejan indicaciones en la documentación de
-cada uno. Para añadir nuevos controladores revisar la sección **Agregar un
-nuevo controlador** de este manual.
+cada uno. Para añadir nuevos controladores revisar la [sección correspondiente](#agregar-un-nuevo-controlador-xcontrollerjs) de este manual.
 
 ## Recomendaciones generales
 
@@ -467,12 +551,3 @@ primer _endpoint_ que la usó.
 
 * Tenga cuidado cuando defina parámetros por defecto. Esto puede ocasionarle
 errores difíciles de detectar y en consecuencia, corregir.
-
-<!-- Referencias -->
-[1]: https://github.com/pedro9604/pidecola-3.0/blob/develop/out/index.html
-[2]: https://es.wikipedia.org/wiki/Modelo–vista–controlador
-[3]: https://en.wikipedia.org/wiki/Endpoint
-[4]: https://github.com/pedro9604/pidecola-3.0/blob/develop/out/module-userController.html
-[5]: https://github.com/pedro9604/pidecola-3.0/blob/develop/out/module-rideController.html
-[6]: https://github.com/pedro9604/pidecola-3.0/blob/develop/out/module-requestsController.html
-[7]: https://github.com/pedro9604/pidecola-3.0/blob/develop/out/module-algorithmController.html
