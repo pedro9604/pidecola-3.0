@@ -1,17 +1,8 @@
-FROM node:11
-
-RUN npm install --quiet node-gyp -g
-
-RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
-
-WORKDIR /home/node/app
-
-COPY package*.json ./
-
-RUN npm install
-
-COPY --chown=node:node . .
-
+FROM node:latest
+RUN mkdir -p /home/src/api
+WORKDIR /home/src/api
+COPY package*.json .
+RUN npm ci
+COPY . .
 EXPOSE 5000
-
-CMD [ "node", "index.js" ]
+CMD [ "npm", "start" ]

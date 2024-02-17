@@ -4,7 +4,8 @@
   "description": "This is a Nodejs application that is used like back-end of the pide-cola usb 3.0 app.",
   "main": "app.js",
   "scripts": {
-    "start": "nodemon index.js",
+    "start": "node index.js",
+    "dev": "nodemon index.js",
     "test": "jest",
     "lint": "standard",
     "lint-fix": "standard --fix"

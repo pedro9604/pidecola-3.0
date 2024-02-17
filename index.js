@@ -6,7 +6,6 @@ const chalk = require('chalk')
 const cors = require('cors')
 const http = require('http')
 
-const config = require('./Config.js')
 const connections = require('./lib/connections.js')
 const cloudinary = require('./lib/cloudinaryConfig.js')
 
@@ -15,7 +14,7 @@ cloudinary.cloudinaryConfig()
 
 const app = express()
 app.disable('x-powered-by')
-const port = process.env.PORT || config.SERVER_PORT || 5000
+const port = process.env.PORT || 5000
 
 app.use(bodyParser.json({ limit: '50mb', extended: true }))
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }))
@@ -52,7 +51,7 @@ server.listen(port, () => {
   |  |     |   ||      ||  |___ 
   |__|     |___||______||______|
   `),
-  chalk.yellow(` 
+    chalk.yellow(` 
  _______  _______  _      _______  _______       ______ 
 |   ____||       || |    |       ||___    |     |      |
 |  |     |   _   || |    |   _   |    |   |     |  __  |
