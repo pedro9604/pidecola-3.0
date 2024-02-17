@@ -1,4 +1,4 @@
-FROM node:latest
+FROM node:21
 RUN mkdir -p /home/src/api
 WORKDIR /home/src/api
 COPY package*.json .
