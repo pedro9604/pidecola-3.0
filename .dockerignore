@@ -1,4 +1,6 @@
 node_modules
+mongo
 npm-debug.log
 Dockerfile
 .dockerignore
+.env
