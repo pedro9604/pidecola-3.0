@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  mongo_db:
+    image: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: pass
+    volumes:
+      - pidecola_storage_prod:/data/db
+
+  api:
+    build: .
+    ports:
+      - 5000:5000
+    environment:
+      MONGODB_URI: mongodb://root:pass@mongo_db:27017
+      DB_NAME: db
+    depends_on:
+      - mongo_db
+
+volumes:
+  pidecola_storage_prod:
