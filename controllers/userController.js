@@ -124,7 +124,7 @@ const updateUserByEmail = (email, query) => {
  */
 
 exports.findByEmail = (email, querySelect = { password: 0 }) => {
-  return users.findOne({ email: email}, querySelect)
+  return users.findOne({ email: email }, querySelect)
 }
 
 /**
@@ -217,9 +217,9 @@ exports.create = async (req, res) => {
 
   if (!validate.pass) return res.status(400).send(response(false, validate.errors, 'Ha ocurrido un error en el proceso'))
 
-  const alredyRegister = await this.findByEmail(req.body.email)
+  const alreadyRegister = await this.findByEmail(req.body.email)
 
-  if(alreadyRegister) {
+  if (alreadyRegister) {
     if (alreadyRegister.isVerify) {
       return res.status(403).send(response(false, '', 'El usuario ya se encuentra registrado.'))
     } else {
@@ -291,28 +291,28 @@ exports.updateUser = (req, res) => {
 exports.updateProfilePic = (req, res) => {
   const email = req.secret.email
   const file = req.file
-  if(!file) return res.status(401).send(response(false, '', 'File is required'))
+  if (!file) return res.status(401).send(response(false, '', 'File is required'))
   if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))
 
   this.findByEmail(email)
-  .then( async user => {
+    .then(async user => {
 
-    let picture = await files.uploadFile(file.path)
-    if(!picture) return res.status(500).send(response(false, '', 'Ocurrio un error en el proceso, disculpe.'))
+      let picture = await files.uploadFile(file.path)
+      if (!picture) return res.status(500).send(response(false, '', 'Ocurrio un error en el proceso, disculpe.'))
 
-    user.$set({
-      profile_pic: picture.secure_url
+      user.$set({
+        profile_pic: picture.secure_url
+      })
+
+      user.save((err, usr) => {
+        if (err) return res.status(500).send(response(false, err, 'Foto de perfil no fue agregada'))
+        return res.status(200).send(response(true, usr, 'Foto de perfil agregada'))
+      })
+
     })
-
-    user.save( (err, usr) => {
-      if(err) return res.status(500).send(response(false, err, 'Foto de perfil no fue agregada'))
-      return res.status(200).send(response(true, usr, 'Foto de perfil agregada'))
+    .catch(error => {
+      return res.status(500).send(response(false, error, 'Foto de perfil no fue agregada'))
     })
-    
-  })
-  .catch( error => {
-    return res.status(500).send(response(false, error, 'Foto de perfil no fue agregada'))
-  })
 }
 
 /**
@@ -379,43 +379,43 @@ const errorsMessageAddVehicle = {
 exports.addVehicle = (req, res) => {
   const email = req.secret.email
   const file = req.file
-  if(!file) return res.status(401).send(response(false, '', 'File is requires'))
+  if (!file) return res.status(401).send(response(false, '', 'File is requires'))
   if (!email) return res.status(401).send(response(false, '', 'El Email es necesario.'))
 
   const validate = validateIn(req.body, addVehicleRules, errorsMessageAddVehicle)
   if (!validate.pass) return res.status(400).send(response(false, validate.errors, 'Los campos requeridos deben ser enviados.'))
 
   this.findByEmail(email)
-  .then( async user => {
-    let existVehicle
-    if(user.vehicles && user.vehicles.length)existVehicle = user.vehicles.find( vehicle => vehicle.plate === req.body.plate)
-    else user.vehicles = []
-    
-    if(existVehicle) return res.status(403).send(response(false, error, 'Vehiculo ya existe.')) 
+    .then(async user => {
+      let existVehicle
+      if (user.vehicles && user.vehicles.length) existVehicle = user.vehicles.find(vehicle => vehicle.plate === req.body.plate)
+      else user.vehicles = []
 
-    let picture = await files.uploadFile(file.path)
-    if(!picture) return res.status(500).send(response(false, '', 'Ocurrio un error en el proceso, disculpe.'))
+      if (existVehicle) return res.status(403).send(response(false, error, 'Vehiculo ya existe.'))
 
-    user.vehicles.push({
-      plate: req.body.plate,
-      brand: req.body.brand,
-      model: req.body.model,
-      year: req.body.year,
-      color: req.body.color,
-      vehicle_capacity: req.body.vehicle_capacity,
-      vehicle_pic: picture.secure_url
+      let picture = await files.uploadFile(file.path)
+      if (!picture) return res.status(500).send(response(false, '', 'Ocurrio un error en el proceso, disculpe.'))
+
+      user.vehicles.push({
+        plate: req.body.plate,
+        brand: req.body.brand,
+        model: req.body.model,
+        year: req.body.year,
+        color: req.body.color,
+        vehicle_capacity: req.body.vehicle_capacity,
+        vehicle_pic: picture.secure_url
+      })
+
+      user.markModified('vehicles')
+      user.save((err, usr) => {
+        if (err) return res.status(500).send(response(false, err, 'Vehiculo no fue agregado'))
+        return res.status(200).send(response(true, usr, 'Vehiculo agregado.'))
+      })
+
     })
-
-    user.markModified('vehicles')
-    user.save( (err, usr) => {
-      if(err) return res.status(500).send(response(false, err, 'Vehiculo no fue agregado'))
-      return res.status(200).send(response(true, usr, 'Vehiculo agregado.'))
+    .catch(error => {
+      return res.status(500).send(response(false, error, 'Vehiculo no fue agregado'))
     })
-    
-  })
-  .catch( error => {
-    return res.status(500).send(response(false, error, 'Vehiculo no fue agregado'))
-  })
 }
 
 /**
@@ -436,7 +436,7 @@ exports.codeValidate = async (req, res) => {
 
   const user = await this.findByEmail(email)
   if (!user) return res.status(401).send(response(false, '', 'El usuario no fue encontrado, debe registrarse nuevamente.'))
-  if(user.isVerify) return res.status(401).send(response(false, '', 'El usuario ya se encuentra verificado.'))
+  if (user.isVerify) return res.status(401).send(response(false, '', 'El usuario ya se encuentra verificado.'))
   if (user.temporalCode !== parseInt(code)) return res.status(401).send(response(false, '', 'El codigo es incorrecto.'))
   user.isVerify = true
   user.markModified('isVerify')
