@@ -18,13 +18,14 @@
  */
 
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const validateIn = require("../lib/utils/validation").validateIn;
 const response = require("../lib/utils/response").response;
 const autentication = require("../autentication.js");
 const users = require("../models/userModel.js");
-const { serialize } = require("cookie");
 const sendEmail = require("../lib/utils/emails").sendEmail;
 const template = require("../lib/utils/codeTemplate").template;
+const tokenKey = process.env.KEY;
 
 /**
  * Función que modifica el código de confirmación del proceso de registro.
@@ -555,7 +556,13 @@ exports.codeValidate = async (req, res) => {
  */
 
 exports.getUserInformation = (req, res) => {
-  const email = req.secret.email;
+  const token = autentication.viewAuthorization(req.headers.authorization);
+  const { sub } = jwt.verify(token, tokenKey, {
+    audience: process.env.AUDIENCE,
+  });
+
+  const { email } = sub;
+
   if (!email)
     return res.status(401).send(response(false, "", "El Email es necesario."));
   this.findByEmail(email)
