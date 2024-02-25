@@ -13,7 +13,7 @@ const viewCredentials = (authorization) => {
   return { email: userData[0], password: userData[1] };
 };
 
-const viewAuthorization = (authorization) => {
+exports.viewAuthorization = (authorization) => {
   if (!authorization || typeof authorization !== "string") return false;
   const credential = authorization.split(" ");
   return credential[0].toLowerCase() === "bearer" ? credential[1] : false;
@@ -99,7 +99,7 @@ exports.validateSession = (req, res) => {
         .status(200)
         .send(
           response(
-            false,
+            true,
             { token: this.generateToken(decoded.sub.email) },
             "Authorized"
           )
@@ -109,7 +109,7 @@ exports.validateSession = (req, res) => {
 };
 
 exports.verifyAutentication = (req, res, next) => {
-  const token = viewAuthorization(req.headers.authorization);
+  const token = this.viewAuthorization(req.headers.authorization);
 
   jwt.verify(
     token,
