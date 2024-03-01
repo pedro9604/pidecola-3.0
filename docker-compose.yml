@@ -10,27 +10,15 @@ services:
     ports:
       - 27017:27017
 
-  api:
-    build: .
-    ports:
-      - 5000:5000
-    environment:
-      MONGODB_URI: mongodb://root:pass@mongo_db:27017
-      DB_NAME: db
-      KEY: "123"
-      AUDIENCE: "http://localhost:5000/"
-
-    depends_on:
-      - mongo_db
-    develop:
-      watch:
-        - action: sync
-          path: .
-          target: /home/src/api
-          ignore:
-            - node_modules/      
-        - action: rebuild
-          path: package.json,.env
+  # api:
+  #   build: .
+  #   ports:
+  #     - 5000:5000
+  #   environment:
+  #     MONGODB_URI: mongodb://root:pass@mongo_db:27017
+  #     DB_NAME: db
+  #   depends_on:
+  #     - mongo_db
 
 volumes:
   pidecola_storage_prod:
